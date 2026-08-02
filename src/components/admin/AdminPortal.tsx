@@ -76,7 +76,7 @@ export function AdminPortal() {
 
   return (
     <NotificationsProvider role="admin">
-      <div className="flex min-h-screen bg-gray-50">
+      <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
         {mobileNav && <div className="fixed inset-0 z-30 bg-black/40 lg:hidden" onClick={() => setMobileNav(false)} />}
         <Sidebar activeTab={activeTab} onTabChange={handleTabChange} mobileOpen={mobileNav} onClose={() => setMobileNav(false)} />
 

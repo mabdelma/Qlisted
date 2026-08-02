@@ -1,16 +1,24 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { PlusCircle, Edit2, Trash2, MoveUp, MoveDown } from 'lucide-react';
 import { menuApi } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useI18n } from '../../contexts/I18nContext';
+import { useToast } from '../ui/Toast';
 import type { MenuCategory } from '../../lib/api/types';
+import { Button } from '../ui/Button';
+import { Input } from '../ui/Input';
+import { Select } from '../ui/Select';
+import { Modal } from '../ui/Modal';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 
 export function CategoryManagement() {
   const { t } = useI18n();
+  const { toast } = useToast();
   const { state: { tenant } } = useAuth();
   const slug = tenant?.slug;
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [editingCategory, setEditingCategory] = useState<MenuCategory | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<MenuCategory | null>(null);
 
   useEffect(() => {
     if (slug) loadCategories();
@@ -24,30 +32,43 @@ export function CategoryManagement() {
 
   async function saveCategory(category: MenuCategory) {
     if (!slug) return;
-    const isNew = !categories.find(c => c.id === category.id);
-    if (isNew) {
-      await menuApi.createCategory(slug, {
-        name: category.name,
-        type: category.type,
-        parentId: category.parentId,
-        sortOrder: category.sortOrder,
-      });
-    } else {
-      await menuApi.updateCategory(slug, category.id, {
-        name: category.name,
-        type: category.type,
-        parentId: category.parentId,
-        sortOrder: category.sortOrder,
-      });
+    try {
+      const isNew = !categories.find(c => c.id === category.id);
+      if (isNew) {
+        await menuApi.createCategory(slug, {
+          name: category.name,
+          type: category.type,
+          parentId: category.parentId,
+          sortOrder: category.sortOrder,
+        });
+      } else {
+        await menuApi.updateCategory(slug, category.id, {
+          name: category.name,
+          type: category.type,
+          parentId: category.parentId,
+          sortOrder: category.sortOrder,
+        });
+      }
+      setEditingCategory(null);
+      toast('Category saved');
+      loadCategories();
+    } catch (error) {
+      console.error('Failed to save category:', error);
+      toast('Failed to save category', { tone: 'error' });
     }
-    setEditingCategory(null);
-    loadCategories();
   }
 
   async function deleteCategory(id: string) {
     if (!slug) return;
-    await menuApi.deleteCategory(slug, id);
-    loadCategories();
+    try {
+      await menuApi.deleteCategory(slug, id);
+      setDeleteTarget(null);
+      toast('Category deleted');
+      loadCategories();
+    } catch (error) {
+      console.error('Failed to delete category:', error);
+      toast('Failed to delete category', { tone: 'error' });
+    }
   }
 
   async function moveCategory(id: string, direction: 'up' | 'down') {
@@ -80,8 +101,8 @@ export function CategoryManagement() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">{t('menu.categories')}</h2>
-        <button
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('menu.categories')}</h2>
+        <Button
           onClick={() => setEditingCategory({
             id: crypto.randomUUID(),
             name: '',
@@ -89,142 +110,129 @@ export function CategoryManagement() {
             tenantId: '',
             sortOrder: categories.length
           })}
-          className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+          leftIcon={<PlusCircle className="w-5 h-5" />}
         >
-          <PlusCircle className="w-5 h-5 mr-2" />
           {t('common.create')}
-        </button>
+        </Button>
       </div>
 
-      {editingCategory && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <h3 className="text-xl font-semibold mb-4">
-              {editingCategory.id ? 'Edit Category' : 'New Category'}
-            </h3>
-            <form onSubmit={(e) => {
+      <Modal
+        open={!!editingCategory}
+        onClose={() => setEditingCategory(null)}
+        title={editingCategory?.id && categories.some(c => c.id === editingCategory.id) ? 'Edit Category' : 'New Category'}
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setEditingCategory(null)}>
+              Cancel
+            </Button>
+            <Button type="submit" form="category-form" disabled={!editingCategory?.name.trim()}>
+              Save
+            </Button>
+          </>
+        }
+      >
+        {editingCategory && (
+          <form
+            id="category-form"
+            onSubmit={(e) => {
               e.preventDefault();
               saveCategory(editingCategory);
-            }} className="space-y-4">
-              <div>
-                <label htmlFor="category-name" className="block text-sm font-medium text-gray-700">Name</label>
-                <input
-                  id="category-name"
-                  type="text"
-                  value={editingCategory.name}
-                  onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label htmlFor="category-type" className="block text-sm font-medium text-gray-700">Type</label>
-                <select
-                  id="category-type"
-                  value={editingCategory.type}
-                  onChange={(e) => {
-                    const type = e.target.value as 'main' | 'sub';
-                    setEditingCategory({
-                      ...editingCategory,
-                      type,
-                      parentId: type === 'main' ? undefined : editingCategory.parentId
-                    });
-                  }}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                >
-                  <option value="main">Main Category</option>
-                  <option value="sub">Sub Category</option>
-                </select>
-              </div>
-              {editingCategory.type === 'sub' && (
-                <div>
-                  <label htmlFor="category-parent" className="block text-sm font-medium text-gray-700">Parent Category</label>
-                  <select
-                    id="category-parent"
-                    value={editingCategory.parentId}
-                    onChange={(e) => setEditingCategory({ ...editingCategory, parentId: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  >
-                    <option value="">Select a parent category</option>
-                    {mainCategories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setEditingCategory(null)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                >
-                  Save
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            }}
+            className="space-y-4"
+          >
+            <Input
+              id="category-name"
+              label="Name"
+              value={editingCategory.name}
+              onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
+            />
+            <Select
+              id="category-type"
+              label="Type"
+              value={editingCategory.type}
+              onChange={(e) => {
+                const type = e.target.value as 'main' | 'sub';
+                setEditingCategory({
+                  ...editingCategory,
+                  type,
+                  parentId: type === 'main' ? undefined : editingCategory.parentId
+                });
+              }}
+              options={[
+                { value: 'main', label: 'Main Category' },
+                { value: 'sub', label: 'Sub Category' },
+              ]}
+            />
+            {editingCategory.type === 'sub' && (
+              <Select
+                id="category-parent"
+                label="Parent Category"
+                placeholder="Select a parent category"
+                value={editingCategory.parentId}
+                onChange={(e) => setEditingCategory({ ...editingCategory, parentId: e.target.value })}
+                options={mainCategories.map((category) => ({ value: category.id, label: category.name }))}
+              />
+            )}
+          </form>
+        )}
+      </Modal>
 
       <div className="space-y-8">
         <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Main Categories</h3>
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <h3 className="text-lg font-medium text-gray-900 mb-4 dark:text-gray-100">Main Categories</h3>
+          <div className="overflow-hidden rounded-card bg-white shadow-card dark:bg-gray-900">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+              <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
                     Name
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
                 {mainCategories.map((category) => (
                   <tr key={category.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {category.name}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => moveCategory(category.id, 'up')}
                         aria-label="Move up"
-                        className="text-gray-600 hover:text-gray-900 mr-2"
                       >
-                        <MoveUp className="h-5 w-5" />
-                      </button>
-                      <button
+                        <MoveUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => moveCategory(category.id, 'down')}
                         aria-label="Move down"
-                        className="text-gray-600 hover:text-gray-900 mr-4"
                       >
-                        <MoveDown className="h-5 w-5" />
-                      </button>
-                      <button
+                        <MoveDown className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setEditingCategory(category)}
                         aria-label="Edit category"
-                        className="text-indigo-600 hover:text-indigo-900 mr-4"
                       >
-                        <Edit2 className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => deleteCategory(category.id)}
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setDeleteTarget(category)}
                         aria-label="Delete category"
-                        className="text-red-600 hover:text-red-900"
                       >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -234,64 +242,68 @@ export function CategoryManagement() {
         </div>
 
         <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Sub Categories</h3>
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <h3 className="text-lg font-medium text-gray-900 mb-4 dark:text-gray-100">Sub Categories</h3>
+          <div className="overflow-hidden rounded-card bg-white shadow-card dark:bg-gray-900">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+              <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
                     Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
                     Parent Category
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
                 {subCategories.map((category) => (
                   <tr key={category.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {category.name}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
                         {mainCategories.find(c => c.id === category.parentId)?.name}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => moveCategory(category.id, 'up')}
                         aria-label="Move up"
-                        className="text-gray-600 hover:text-gray-900 mr-2"
                       >
-                        <MoveUp className="h-5 w-5" />
-                      </button>
-                      <button
+                        <MoveUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => moveCategory(category.id, 'down')}
                         aria-label="Move down"
-                        className="text-gray-600 hover:text-gray-900 mr-4"
                       >
-                        <MoveDown className="h-5 w-5" />
-                      </button>
-                      <button
+                        <MoveDown className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setEditingCategory(category)}
                         aria-label="Edit category"
-                        className="text-indigo-600 hover:text-indigo-900 mr-4"
                       >
-                        <Edit2 className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => deleteCategory(category.id)}
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setDeleteTarget(category)}
                         aria-label="Delete category"
-                        className="text-red-600 hover:text-red-900"
                       >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -300,8 +312,17 @@ export function CategoryManagement() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete category"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        tone="danger"
+        onConfirm={() => deleteTarget && deleteCategory(deleteTarget.id)}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }
-
-

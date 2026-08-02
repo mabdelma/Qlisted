@@ -1,4 +1,3 @@
-import React from 'react';
 import { Clock, AlertTriangle, ChefHat, Check } from 'lucide-react';
 import { StatsCard } from '../StatsCard';
 
@@ -21,29 +20,29 @@ export function OrderStats({
         title="Pending Orders"
         value={pendingOrders.toString()}
         icon={Clock}
-        iconColor="text-yellow-500"
-        iconBgColor="bg-yellow-100"
+        iconColor="text-yellow-600 dark:text-yellow-400"
+        iconBgColor="bg-yellow-100 dark:bg-yellow-900/40"
       />
       <StatsCard
         title="Preparing"
         value={preparingOrders.toString()}
         icon={ChefHat}
-        iconColor="text-blue-500"
-        iconBgColor="bg-blue-100"
+        iconColor="text-blue-600 dark:text-blue-400"
+        iconBgColor="bg-blue-100 dark:bg-blue-900/40"
       />
       <StatsCard
         title="Ready to Serve"
         value={readyOrders.toString()}
         icon={Check}
-        iconColor="text-green-500"
-        iconBgColor="bg-green-100"
+        iconColor="text-green-600 dark:text-green-400"
+        iconBgColor="bg-green-100 dark:bg-green-900/40"
       />
       <StatsCard
         title="Delayed Orders"
         value={delayedOrders.toString()}
         icon={AlertTriangle}
-        iconColor="text-red-500"
-        iconBgColor="bg-red-100"
+        iconColor="text-red-600 dark:text-red-400"
+        iconBgColor="bg-red-100 dark:bg-red-900/40"
       />
     </div>
   );

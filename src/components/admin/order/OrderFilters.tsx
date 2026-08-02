@@ -1,5 +1,6 @@
-import React from 'react';
-import { Search, Filter, Clock } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { Input } from '../../ui/Input';
+import { Select } from '../../ui/Select';
 
 interface OrderFiltersProps {
   statusFilter: string;
@@ -23,61 +24,56 @@ export function OrderFilters({
   onPaymentFilterChange
 }: OrderFiltersProps) {
   return (
-    <div className="flex flex-col sm:flex-row gap-4 mb-6">
-      <div className="flex-1 relative">
-        <input
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+      <div className="flex-1">
+        <Input
           type="text"
-          placeholder="Search orders by table or items..."
+          placeholder="Search orders by table..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          leftIcon={<Search className="h-4 w-4" aria-hidden />}
+          aria-label="Search orders"
         />
-        <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
       </div>
-      
-      <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-2">
-          <Filter className="h-5 w-5 text-gray-400" />
-          <select
-            value={statusFilter}
-            onChange={(e) => onStatusFilterChange(e.target.value)}
-            className="rounded-lg border border-gray-300 py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="preparing">Preparing</option>
-            <option value="ready">Ready</option>
-            <option value="delivered">Delivered</option>
-          </select>
-        </div>
 
-        <div className="flex items-center space-x-2">
-          <Filter className="h-5 w-5 text-gray-400" />
-          <select
-            value={paymentFilter}
-            onChange={(e) => onPaymentFilterChange(e.target.value)}
-            className="rounded-lg border border-gray-300 py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="all">All Payments</option>
-            <option value="unpaid">Unpaid Orders</option>
-            <option value="partially">Partially Paid</option>
-            <option value="paid">Fully Paid</option>
-          </select>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <Clock className="h-5 w-5 text-gray-400" />
-          <select
-            value={timeFilter}
-            onChange={(e) => onTimeFilterChange(e.target.value)}
-            className="rounded-lg border border-gray-300 py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="all">All Time</option>
-            <option value="today">Today</option>
-            <option value="hour">Last Hour</option>
-            <option value="delayed">Delayed</option>
-          </select>
-        </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3">
+        <Select
+          value={statusFilter}
+          onChange={(e) => onStatusFilterChange(e.target.value)}
+          aria-label="Filter by status"
+          placeholder="All Status"
+          options={[
+            { value: 'pending', label: 'Pending' },
+            { value: 'preparing', label: 'Preparing' },
+            { value: 'ready', label: 'Ready' },
+            { value: 'delivered', label: 'Delivered' },
+          ]}
+          className="sm:w-40"
+        />
+        <Select
+          value={paymentFilter}
+          onChange={(e) => onPaymentFilterChange(e.target.value)}
+          aria-label="Filter by payment"
+          options={[
+            { value: 'all', label: 'All Payments' },
+            { value: 'unpaid', label: 'Unpaid Orders' },
+            { value: 'partially', label: 'Partially Paid' },
+            { value: 'paid', label: 'Fully Paid' },
+          ]}
+          className="sm:w-44"
+        />
+        <Select
+          value={timeFilter}
+          onChange={(e) => onTimeFilterChange(e.target.value)}
+          aria-label="Filter by time"
+          options={[
+            { value: 'all', label: 'All Time' },
+            { value: 'today', label: 'Today' },
+            { value: 'hour', label: 'Last Hour' },
+            { value: 'delayed', label: 'Delayed' },
+          ]}
+          className="sm:w-40"
+        />
       </div>
     </div>
   );

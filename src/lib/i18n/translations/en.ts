@@ -28,6 +28,7 @@ export type TranslationKey =
   | 'order.pending' | 'order.preparing' | 'order.ready' | 'order.delivered'
   | 'order.cancelled' | 'order.newOrder' | 'order.orderReady' | 'order.orderHistory'
   | 'order.processOrder' | 'order.clearCart' | 'order.emptyCart' | 'order.addNotes'
+  | 'order.required'
   | 'order.placedAt' | 'order.itemCount' | 'order.specialInstructions'
   | 'order.dineIn' | 'order.takeaway' | 'order.delivery' | 'order.allOrders'
   | 'order.activeOrders' | 'order.pastOrders'
@@ -37,6 +38,7 @@ export type TranslationKey =
   | 'menu.categories' | 'menu.items' | 'menu.addToCart' | 'menu.noImage'
   | 'menu.search' | 'menu.description' | 'menu.options' | 'menu.soldOut'
   | 'menu.categoryAll' | 'menu.quantity' | 'menu.specialInstructions'
+  | 'menu.chooseOne' | 'menu.chooseAny' | 'menu.management'
   | 'menu.allergenInfo' | 'menu.availableItems'
   | 'payment.pay' | 'payment.paid' | 'payment.unpaid' | 'payment.refunded'
   | 'payment.cash' | 'payment.card' | 'payment.wallet' | 'payment.tip'
@@ -58,6 +60,12 @@ export type TranslationKey =
   | 'review.cta' | 'payment.roundUp' | 'nav.paymentLinks'
   | 'paymentLinks.title' | 'paymentLinks.subtitle' | 'paymentLinks.amount' | 'paymentLinks.description' | 'paymentLinks.descPlaceholder' | 'paymentLinks.generate' | 'paymentLinks.amountError'
   | 'voice.cta' | 'voice.connecting' | 'voice.listening' | 'voice.speaking' | 'voice.retry' | 'voice.stop' | 'voice.hint'
+  | 'customer.assistant.ask' | 'customer.assistant.title' | 'customer.assistant.greeting'
+  | 'customer.assistant.placeholder'
+  | 'customer.assistant.s1' | 'customer.assistant.s2' | 'customer.assistant.s3'
+  | 'customer.assistant.addItem' | 'customer.assistant.yourCart' | 'customer.assistant.emptyCart'
+  | 'customer.assistant.cartTotal' | 'customer.assistant.reviewOrder'
+  | 'customer.assistant.stepReview' | 'customer.assistant.stepCheckout' | 'customer.assistant.stepOrder'
   | 'promo.title' | 'promo.create' | 'promo.edit' | 'promo.name' | 'promo.type'
   | 'promo.value' | 'promo.percentage' | 'promo.fixed' | 'promo.buyXGetY' | 'promo.happyHour'
   | 'promo.minOrder' | 'promo.maxDiscount' | 'promo.startDate' | 'promo.endDate'
@@ -355,6 +363,7 @@ export const translations: Record<TranslationKey, string> = {
   'order.clearCart': 'Clear Cart',
   'order.emptyCart': 'Cart is empty',
   'order.addNotes': 'Add notes',
+  'order.required': 'Required',
   'order.placedAt': 'Placed at',
   'order.itemCount': '{count} items',
   'order.specialInstructions': 'Special instructions',
@@ -387,6 +396,8 @@ export const translations: Record<TranslationKey, string> = {
   'menu.categoryAll': 'All',
   'menu.quantity': 'Qty',
   'menu.specialInstructions': 'Special instructions',
+  'menu.chooseOne': 'Choose one',
+  'menu.chooseAny': 'Choose any',
   'menu.allergenInfo': 'Allergen info',
   'menu.availableItems': '{count} items available',
 
@@ -914,6 +925,21 @@ export const translations: Record<TranslationKey, string> = {
   'assistant.s2': "What are my top 5 items?",
   'assistant.s3': "Write a description for my best-seller",
   'assistant.s4': "Show recent orders",
+  'customer.assistant.ask': "Ask",
+  'customer.assistant.title': "Menu assistant",
+  'customer.assistant.greeting': "Hi! Ask me about the menu or what to order.",
+  'customer.assistant.placeholder': "What's good here?",
+  'customer.assistant.s1': "What do you recommend?",
+  'customer.assistant.s2': "Any vegetarian options?",
+  'customer.assistant.s3': "What's popular?",
+  'customer.assistant.addItem': "Add",
+  'customer.assistant.yourCart': "Your order",
+  'customer.assistant.emptyCart': "Your cart is empty.",
+  'customer.assistant.cartTotal': "Total",
+  'customer.assistant.reviewOrder': "Review order",
+  'customer.assistant.stepReview': "Review my cart",
+  'customer.assistant.stepCheckout': "I'm ready to check out",
+  'customer.assistant.stepOrder': "I'd like to order",
   'sub.title': "Subscription & Billing",
   'sub.currentPlan': "Current Plan",
   'sub.plan': "Plan",

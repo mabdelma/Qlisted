@@ -32,3 +32,15 @@ export function formatPrice(usd: number, locale: Locale): string {
 export function currencyCode(locale: Locale): string {
   return (CURRENCY[locale] ?? CURRENCY.en).code;
 }
+
+/** Format an amount in the tenant's currency (falls back to USD). */
+export function formatMoney(amount: number, currency?: string | null, localeTag = 'en-US'): string {
+  try {
+    return new Intl.NumberFormat(localeTag, {
+      style: 'currency',
+      currency: currency || 'USD',
+    }).format(amount);
+  } catch {
+    return `$${amount.toFixed(2)}`;
+  }
+}

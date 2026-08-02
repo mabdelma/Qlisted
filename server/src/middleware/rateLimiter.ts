@@ -58,3 +58,24 @@ export const pointsLimiter = rateLimiter({
   message: { error: 'Too many requests, please try again later' },
   statusCode: 429,
 });
+
+// AI chat is an LLM round-trip per message — guard the public and admin endpoints
+// so a scripted client can't burn the operator's API budget.
+export const aiLimiter = rateLimiter({
+  windowMs: 60 * 1000,
+  limit: 20,
+  standardHeaders: 'draft-7',
+  keyGenerator,
+  message: { error: 'Too many requests, please try again later' },
+  statusCode: 429,
+});
+
+// Voice sessions mint an expensive OpenAI Realtime token — keep it very tight.
+export const voiceLimiter = rateLimiter({
+  windowMs: 60 * 1000,
+  limit: 5,
+  standardHeaders: 'draft-7',
+  keyGenerator,
+  message: { error: 'Too many voice requests, please try again later' },
+  statusCode: 429,
+});

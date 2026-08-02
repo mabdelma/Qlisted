@@ -197,17 +197,17 @@ export function VoiceOrderWidget({ slug, onAddItem, onRemoveItem, getCart }: {
         <button
           onClick={start}
           aria-label={t('voice.cta')}
-          className="fixed bottom-6 left-5 z-40 flex items-center gap-2 rounded-full bg-[#8B4513] px-4 py-3 text-white shadow-lg hover:bg-[#5C4033]"
+          className="fixed bottom-6 left-5 z-40 flex items-center gap-2 rounded-full bg-brand-500 px-4 py-3 text-white shadow-card hover:bg-brand-600"
         >
           {state === 'error' ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
           <span className="text-sm font-medium">{pillLabel}</span>
         </button>
       )}
 
-      {/* Connecting / live → immersive voice panel (Escoutly-style, Qlisted browns) */}
+      {/* Connecting / live → immersive voice panel (Escoutly-style, brand theme) */}
       {active && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="relative flex w-[min(92vw,26rem)] flex-col items-center gap-6 rounded-3xl bg-gradient-to-b from-[#3f2415] to-[#1c120c] p-8 text-center shadow-2xl ring-1 ring-white/10">
+          <div className="relative flex w-[min(92vw,26rem)] flex-col items-center gap-6 rounded-card bg-gradient-to-b from-brand-900 to-brand-950 p-8 text-center shadow-float ring-1 ring-white/10">
             <button onClick={stop} aria-label={t('voice.stop')} className="absolute right-4 top-4 rounded-full p-1.5 text-white/70 hover:bg-white/10 hover:text-white">
               <X className="h-5 w-5" />
             </button>
@@ -216,7 +216,7 @@ export function VoiceOrderWidget({ slug, onAddItem, onRemoveItem, getCart }: {
               <p className="text-lg font-semibold text-white">
                 {state === 'connecting' ? t('voice.connecting') : speaking ? t('voice.speaking') : t('voice.listening')}
               </p>
-              <p className="mt-1 text-sm text-amber-100/70">{t('voice.hint')}</p>
+              <p className="mt-1 text-sm text-accent-light/70">{t('voice.hint')}</p>
             </div>
             <button
               onClick={stop}

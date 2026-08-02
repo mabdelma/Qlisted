@@ -29,7 +29,7 @@ type CartAction =
   | { type: 'SET_COMMENT'; payload: { id: string; comment: string } }
   | { type: 'CLEAR_CART' };
 
-const CartContext = createContext<{
+export const CartContext = createContext<{
   state: CartState;
   dispatch: React.Dispatch<CartAction>;
 } | null>(null);

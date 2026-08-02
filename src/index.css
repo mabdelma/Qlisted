@@ -3,11 +3,91 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-brand: #8B4513;
-  --color-brand-hover: #5C4033;
-  --color-brand-light: #F5DEB3;
+  /* ------------------------------------------------------------------
+   * Brand palette — saddle brown ramp. Keeps legacy `--color-brand`
+   * aliases working so existing `bg-brand` / `text-brand` / `ring-brand`
+   * utilities keep resolving.
+   * ------------------------------------------------------------------ */
+  --color-brand-50: #fbf6ef;
+  --color-brand-100: #f6e8d7;
+  --color-brand-200: #ecd2b3;
+  --color-brand-300: #dfb389;
+  --color-brand-400: #c9975c;
+  --color-brand-500: #8b4513;
+  --color-brand-600: #783b10;
+  --color-brand-700: #5c4033;
+  --color-brand-800: #452c22;
+  --color-brand-900: #332019;
+  --color-brand-950: #211512;
+
+  /* Legacy brand aliases (used across the app already) */
+  --color-brand: #8b4513;
+  --color-brand-hover: #5c4033;
+  --color-brand-light: #f5deb3;
+
+  /* Sidebar / nav semantics */
+  --color-sidebar-bg: #5c4033;
+  --color-sidebar-hover: #6a4b35;
+  --color-sidebar-active: #8b4513;
+  --color-sidebar-text: #f5deb3;
+  --color-sidebar-label: #c9a26b;
+  --color-sidebar-border: rgba(245, 222, 179, 0.12);
+
+  /* Accent (CTA on dark surfaces) */
+  --color-accent: #c9a26b;
+  --color-accent-light: #e8cfa8;
+
+  /* ------------------------------------------------------------------
+   * Typography
+   * ------------------------------------------------------------------ */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-display: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+
+  /* ------------------------------------------------------------------
+   * Radius
+   * ------------------------------------------------------------------ */
+  --radius-card: 0.75rem;
+  --radius-pill: 9999px;
+
+  /* ------------------------------------------------------------------
+   * Shadows — soft, layered elevation
+   * ------------------------------------------------------------------ */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05), 0 1px 3px rgb(0 0 0 / 0.04);
+  --shadow-card-hover: 0 2px 4px rgb(0 0 0 / 0.06), 0 8px 20px rgb(0 0 0 / 0.08);
+  --shadow-popover: 0 4px 6px rgb(0 0 0 / 0.08), 0 12px 32px rgb(0 0 0 / 0.12);
+  --shadow-float: 0 8px 24px rgb(0 0 0 / 0.12), 0 16px 48px rgb(0 0 0 / 0.16);
+
+  /* ------------------------------------------------------------------
+   * Motion
+   * ------------------------------------------------------------------ */
+  --animate-slide-up: slide-up 0.3s ease-out;
+  --animate-slide-in: slide-in 0.25s ease-out;
+  --animate-fade-in: fade-in 0.2s ease-out;
+  --animate-scale-in: scale-in 0.18s ease-out;
+
+  @keyframes slide-up {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  @keyframes slide-in {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.97); }
+    to { opacity: 1; transform: scale(1); }
+  }
 }
 
+/* ------------------------------------------------------------------
+ * Base
+ * ------------------------------------------------------------------ */
 html {
   scroll-behavior: smooth;
 }
@@ -17,22 +97,25 @@ html.dark {
 }
 
 body {
-  @apply bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors;
+  @apply bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100;
+  font-feature-settings: "cv11", "ss01";
 }
 
 [dir="rtl"] {
   text-align: right;
 }
 
-@keyframes slide-up {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+::selection {
+  background-color: var(--color-brand-200);
+  color: var(--color-brand-900);
 }
 
-.animate-slide-up {
-  animation: slide-up 0.3s ease-out;
+.dark ::selection {
+  background-color: var(--color-brand-800);
+  color: var(--color-brand-100);
 }
 
+/* Consistent, accessible focus ring across all interactive elements */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
@@ -40,6 +123,55 @@ textarea:focus-visible,
 select:focus-visible,
 [role="button"]:focus-visible,
 [tabindex]:focus-visible {
-  outline: 2px solid #8B4513;
+  outline: 2px solid var(--color-brand-500);
   outline-offset: 2px;
+}
+
+.dark button:focus-visible,
+.dark a:focus-visible,
+.dark input:focus-visible,
+.dark textarea:focus-visible,
+.dark select:focus-visible,
+.dark [role="button"]:focus-visible,
+.dark [tabindex]:focus-visible {
+  outline-color: var(--color-brand-300);
+}
+
+/* ------------------------------------------------------------------
+ * Shared component utilities
+ * ------------------------------------------------------------------ */
+@layer components {
+  /* Elevated surface used across customer + admin UI */
+  .card {
+    @apply bg-white rounded-card border border-gray-200 shadow-card dark:bg-gray-900 dark:border-gray-800;
+  }
+
+  /* Hide scrollbar but keep scrolling (pills/carousels) */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: var(--color-gray-300);
+    border-radius: 9999px;
+  }
+  .dark .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: var(--color-gray-700);
+  }
+
+  /* Visually hidden for screen-reader-only content */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
 }

@@ -1,19 +1,33 @@
-﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import { useState, useEffect, useCallback, useMemo } from 'react';
 import { PlusCircle, Edit, Trash2, Image as ImageIcon } from 'lucide-react';
 import { menuApi } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../ui/Toast';
 import type { MenuItem, MenuCategory } from '../../lib/api/types';
 import { uploadImage } from '../../lib/utils/imageUpload';
+import { formatMoney } from '../../lib/pricing';
+import { Button } from '../ui/Button';
+import { Input } from '../ui/Input';
+import { Textarea } from '../ui/Textarea';
+import { Select } from '../ui/Select';
+import { Switch } from '../ui/Switch';
+import { Modal } from '../ui/Modal';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { Badge } from '../ui/Badge';
+import { EmptyState } from '../ui/EmptyState';
 import { CategoryManagement } from './CategoryManagement';
 
 export function MenuManagement() {
   const { state: { tenant } } = useAuth();
   const slug = tenant?.slug;
+  const currency = tenant?.currency;
+  const { toast } = useToast();
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [selectedMainCategory, setSelectedMainCategory] = useState<string>('');
   const [showCategories, setShowCategories] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<MenuItem | null>(null);
   const [availableSubCategories, setAvailableSubCategories] = useState<MenuCategory[]>([]);
 
   const loadMenuItems = useCallback(async () => {
@@ -43,38 +57,51 @@ export function MenuManagement() {
 
   async function saveMenuItem(item: MenuItem) {
     if (!slug) return;
-    const isNew = !menuItems.find(i => i.id === item.id);
-    if (isNew) {
-      await menuApi.createItem(slug, {
-        categoryId: item.categoryId,
-        name: item.name,
-        price: item.price,
-        description: item.description,
-        imageUrl: item.imageUrl,
-        available: item.available,
-        subCategoryId: item.subCategoryId || undefined,
-      });
-    } else {
-      await menuApi.updateItem(slug, item.id, {
-        name: item.name,
-        price: item.price,
-        description: item.description,
-        imageUrl: item.imageUrl,
-        available: item.available,
-        subCategoryId: item.subCategoryId || undefined,
-      });
+    try {
+      const isNew = !menuItems.find(i => i.id === item.id);
+      if (isNew) {
+        await menuApi.createItem(slug, {
+          categoryId: item.categoryId,
+          name: item.name,
+          price: item.price,
+          description: item.description,
+          imageUrl: item.imageUrl,
+          available: item.available,
+          subCategoryId: item.subCategoryId || undefined,
+        });
+      } else {
+        await menuApi.updateItem(slug, item.id, {
+          name: item.name,
+          price: item.price,
+          description: item.description,
+          imageUrl: item.imageUrl,
+          available: item.available,
+          subCategoryId: item.subCategoryId || undefined,
+        });
+      }
+      setEditingItem(null);
+      toast('Menu item saved');
+      const data = await menuApi.getFullMenu(slug);
+      setMenuItems(data.items);
+      setCategories(data.categories.sort((a, b) => a.sortOrder - b.sortOrder));
+    } catch (error) {
+      console.error('Failed to save menu item:', error);
+      toast('Failed to save menu item', { tone: 'error' });
     }
-    setEditingItem(null);
-    const data = await menuApi.getFullMenu(slug);
-    setMenuItems(data.items);
-    setCategories(data.categories.sort((a, b) => a.sortOrder - b.sortOrder));
   }
 
   async function deleteMenuItem(id: string) {
     if (!slug) return;
-    await menuApi.deleteItem(slug, id);
-    const data = await menuApi.getFullMenu(slug);
-    setMenuItems(data.items);
+    try {
+      await menuApi.deleteItem(slug, id);
+      setDeleteTarget(null);
+      toast('Menu item deleted');
+      const data = await menuApi.getFullMenu(slug);
+      setMenuItems(data.items);
+    } catch (error) {
+      console.error('Failed to delete menu item:', error);
+      toast('Failed to delete menu item', { tone: 'error' });
+    }
   }
 
   const mainCategories = useMemo(() => categories.filter(c => c.type === 'main'), [categories]);
@@ -89,244 +116,41 @@ export function MenuManagement() {
       });
   }, [menuItems, selectedMainCategory, categories]);
 
+  function startNewItem() {
+    if (!slug) return;
+    loadMenuItems().then(() => {
+      const firstMainCategory = mainCategories[0]?.id || '';
+      const firstSubCategory = categories.find(
+        c => c.type === 'sub' && c.parentId === firstMainCategory
+      )?.id || '';
+      setEditingItem({
+        id: crypto.randomUUID(),
+        name: '',
+        description: '',
+        price: 0,
+        categoryId: firstMainCategory,
+        subCategoryId: firstSubCategory,
+        imageUrl: '',
+        available: true,
+        tenantId: '',
+        sortOrder: 0,
+      });
+    });
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Menu Management</h2>
-        <div className="flex items-center">
-          <button
-            onClick={() => {
-              if (slug) loadMenuItems().then(() => {
-                const firstMainCategory = mainCategories[0]?.id || '';
-                const firstSubCategory = categories.find(
-                  c => c.type === 'sub' && c.parentId === firstMainCategory
-                )?.id || '';
-                setEditingItem({
-                  id: crypto.randomUUID(),
-                  name: '',
-                  description: '',
-                  price: 0,
-                  categoryId: firstMainCategory,
-                  subCategoryId: firstSubCategory,
-                  imageUrl: '',
-                  available: true,
-                  tenantId: '',
-                  sortOrder: 0,
-                });
-                const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-                if (fileInput) {
-                  fileInput.value = '';
-                }
-              });
-            }}
-            className="flex items-center px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]"
-          >
-            <PlusCircle className="w-5 h-5 mr-2" />
+      <div className="flex flex-wrap justify-between items-center gap-3">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Menu Management</h2>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button onClick={startNewItem} leftIcon={<PlusCircle className="h-5 w-5" />}>
             Add Item
-          </button>
-          <button
-            onClick={() => setShowCategories(true)}
-            className="flex items-center px-4 py-2 ml-4 bg-white text-[#8B4513] border border-[#8B4513] rounded-md hover:bg-[#F5DEB3]"
-          >
+          </Button>
+          <Button variant="outline" onClick={() => setShowCategories(true)}>
             Manage Categories
-          </button>
+          </Button>
         </div>
       </div>
-
-      {showCategories && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">Manage Categories</h3>
-              <button
-                onClick={() => setShowCategories(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                Ã—
-              </button>
-            </div>
-            <CategoryManagement />
-          </div>
-        </div>
-      )}
-
-      {editingItem && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl">
-            <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-semibold mb-4">
-              {editingItem.id ? 'Edit Menu Item' : 'New Menu Item'}
-            </h3>
-            <button
-              onClick={() => setEditingItem(null)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              Ã—
-            </button>
-            </div>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              saveMenuItem(editingItem);
-            }} className="space-y-4">
-              <div>
-                <label htmlFor="menu-name" className="block text-sm font-medium text-gray-700">Name</label>
-                <input
-                  id="menu-name"
-                  type="text"
-                  placeholder="Enter item name"
-                  value={editingItem.name}
-                  onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label htmlFor="menu-description" className="block text-sm font-medium text-gray-700">Description</label>
-                <textarea
-                  id="menu-description"
-                  placeholder="Enter item description"
-                  value={editingItem.description}
-                  onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="menu-price" className="block text-sm font-medium text-gray-700">Price</label>
-                  <input
-                    id="menu-price"
-                    type="number"
-                    step="0.01"
-                    value={editingItem.price.toString()}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      const price = value === '' ? 0 : parseFloat(value);
-                      setEditingItem({ ...editingItem, price: isNaN(price) ? 0 : price });
-                    }}
-                    min="0"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="menu-main-category" className="block text-sm font-medium text-gray-700">Main Category</label>
-                  <select
-                    id="menu-main-category"
-                    value={editingItem.categoryId}
-                    onChange={(e) => {
-                      const categoryId = e.target.value;
-                      const firstSubCategory = categories.find(
-                        c => c.type === 'sub' && c.parentId === categoryId
-                      );
-                      setEditingItem({
-                        ...editingItem,
-                        categoryId,
-                        subCategoryId: firstSubCategory?.id || ''
-                      });
-                    }}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  >
-                    {mainCategories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="menu-sub-category" className="block text-sm font-medium text-gray-700">Sub Category</label>
-                  <select
-                    id="menu-sub-category"
-                    value={editingItem.subCategoryId}
-                    onChange={(e) => setEditingItem({ ...editingItem, subCategoryId: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  >
-                    {availableSubCategories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label htmlFor="menu-image" className="block text-sm font-medium text-gray-700">Image</label>
-                <div className="mt-1 flex items-center space-x-4">
-                  <div className="relative h-20 w-20 bg-gray-100 rounded-md overflow-hidden">
-                    {editingItem.imageUrl ? (
-                      <img
-                        src={editingItem.imageUrl}
-                        alt="Preview"
-                        width="80"
-                        height="80"
-                        loading="lazy"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                    <div className="h-20 w-20 bg-gray-100 rounded-md flex items-center justify-center">
-                      <ImageIcon className="w-8 h-8 text-gray-400" />
-                    </div>
-                    )}
-                  </div>
-                  <label className="cursor-pointer bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    <span>Upload Image</span>
-                    <input
-                      id="menu-image"
-                      type="file"
-                      className="sr-only"
-                      accept="image/*"
-                      key={editingItem.id}
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          try {
-                            const imageUrl = await uploadImage(file);
-                            setEditingItem({ ...editingItem, imageUrl: imageUrl });
-                          } catch (error) {
-                            console.error('Failed to upload image:', error);
-                          }
-                        }
-                      }}
-                    />
-                  </label>
-                  {editingItem.imageUrl && (
-                    <button
-                      type="button"
-                      onClick={() => setEditingItem({ ...editingItem, imageUrl: '' })}
-                      className="text-sm text-red-600 hover:text-red-700"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center">
-                <input
-                  id="menu-available"
-                  type="checkbox"
-                  checked={editingItem.available}
-                  onChange={(e) => setEditingItem({ ...editingItem, available: e.target.checked })}
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                />
-                <label htmlFor="menu-available" className="ml-2 block text-sm text-gray-900">Available</label>
-              </div>
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setEditingItem(null)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                >
-                  Save
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       <div className="mb-6">
         <div className="flex space-x-4 overflow-x-auto pb-4">
@@ -334,10 +158,11 @@ export function MenuManagement() {
             <button
               key={category.id}
               onClick={() => setSelectedMainCategory(category.id)}
-              className={`px-4 py-2 rounded-lg whitespace-nowrap ${
+              aria-pressed={selectedMainCategory === category.id}
+              className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
                 selectedMainCategory === category.id
-                  ? 'bg-[#F5DEB3] text-[#8B4513]'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
+                  ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/50 dark:text-brand-200'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800'
               }`}
             >
               {category.name}
@@ -346,64 +171,222 @@ export function MenuManagement() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredMenuItems.map((item) => (
-          <article key={item.id} className="bg-white rounded-lg shadow p-6">
-            <div className="relative aspect-video mb-4 bg-gray-100 rounded-md overflow-hidden">
-              {item.imageUrl ? (
-                <img
-                  src={item.imageUrl}
-                  alt={item.name}
-                  width="320"
-                  height="180"
-                  loading="lazy"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <ImageIcon className="w-12 h-12 text-gray-400" />
+      {filteredMenuItems.length === 0 ? (
+        <EmptyState
+          icon={<ImageIcon className="h-10 w-10" />}
+          title="No menu items"
+          description="Add your first item to this category to get started."
+          action={{ label: 'Add Item', onClick: startNewItem }}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredMenuItems.map((item) => (
+            <article key={item.id} className="rounded-card bg-white p-6 shadow-card transition-shadow hover:shadow-card-hover dark:bg-gray-900">
+              <div className="relative aspect-video mb-4 bg-gray-100 rounded-md overflow-hidden dark:bg-gray-800">
+                {item.imageUrl ? (
+                  <img
+                    src={item.imageUrl}
+                    alt={item.name}
+                    width="320"
+                    height="180"
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <ImageIcon className="w-12 h-12 text-gray-400" />
+                  </div>
+                )}
+              </div>
+              <div className="flex justify-between items-start mb-2 gap-2">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{item.name}</h3>
+                <span className="text-lg font-medium text-gray-900 dark:text-gray-100">{formatMoney(item.price, currency)}</span>
+              </div>
+              <div className="flex items-center space-x-2 mb-2">
+                <span className="text-sm font-medium text-brand-600 dark:text-brand-400">
+                  {categories.find(c => c.id === item.subCategoryId)?.name}
+                </span>
+              </div>
+              <p className="text-gray-600 text-sm mb-4 dark:text-gray-400">{item.description}</p>
+              <div className="flex justify-between items-center">
+                <Badge variant={item.available ? 'success' : 'danger'} dot>
+                  {item.available ? 'Available' : 'Unavailable'}
+                </Badge>
+                <div className="flex space-x-2">
+                  <Button variant="ghost" size="sm" onClick={() => setEditingItem(item)} aria-label="Edit item">
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(item)} aria-label="Delete item">
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
-              )}
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+
+      <Modal open={showCategories} onClose={() => setShowCategories(false)} size="xl">
+        <CategoryManagement />
+      </Modal>
+
+      <Modal
+        open={!!editingItem}
+        onClose={() => setEditingItem(null)}
+        title={editingItem?.id && menuItems.some(i => i.id === editingItem.id) ? 'Edit Menu Item' : 'New Menu Item'}
+        size="lg"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setEditingItem(null)}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              form="menu-item-form"
+              disabled={!editingItem?.name.trim()}
+            >
+              Save
+            </Button>
+          </>
+        }
+      >
+        {editingItem && (
+          <form
+            id="menu-item-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              saveMenuItem(editingItem);
+            }}
+            className="space-y-4"
+          >
+            <Input
+              id="menu-name"
+              type="text"
+              label="Name"
+              placeholder="Enter item name"
+              value={editingItem.name}
+              onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
+            />
+            <Textarea
+              id="menu-description"
+              label="Description"
+              placeholder="Enter item description"
+              value={editingItem.description}
+              onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                id="menu-price"
+                type="number"
+                step="0.01"
+                min="0"
+                label="Price"
+                value={editingItem.price.toString()}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const price = value === '' ? 0 : parseFloat(value);
+                  setEditingItem({ ...editingItem, price: isNaN(price) ? 0 : price });
+                }}
+              />
+              <Select
+                id="menu-main-category"
+                label="Main Category"
+                value={editingItem.categoryId}
+                onChange={(e) => {
+                  const categoryId = e.target.value;
+                  const firstSubCategory = categories.find(
+                    c => c.type === 'sub' && c.parentId === categoryId
+                  );
+                  setEditingItem({
+                    ...editingItem,
+                    categoryId,
+                    subCategoryId: firstSubCategory?.id || ''
+                  });
+                }}
+                options={mainCategories.map((category) => ({ value: category.id, label: category.name }))}
+              />
             </div>
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
-              <span className="text-lg font-medium text-gray-900">${item.price.toFixed(2)}</span>
-            </div>
-            <div className="flex items-center space-x-2 mb-2">
-              <span className="text-sm font-medium text-indigo-600">
-                {categories.find(c => c.id === item.subCategoryId)?.name}
-              </span>
-            </div>
-            <p className="text-gray-600 text-sm mb-4">{item.description}</p>
-            <div className="flex justify-between items-center">
-              <span className={`px-2 py-1 rounded-full text-sm ${
-                item.available
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-red-100 text-red-800'
-              }`}>
-                {item.available ? 'Available' : 'Unavailable'}
-              </span>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setEditingItem(item)}
-                  aria-label="Edit item"
-                  className="p-2 text-gray-600 hover:text-indigo-600"
-                >
-                  <Edit className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => deleteMenuItem(item.id)}
-                  aria-label="Delete item"
-                  className="p-2 text-gray-600 hover:text-red-600"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
+            <Select
+              id="menu-sub-category"
+              label="Sub Category"
+              placeholder="No sub-category"
+              value={editingItem.subCategoryId}
+              onChange={(e) => setEditingItem({ ...editingItem, subCategoryId: e.target.value })}
+              options={availableSubCategories.map((category) => ({ value: category.id, label: category.name }))}
+            />
+            <div>
+              <span className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Image</span>
+              <div className="flex items-center gap-4">
+                <div className="relative h-20 w-20 bg-gray-100 rounded-md overflow-hidden shrink-0 dark:bg-gray-800">
+                  {editingItem.imageUrl ? (
+                    <img
+                      src={editingItem.imageUrl}
+                      alt="Preview"
+                      width="80"
+                      height="80"
+                      loading="lazy"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-20 w-20 bg-gray-100 rounded-md flex items-center justify-center dark:bg-gray-800">
+                      <ImageIcon className="w-8 h-8 text-gray-400" />
+                    </div>
+                  )}
+                </div>
+                <label className="cursor-pointer bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus-within:ring-2 focus-within:ring-brand-500 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-800">
+                  <span>Upload Image</span>
+                  <input
+                    id="menu-image"
+                    type="file"
+                    className="sr-only"
+                    accept="image/*"
+                    key={editingItem.id}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        try {
+                          const imageUrl = await uploadImage(file);
+                          setEditingItem({ ...editingItem, imageUrl });
+                        } catch (error) {
+                          console.error('Failed to upload image:', error);
+                          toast('Failed to upload image', { tone: 'error' });
+                        }
+                      }
+                    }}
+                  />
+                </label>
+                {editingItem.imageUrl && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    type="button"
+                    onClick={() => setEditingItem({ ...editingItem, imageUrl: '' })}
+                  >
+                    Remove
+                  </Button>
+                )}
               </div>
             </div>
-          </article>
-        ))}
-      </div>
+            <Switch
+              id="menu-available"
+              label="Available"
+              checked={editingItem.available}
+              onChange={(checked) => setEditingItem({ ...editingItem, available: checked })}
+            />
+          </form>
+        )}
+      </Modal>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete menu item"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        tone="danger"
+        onConfirm={() => deleteTarget && deleteMenuItem(deleteTarget.id)}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }
-

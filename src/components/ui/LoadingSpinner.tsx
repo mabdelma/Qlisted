@@ -1,9 +1,10 @@
-import React from 'react';
+import { Spinner } from './Spinner';
 
-export function LoadingSpinner() {
-  return (
-    <div className="flex justify-center items-center p-4" role="status" aria-label="Loading">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-    </div>
-  );
+interface LoadingSpinnerProps {
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
+}
+
+export function LoadingSpinner({ size = 'md', className = '' }: LoadingSpinnerProps) {
+  return <Spinner size={size} className={className} />;
 }

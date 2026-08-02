@@ -11,6 +11,7 @@ import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { CookieConsent } from './components/ui/CookieConsent';
 import { MenuSkeleton } from './components/ui/MenuSkeleton';
 import { CartSkeleton } from './components/ui/CartSkeleton';
+import { ToastProvider } from './components/ui/Toast';
 
 const SignIn = lazy(() => import('./components/auth/SignIn').then(m => ({ default: m.SignIn })));
 const StaffSignUp = lazy(() => import('./components/auth/StaffSignUp').then(m => ({ default: m.StaffSignUp })));
@@ -84,6 +85,7 @@ function App() {
     <ErrorBoundary>
     <ThemeProvider>
     <I18nProvider>
+    <ToastProvider>
     <AuthProvider>
       <BrowserRouter>
         <Suspense fallback={<RouteFallback />}>
@@ -172,6 +174,7 @@ function App() {
         <CookieConsent />
       </BrowserRouter>
     </AuthProvider>
+    </ToastProvider>
     </I18nProvider>
     </ThemeProvider>
     </ErrorBoundary>

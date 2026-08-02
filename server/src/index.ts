@@ -87,7 +87,7 @@ app.use('*', async (c, next) => {
   c.header('X-Permitted-Cross-Domain-Policies', 'none');
   c.header('Cross-Origin-Resource-Policy', 'same-site');
   c.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  c.header('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.stripe.com https://*.ingest.sentry.io; frame-src https://js.stripe.com; base-uri 'self'; form-action 'self'");
+  c.header('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.stripe.com https://*.ingest.sentry.io https://api.openai.com https://*.openai.com; frame-src https://js.stripe.com; base-uri 'self'; form-action 'self'");
 });
 
 app.use('*', cors({

@@ -43,12 +43,28 @@ export const adminApi = {
 };
 
 // AI assistant (admin copilot + customer chat)
+export interface AiCartLine { menuItemId: string; name: string; quantity: number; unitPrice: number; imageUrl?: string | null }
+export type AiBlock =
+  | { type: 'menu'; categories: { id: string; name: string; items: { id: string; name: string; price: number; description?: string | null; imageUrl?: string | null }[] }[] }
+  | { type: 'cart'; items: AiCartLine[]; total: number };
+export interface CustomerChatContext { cart?: AiCartLine[]; orderToken?: string; orderId?: string; locale?: string; isMobile?: boolean }
+export type AiTaskId = 'build_order' | 'recommend' | 'track_order' | 'general';
+export interface CustomerChatResponse {
+  reply: string;
+  orderToken?: string;
+  cart?: { items: AiCartLine[]; total: number };
+  blocks?: AiBlock[];
+  task?: { id: AiTaskId; label?: string };
+  done?: boolean;
+  nextStep?: string;
+}
+
 export const aiApi = {
   status: (slug: string) => api.get<{ enabled: boolean }>(`/r/${slug}/ai/status`, { skipAuth: true }),
   adminChat: (slug: string, messages: { role: 'user' | 'assistant'; content: string }[]) =>
     api.post<{ reply: string }>(`/r/${slug}/ai/admin`, { messages }),
-  customerChat: (slug: string, messages: { role: 'user' | 'assistant'; content: string }[]) =>
-    api.post<{ reply: string }>(`/r/${slug}/ai/customer`, { messages }, { skipAuth: true }),
+  customerChat: (slug: string, messages: { role: 'user' | 'assistant'; content: string }[], context?: CustomerChatContext) =>
+    api.post<CustomerChatResponse>(`/r/${slug}/ai/customer`, { messages, context }, { skipAuth: true }),
   voiceSession: (slug: string) =>
     api.post<{ clientSecret: string; expiresAt?: number; model: string }>(`/r/${slug}/ai/voice-session`, {}, { skipAuth: true }),
 };

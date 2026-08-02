@@ -3,23 +3,15 @@ import { useParams } from 'react-router';
 import { useI18n } from '../../contexts/I18nContext';
 import { orderApi } from '../../lib/api';
 import type { Order, OrderItem } from '../../lib/api/types';
-import { CheckCircle, ChefHat, Bike, Clock, Package, ShoppingBag } from 'lucide-react';
+import { Package, ShoppingBag, RefreshCw } from 'lucide-react';
+import { Card } from '../../components/ui/Card';
+import { Badge } from '../../components/ui/Badge';
+import { Button } from '../../components/ui/Button';
+import { OrderStatusTimeline } from '../../components/orders/OrderStatusTimeline';
+import { formatMoney } from '../../lib/pricing';
 
 interface OrderWithItems extends Order {
   items: OrderItem[];
-}
-
-const statusSteps = ['pending', 'preparing', 'ready', 'delivered'] as const;
-
-const stepIcons: Record<string, typeof Clock> = {
-  pending: ShoppingBag,
-  preparing: ChefHat,
-  ready: Package,
-  delivered: Bike,
-};
-
-function getCurrentStep(status: string) {
-  return statusSteps.indexOf(status as typeof statusSteps[number]);
 }
 
 export function OrderTracking() {
@@ -50,9 +42,9 @@ export function OrderTracking() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-amber-50 to-white dark:from-gray-950 dark:to-gray-950">
         <div className="text-center">
-          <Clock className="w-12 h-12 text-[#8B4513] animate-spin mx-auto mb-4" />
+          <RefreshCw className="mx-auto mb-4 h-12 w-12 animate-spin text-brand-500" aria-hidden />
           <p className="text-gray-500">{t('tracking.loading')}</p>
         </div>
       </div>
@@ -61,124 +53,93 @@ export function OrderTracking() {
 
   if (error || !order) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-8">
-          <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">{t('common.error')}</h2>
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-amber-50 to-white dark:from-gray-950 dark:to-gray-950">
+        <div className="mx-auto max-w-md p-8 text-center">
+          <Package className="mx-auto mb-4 h-16 w-16 text-gray-300" aria-hidden />
+          <h2 className="mb-2 text-xl font-bold text-gray-900 dark:text-gray-100">{t('common.error')}</h2>
           <p className="text-gray-500">{error || t('tracking.notFound')}</p>
         </div>
       </div>
     );
   }
 
-  const currentStep = getCurrentStep(order.status);
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white">
-      <div className="max-w-lg mx-auto px-4 py-12">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-[#8B4513] rounded-full flex items-center justify-center mx-auto mb-4">
-            <ShoppingBag className="w-8 h-8 text-white" />
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white dark:from-gray-950 dark:to-gray-950">
+      <div className="mx-auto max-w-lg px-4 py-12" aria-live="polite">
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-brand-500">
+            <ShoppingBag className="h-8 w-8 text-white" aria-hidden />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('tracking.title')} #{order.id.slice(0, 8)}</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('tracking.title')} #{order.id.slice(0, 8)}</h1>
+          <p className="mt-1 text-gray-500 dark:text-gray-400">
             {order.orderType === 'dine_in' ? t('order.dineIn') : order.orderType === 'takeout' ? t('order.takeaway') : t('order.delivery')}
           </p>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <div className="space-y-0">
-            {statusSteps.map((step, index) => {
-              const StepIcon = stepIcons[step];
-              const isCompleted = index <= currentStep;
-              const isCurrent = index === currentStep;
-              return (
-                <div key={step} className="flex items-start gap-4 pb-6 last:pb-0 relative">
-                  {index < statusSteps.length - 1 && (
-                    <div className={`absolute left-[15px] top-8 w-0.5 h-[calc(100%-8px)] ${isCompleted ? 'bg-green-400' : 'bg-gray-200'}`} />
-                  )}
-                  <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center ${
-                    isCompleted ? 'bg-green-100' : isCurrent ? 'bg-[#8B4513]/10' : 'bg-gray-100'
-                  }`}>
-                    {isCompleted ? (
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                    ) : (
-                      <StepIcon className={`w-5 h-5 ${isCurrent ? 'text-[#8B4513]' : 'text-gray-300'}`} />
-                    )}
-                  </div>
-                  <div className="flex-1 pt-0.5">
-                    <p className={`font-medium ${isCompleted ? 'text-green-700' : isCurrent ? 'text-[#8B4513]' : 'text-gray-400'}`}>
-                      {step === 'pending' ? t('tracking.orderPlaced') :
-                       step === 'preparing' ? t('tracking.preparing') :
-                       step === 'ready' ? t('tracking.ready') :
-                       t('tracking.delivered')}
-                    </p>
-                    {isCurrent && order.status === 'preparing' && (
-                      <p className="text-sm text-gray-500 mt-1">{t('tracking.beingPrepared')}</p>
-                    )}
-                    {isCurrent && order.status === 'ready' && (
-                      <p className="text-sm text-green-600 mt-1 font-medium">{t('tracking.readyForPickup')}</p>
-                    )}
-                    {isCurrent && order.status === 'delivered' && (
-                      <p className="text-sm text-green-600 mt-1">{t('tracking.enjoy')}</p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+          <div className="mt-2 flex items-center justify-center gap-2">
+            <Badge variant={order.status === 'cancelled' ? 'danger' : order.status === 'delivered' ? 'neutral' : order.status === 'ready' ? 'success' : order.status === 'preparing' ? 'info' : 'warning'} dot>
+              {t(`order.${order.status}` as never)}
+            </Badge>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <h3 className="font-semibold text-gray-900 mb-4">{t('common.items')}</h3>
+        <Card padded className="mb-6">
+          <OrderStatusTimeline status={order.status} />
+        </Card>
+
+        <Card padded className="mb-6">
+          <h3 className="mb-4 font-semibold text-gray-900 dark:text-gray-100">{t('common.items')}</h3>
           <div className="space-y-3">
             {order.items.map((item) => (
-              <div key={item.id} className="flex items-center justify-between">
+              <div key={item.id} className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <span className="w-7 h-7 bg-amber-100 text-amber-800 rounded-full text-xs font-bold flex items-center justify-center">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700 dark:bg-brand-900 dark:text-brand-200">
                     {item.quantity}
                   </span>
                   <div>
-                    <span className="text-sm font-medium text-gray-900">{item.name}</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{item.name}</span>
                     {item.notes && <p className="text-xs text-gray-400">{item.notes}</p>}
                   </div>
                 </div>
-                <span className="text-sm text-gray-600">${(item.unitPrice * item.quantity).toFixed(2)}</span>
+                <span className="text-sm text-gray-600 dark:text-gray-300">{formatMoney(item.unitPrice * item.quantity)}</span>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <Card padded>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between text-gray-500">
+            <div className="flex justify-between text-gray-500 dark:text-gray-400">
               <span>{t('common.subtotal')}</span>
-              <span>${order.subtotal.toFixed(2)}</span>
+              <span>{formatMoney(order.subtotal)}</span>
             </div>
             {order.discountAmount ? (
-              <div className="flex justify-between text-red-500">
+              <div className="flex justify-between text-red-500 dark:text-red-400">
                 <span>{t('common.discount')}</span>
-                <span>-${order.discountAmount.toFixed(2)}</span>
+                <span>-{formatMoney(order.discountAmount)}</span>
               </div>
             ) : null}
-            <div className="flex justify-between text-gray-500">
+            <div className="flex justify-between text-gray-500 dark:text-gray-400">
               <span>{t('common.tax')}</span>
-              <span>${order.tax.toFixed(2)}</span>
+              <span>{formatMoney(order.tax)}</span>
             </div>
             {order.deliveryFee ? (
-              <div className="flex justify-between text-gray-500">
+              <div className="flex justify-between text-gray-500 dark:text-gray-400">
                 <span>{t('common.price')}</span>
-                <span>${order.deliveryFee.toFixed(2)}</span>
+                <span>{formatMoney(order.deliveryFee)}</span>
               </div>
             ) : null}
-            <div className="border-t pt-2 flex justify-between font-bold text-gray-900">
+            <div className="flex justify-between border-t pt-2 font-bold text-gray-900 dark:border-gray-800 dark:text-gray-100">
               <span>{t('common.total')}</span>
-              <span>${order.total.toFixed(2)}</span>
+              <span>{formatMoney(order.total)}</span>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <p className="text-center text-xs text-gray-400 mt-6">{t('tracking.autoRefresh')}</p>
+        <div className="mt-6 text-center">
+          <Button variant="ghost" size="sm" onClick={fetchOrder} leftIcon={<RefreshCw className="w-4 h-4" />}>
+            {t('common.retry')}
+          </Button>
+        </div>
+        <p className="mt-2 text-center text-xs text-gray-400">{t('tracking.autoRefresh')}</p>
       </div>
     </div>
   );

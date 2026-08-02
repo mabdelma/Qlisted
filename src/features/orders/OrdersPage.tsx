@@ -1,21 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTableFlow } from '../restaurant/TableFlowLayout';
 import { orderApi, paymentApi } from '../../lib/api';
-import { useI18n } from '../../contexts/I18nContext';
+import { useI18n, type TranslationKey } from '../../contexts/I18nContext';
 import { useSSE } from '../../hooks/useSSE';
 import { loadStripe, type Stripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import { StripePaymentForm } from '../menu/StripePaymentForm';
-import { Package, Clock, RefreshCw } from 'lucide-react';
+import { Package, RefreshCw, Clock } from 'lucide-react';
 import type { Order } from '../../lib/api/types';
-
-const statusColors: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  preparing: 'bg-blue-100 text-blue-800',
-  ready: 'bg-green-100 text-green-800',
-  delivered: 'bg-gray-100 text-gray-800',
-  cancelled: 'bg-red-100 text-red-800',
-};
+import { Badge } from '../../components/ui/Badge';
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { Spinner } from '../../components/ui/Spinner';
+import { OrderStatusTimeline } from '../../components/orders/OrderStatusTimeline';
+import { formatMoney } from '../../lib/pricing';
 
 let stripePromise: Promise<Stripe | null> | null | undefined;
 function getStripe() {
@@ -28,10 +27,11 @@ function getStripe() {
 
 export function OrdersPage() {
   const { t } = useI18n();
-  const { table, slug } = useTableFlow();
+  const { table, slug, tenant } = useTableFlow();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [payingOrderId, setPayingOrderId] = useState<string | null>(null);
+  const currency = tenant.currency;
 
   const loadOrders = useCallback(() => {
     if (!slug || !table?.id) return;
@@ -65,51 +65,62 @@ export function OrdersPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" aria-live="polite">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-gray-900">{t('nav.orders')}</h2>
-        <button onClick={loadOrders} className="flex items-center text-sm text-gray-500 hover:text-brand">
-          <RefreshCw className="w-4 h-4 mr-1" /> {t('common.retry')}
-        </button>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t('nav.orders')}</h2>
+        <Button variant="ghost" size="sm" onClick={loadOrders} leftIcon={<RefreshCw className="w-4 h-4" />}>
+          {t('common.retry')}
+        </Button>
       </div>
 
       {loading ? (
-        <p className="text-center text-gray-500 py-8">{t('common.loading')}...</p>
+        <div className="py-10"><Spinner className="mx-auto" /></div>
       ) : orders.length === 0 ? (
-        <div className="text-center py-12">
-          <Package className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">{t('common.noResults')}</h3>
-          <p className="text-sm text-gray-500">{t('order.emptyCart')}</p>
-        </div>
+        <EmptyState
+          icon={<Package className="h-7 w-7" />}
+          title={t('common.noResults')}
+          description={t('order.emptyCart')}
+        />
       ) : (
         <div className="space-y-3">
           {orders.map((order) => (
-            <div key={order.id} className="bg-white rounded-lg shadow-sm p-4">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[order.status]}`}>
-                      {order.status}
-                    </span>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+            <Card key={order.id} padded>
+              <div className="flex justify-between items-start gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant={
+                      order.status === 'cancelled' ? 'danger'
+                        : order.status === 'delivered' ? 'neutral'
+                          : order.status === 'ready' ? 'success'
+                            : order.status === 'preparing' ? 'info'
+                              : 'warning'
+                    } dot>
+                      {t(`order.${order.status}` as TranslationKey)}
+                    </Badge>
+                    <Badge variant={order.paymentStatus === 'paid' ? 'success' : 'neutral'}>
                       {order.paymentStatus === 'paid' ? t('payment.paid') : t('payment.unpaid')}
-                    </span>
+                    </Badge>
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">
-                    <Clock className="w-3 h-3 inline mr-1" />
+                  <p className="mt-1.5 flex items-center text-xs text-gray-400">
+                    <Clock className="w-3 h-3 me-1" aria-hidden />
                     {new Date(order.createdAt).toLocaleTimeString()}
                   </p>
                 </div>
-                <span className="font-bold text-lg text-brand">${order.total.toFixed(2)}</span>
+                <span className="font-bold text-lg text-brand-600 dark:text-brand-400">{formatMoney(order.total, currency)}</span>
+              </div>
+
+              <div className="mt-4">
+                <OrderStatusTimeline status={order.status} />
               </div>
 
               {(order.status === 'ready' || order.status === 'delivered') && order.paymentStatus !== 'paid' && (
-                <div className="mt-3 pt-3 border-t">
+                <div className="mt-4 pt-4 border-t dark:border-gray-800">
                   {payingOrderId === order.id ? (
                     <div className="space-y-3">
                       {getStripe() ? (
                         <Elements stripe={getStripe()!}>
                           <StripePaymentForm
+                            stripePromise={getStripe()}
                             slug={slug}
                             orderId={order.id}
                             amount={order.total}
@@ -118,30 +129,27 @@ export function OrdersPage() {
                           />
                         </Elements>
                       ) : (
-                        <p className="text-sm text-red-600">{t('common.notAvailable')}</p>
+                        <p className="text-sm text-red-600 dark:text-red-400">{t('common.notAvailable')}</p>
                       )}
-                      <button onClick={() => handlePayCash(order.id, order.total)}
-                        className="w-full py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">
+                      <Button variant="success" fullWidth onClick={() => handlePayCash(order.id, order.total)}>
                         {t('payment.cash')}
-                      </button>
+                      </Button>
                     </div>
                   ) : (
                     <div className="flex gap-2">
-                      <button onClick={() => handlePayCash(order.id, order.total)}
-                        className="flex-1 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">
+                      <Button variant="success" className="flex-1" onClick={() => handlePayCash(order.id, order.total)}>
                         {t('payment.cash')}
-                      </button>
+                      </Button>
                       {getStripe() && (
-                        <button onClick={() => setPayingOrderId(order.id)}
-                          className="flex-1 py-2 bg-brand text-white rounded-lg text-sm hover:bg-brand-hover">
+                        <Button className="flex-1" onClick={() => setPayingOrderId(order.id)}>
                           {t('payment.card')}
-                        </button>
+                        </Button>
                       )}
                     </div>
                   )}
                 </div>
               )}
-            </div>
+            </Card>
           ))}
         </div>
       )}

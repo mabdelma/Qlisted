@@ -19,7 +19,7 @@ export function AssistantPage() {
   return (
     <div className="flex flex-col" style={{ height: 'calc(100vh - 8rem)' }}>
       <div className="flex items-center gap-2 mb-4">
-        <Sparkles className="w-6 h-6 text-[#8B4513]" />
+        <Sparkles className="w-6 h-6 text-brand-500" />
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('nav.assistant')}</h1>
       </div>
 
@@ -28,7 +28,7 @@ export function AssistantPage() {
           {t('assistant.notConfigured')}
         </div>
       ) : (
-        <div className="flex-1 min-h-0 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+        <div className="flex-1 min-h-0 rounded-card bg-white shadow-card dark:bg-gray-900">
           {slug && (
             <AiChat
               greeting={t('assistant.greeting')}

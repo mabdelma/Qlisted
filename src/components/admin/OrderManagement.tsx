@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { menuApi, orderApi, tableApi } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Order, MenuItem, TableData, OrderWithItems } from '../../lib/api/types';
@@ -8,10 +8,12 @@ import { OrderList } from './order/OrderList';
 import { OrderDetails } from '../shared/OrderDetails';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { ErrorMessage } from '../ui/ErrorMessage';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 
 export function OrderManagement() {
   const { state: { tenant } } = useAuth();
   const slug = tenant?.slug;
+  const currency = tenant?.currency;
   const [orders, setOrders] = useState<Order[]>([]);
   const [menuItems, setMenuItems] = useState<Record<string, MenuItem>>({});
   const [tables, setTables] = useState<Record<string, TableData>>({});
@@ -22,6 +24,7 @@ export function OrderManagement() {
   const [timeFilter, setTimeFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [paymentFilter, setPaymentFilter] = useState('all');
+  const [cancelTarget, setCancelTarget] = useState<Order | null>(null);
 
   useEffect(() => {
     if (slug) {
@@ -72,13 +75,14 @@ export function OrderManagement() {
   }
 
   async function handleCancelOrder(orderId: string) {
-    if (!confirm('Are you sure you want to cancel this order?')) return;
     if (!slug) return;
     try {
       await orderApi.updateStatus(slug, orderId, 'cancelled');
       loadOrders();
     } catch (error) {
       console.error('Failed to cancel order:', error);
+    } finally {
+      setCancelTarget(null);
     }
   }
 
@@ -134,7 +138,7 @@ export function OrderManagement() {
     readyOrders: orders.filter(o => o.status === 'ready').length,
     delayedOrders: orders.filter(o => {
       const age = (Date.now() - new Date(o.createdAt).getTime()) / 60000;
-      return age > 15 && o.status !== 'delivered' && o.status !== 'paid';
+      return age > 15 && o.status !== 'delivered';
     }).length
   };
 
@@ -145,8 +149,8 @@ export function OrderManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Order Management</h2>
-          <p className="text-sm text-gray-500">Track and manage customer orders</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Order Management</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Track and manage customer orders</p>
         </div>
       </div>
 
@@ -167,9 +171,10 @@ export function OrderManagement() {
         orders={filteredOrders}
         menuItems={menuItems}
         tables={tables}
+        currency={currency}
         onViewDetails={handleViewDetails}
         onStatusChange={handleStatusChange}
-        onCancelOrder={handleCancelOrder}
+        onCancelOrder={(id) => setCancelTarget(orders.find(o => o.id === id) ?? null)}
       />
 
       {selectedOrder && (
@@ -187,7 +192,16 @@ export function OrderManagement() {
           onClose={() => setSelectedOrder(null)}
         />
       )}
+
+      <ConfirmDialog
+        open={cancelTarget !== null}
+        title="Cancel order"
+        message={`Are you sure you want to cancel the order${cancelTarget ? ` for ${cancelTarget.orderType === 'dine_in' ? `Table ${cancelTarget.tableId ? tables[cancelTarget.tableId]?.number ?? '?' : '?'}` : cancelTarget.orderType === 'takeout' ? 'takeout' : 'delivery'}` : ''}?`}
+        confirmLabel="Cancel order"
+        tone="danger"
+        onConfirm={() => cancelTarget && handleCancelOrder(cancelTarget.id)}
+        onCancel={() => setCancelTarget(null)}
+      />
     </div>
   );
 }
-
