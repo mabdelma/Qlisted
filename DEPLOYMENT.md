@@ -68,25 +68,73 @@ Push to `main` on GitHub → CI runs → Deploy workflow:
 
 Full pipeline: `git push origin main` → wait for CI → deploy runs automatically.
 
-### Manual (from the VPS)
+### Off-box build → ship (recommended, safe)
+
+> **Never build on the VPS.** It is a swapless, ~10-app shared 16GB host; an
+> on-box `docker build` OOM-thrashed it into a ~15-min outage (2026-07-09).
+> Build on your machine, ship the finished image, let the VPS only load + run.
+
+From a dev machine with Docker + SSH access to the box (`qarrito` host alias):
 
 ```bash
-./scripts/deploy-vps.sh
+# 1. Build off-box (frontend bakes the *publishable* VITE_STRIPE_KEY from .env.prod)
+KEY=$(ssh qarrito 'grep ^VITE_STRIPE_KEY= /var/www/qcart/.env.prod | cut -d= -f2-')
+docker build --build-arg VITE_STRIPE_KEY="$KEY" --build-arg VITE_API_URL= \
+  -f frontend.Dockerfile -t ghcr.io/anomalyco/qcart/frontend:latest .
+docker build -t ghcr.io/anomalyco/qcart/api:latest ./server
+
+# 2. Ship straight into the VPS Docker (moves :latest; running containers keep going)
+docker save ghcr.io/anomalyco/qcart/api:latest ghcr.io/anomalyco/qcart/frontend:latest \
+  | gzip | ssh qarrito 'gunzip | docker load'
 ```
 
-Then, on first deploy (or after editing the Caddyfile), reload the shared Caddy
-from the **qarrito** project so the new host starts routing and gets a cert:
+Then, on the VPS:
+
+```bash
+cd /var/www/qcart
+C="docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.vps.yml"
+
+# 3. Fresh backup — rollback point
+docker exec qcart-prod-postgres-1 pg_dump -U qcart qcart \
+  | gzip > /var/backups/qlisted/qlisted-predeploy-$(date +%Y%m%d-%H%M%S).sql.gz
+
+# 4. Rehearse the migration on a throwaway DB (drizzle push --force can be destructive)
+set -a && . ./.env.prod && set +a
+BK=$(ls -t /var/backups/qlisted/qlisted-predeploy-*.sql.gz | head -1)
+docker exec qcart-prod-postgres-1 psql -U qcart -c "CREATE DATABASE migrate_rehearsal;"
+gunzip -c "$BK" | docker exec -i qcart-prod-postgres-1 psql -U qcart -d migrate_rehearsal
+docker run --rm --network qcart-prod_default \
+  -e DATABASE_URL="postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:5432/migrate_rehearsal" \
+  ghcr.io/anomalyco/qcart/api:latest sh -c "npx drizzle-kit push --config=drizzle.config.ts --force"
+# confirm tables + tenants survive, then:
+docker exec qcart-prod-postgres-1 psql -U qcart -c "DROP DATABASE migrate_rehearsal;"
+
+# 5. Migrate prod, then 6. recreate the app tier (~2s blip)
+$C up -d --force-recreate migrate        # wait for exit 0, logs "Changes applied"
+$C up -d --force-recreate api qcart-frontend
+```
+
+7. Verify: `curl -I https://qlisted.com` (200), `/api/health`, a real data
+   endpoint, served bundle has the new code, `docker ps` health, VPS load.
+
+On first deploy (or after editing the Caddyfile), reload the shared Caddy from
+the **qarrito** project so the new host routes and gets a cert:
 
 ```bash
 cd /path/to/qarrito
 docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
 ```
 
-Equivalent manual deploy with local build:
+### Manual on-box build — ⚠️ avoid on this host
+
 ```bash
-docker compose --env-file .env.prod \
-  -f docker-compose.yml -f docker-compose.vps.yml up -d --build
+./scripts/deploy-vps.sh                          # runs `docker compose build` ON the box
+# or: docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.vps.yml up -d --build
 ```
+
+⚠️ Both build on the VPS and can OOM the shared host — this is what caused the
+2026-07-09 outage. Only use if the box has ample free RAM/swap and no other app
+is under load. Prefer the off-box path above.
 
 ## Stripe webhook
 
