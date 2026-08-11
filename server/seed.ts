@@ -118,7 +118,7 @@ async function seed() {
       number: i,
       capacity: i <= 4 ? 2 : i <= 8 ? 4 : 6,
       status: 'available',
-      qrToken: `qr-table-${i}`,
+      qrToken: `table-${i}`,
     });
   }
   console.log('  ✓ Created 10 tables');
