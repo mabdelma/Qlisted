@@ -22,8 +22,8 @@ export function BrandingProvider({ primaryColor, accentColor, faviconUrl, childr
 
   useEffect(() => {
     const root = document.documentElement;
-    const p = primaryColor || '#8B4513';
-    const a = accentColor || '#5C4033';
+    const p = primaryColor || '#0f766e';
+    const a = accentColor || '#1e3a5f';
     root.style.setProperty('--color-brand', p);
     root.style.setProperty('--color-brand-hover', a);
     root.style.setProperty('--color-brand-light', lightenColor(p, 60));

@@ -44,8 +44,8 @@ export function CookiePolicyPage() {
       <S n={6} title="Contact">
         <p>
           Questions about cookies? Email{' '}
-          <a href={`mailto:${PRIVACY_CONTACT}`} className="text-[#8B4513] hover:underline">{PRIVACY_CONTACT}</a>.
-          See also our <a href="/privacy" className="text-[#8B4513] hover:underline">Privacy Policy</a>.
+          <a href={`mailto:${PRIVACY_CONTACT}`} className="text-[#0f766e] hover:underline">{PRIVACY_CONTACT}</a>.
+          See also our <a href="/privacy" className="text-[#0f766e] hover:underline">Privacy Policy</a>.
         </p>
       </S>
     </LegalLayout>

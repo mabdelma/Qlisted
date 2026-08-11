@@ -1,6 +1,6 @@
 import webpush from 'web-push';
 import { db, schema } from '../db/index.js';
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { v4 as uuid } from 'uuid';
 import { logger } from './logger.js';
 

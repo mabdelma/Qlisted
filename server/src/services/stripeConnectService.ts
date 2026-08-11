@@ -2,7 +2,6 @@ import { db } from '../db/index.js';
 import { tenants } from '../db/schema.js';
 import { eq, sql } from 'drizzle-orm';
 import Stripe from 'stripe';
-import { logger } from '../lib/logger.js';
 
 function getStripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;

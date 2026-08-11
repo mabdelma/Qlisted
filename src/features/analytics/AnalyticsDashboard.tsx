@@ -60,7 +60,7 @@ export function AnalyticsDashboard() {
   return (
     <div className="space-y-6">
       {/* Public page — URL + quick actions */}
-      <div className="bg-gradient-to-r from-[#8B4513] to-[#5C4033] rounded-lg shadow p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+      <div className="bg-gradient-to-r from-[#0f766e] to-[#1e3a5f] rounded-lg shadow p-4 flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="flex items-center gap-2 text-white min-w-0">
           <LinkIcon className="w-5 h-5 shrink-0" />
           <div className="min-w-0">
@@ -74,7 +74,7 @@ export function AnalyticsDashboard() {
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />} {copied ? t('common.copied') : t('common.copy')}
           </button>
           <a href={publicUrl} target="_blank" rel="noreferrer"
-            className="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-[#8B4513] hover:bg-amber-50 transition-colors">
+            className="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-[#0f766e] hover:bg-amber-50 transition-colors">
             <ExternalLink className="w-4 h-4" /> <span className="hidden sm:inline">{t('nav.viewStorefront')}</span>
           </a>
         </div>
@@ -139,7 +139,7 @@ export function AnalyticsDashboard() {
           <h3 className="text-lg font-medium text-gray-900 mb-4">{t('order.pending')}</h3>
           <div className="flex items-center justify-center h-32">
             <div className="text-center">
-              <span className="text-4xl font-bold text-[#8B4513]">{summary.pendingOrders}</span>
+              <span className="text-4xl font-bold text-[#0f766e]">{summary.pendingOrders}</span>
               <p className="text-sm text-gray-500 mt-1">{t('order.preparing')}</p>
             </div>
           </div>

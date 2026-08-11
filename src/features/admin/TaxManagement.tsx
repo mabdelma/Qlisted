@@ -85,9 +85,9 @@ export function TaxManagement() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-[#5C4033]">{t('tax.title')}</h2>
+        <h2 className="text-2xl font-bold text-[#1e3a5f]">{t('tax.title')}</h2>
         <button onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2 bg-[#8B4513] text-white rounded-lg hover:bg-[#6B3410] transition-colors">
+          className="flex items-center gap-2 px-4 py-2 bg-[#0f766e] text-white rounded-lg hover:bg-[#115e59] transition-colors">
           <Plus className="w-4 h-4" /> {t('tax.create')}
         </button>
       </div>
@@ -107,14 +107,14 @@ export function TaxManagement() {
             <div key={cat.id}
               className="bg-white rounded-lg border border-gray-200 p-4 flex items-center justify-between hover:shadow-sm transition-shadow">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-[#F5DEB3] flex items-center justify-center">
-                  <Percent className="w-5 h-5 text-[#8B4513]" />
+                <div className="w-10 h-10 rounded-lg bg-[#ccfbf1] flex items-center justify-center">
+                  <Percent className="w-5 h-5 text-[#0f766e]" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-gray-900">{cat.name}</span>
                     {cat.isDefault && (
-                      <span className="text-xs bg-[#8B4513] text-white px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="text-xs bg-[#0f766e] text-white px-2 py-0.5 rounded-full flex items-center gap-1">
                         <CheckCircle className="w-3 h-3" /> {t('tax.isDefault')}
                       </span>
                     )}
@@ -124,7 +124,7 @@ export function TaxManagement() {
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={() => openEdit(cat)}
-                  className="p-2 text-gray-400 hover:text-[#8B4513] transition-colors">
+                  className="p-2 text-gray-400 hover:text-[#0f766e] transition-colors">
                   <Pencil className="w-4 h-4" />
                 </button>
                 <button onClick={() => handleDelete(cat.id)}
@@ -148,17 +148,17 @@ export function TaxManagement() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">{t('tax.name')}</label>
               <input type="text" value={name} onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#0f766e] focus:ring-[#0f766e]" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">{t('tax.rate')} (%)</label>
               <input type="number" value={rate} onChange={(e) => setRate(e.target.value)}
                 min="0" max="100" step="0.1"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#0f766e] focus:ring-[#0f766e]" />
             </div>
             <label className="flex items-center gap-2 text-sm text-gray-700">
               <input type="checkbox" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)}
-                className="rounded border-gray-300 text-[#8B4513] focus:ring-[#8B4513]" />
+                className="rounded border-gray-300 text-[#0f766e] focus:ring-[#0f766e]" />
               {t('tax.isDefault')}
             </label>
             <div className="flex justify-end gap-3 pt-2">
@@ -167,7 +167,7 @@ export function TaxManagement() {
                 {t('common.cancel')}
               </button>
               <button onClick={handleSave}
-                className="px-4 py-2 bg-[#8B4513] text-white rounded-lg hover:bg-[#6B3410] transition-colors">
+                className="px-4 py-2 bg-[#0f766e] text-white rounded-lg hover:bg-[#115e59] transition-colors">
                 {t('common.save')}
               </button>
             </div>

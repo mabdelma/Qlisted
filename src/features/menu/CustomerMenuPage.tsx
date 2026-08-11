@@ -136,7 +136,7 @@ export function CustomerMenuPage() {
           <div className="flex space-x-4 mt-2">
             {(['menu', 'cart', 'orders', 'checkout'] as const).map((tabName) => (
               <button key={tabName} onClick={() => setTab(tabName)}
-                className={`text-sm font-medium pb-1 border-b-2 ${tab === tabName ? 'border-[#8B4513] text-[#8B4513]' : 'border-transparent text-gray-500'}`}>
+                className={`text-sm font-medium pb-1 border-b-2 ${tab === tabName ? 'border-[#0f766e] text-[#0f766e]' : 'border-transparent text-gray-500'}`}>
                 {tabName === 'menu' ? t('nav.menu') : tabName === 'cart' ? `${t('nav.cart')} (${cartState.items.length})` : tabName === 'orders' ? t('nav.orders') : t('nav.checkout')}
               </button>
             ))}
@@ -150,7 +150,7 @@ export function CustomerMenuPage() {
                 {categories.map((c) => (
                   <button key={c.id} onClick={() => setSelectedCat(c.id)}
                     className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-medium ${
-                      selectedCat === c.id ? 'bg-[#8B4513] text-white' : 'bg-white text-gray-700 border border-gray-200'
+                      selectedCat === c.id ? 'bg-[#0f766e] text-white' : 'bg-white text-gray-700 border border-gray-200'
                     }`}>
                     {c.name}
                   </button>
@@ -163,11 +163,11 @@ export function CustomerMenuPage() {
                     <div className="flex-1 mr-4">
                       <h3 className="font-semibold text-gray-900">{item.name}</h3>
                       {item.description && <p className="text-sm text-gray-500">{item.description}</p>}
-                      <p className="text-[#8B4513] font-bold mt-1">${item.price.toFixed(2)}</p>
+                      <p className="text-[#0f766e] font-bold mt-1">${item.price.toFixed(2)}</p>
                     </div>
                     <button
                       onClick={() => { dispatch({ type: 'ADD', payload: { item } }); setAddingId(item.id); setTimeout(() => setAddingId(null), 1000); }}
-                      className="px-3 py-1.5 bg-[#8B4513] text-white rounded-full text-sm hover:bg-[#5C4033] flex-shrink-0">
+                      className="px-3 py-1.5 bg-[#0f766e] text-white rounded-full text-sm hover:bg-[#1e3a5f] flex-shrink-0">
                       {addingId === item.id ? t('common.done') : `+ ${t('menu.addToCart')}`}
                     </button>
                   </div>
@@ -190,7 +190,7 @@ export function CustomerMenuPage() {
                       className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-50">-</button>
                     <span className="font-medium w-6 text-center">{c.quantity}</span>
                     <button onClick={() => dispatch({ type: 'UPDATE_QTY', payload: { id: c.item.id, quantity: c.quantity + 1 } })}
-                      className="w-8 h-8 rounded-full bg-[#8B4513] text-white flex items-center justify-center hover:bg-[#5C4033]">+</button>
+                      className="w-8 h-8 rounded-full bg-[#0f766e] text-white flex items-center justify-center hover:bg-[#1e3a5f]">+</button>
                     <button onClick={() => dispatch({ type: 'REMOVE', payload: c.item.id })}
                       className="text-red-500 text-sm ml-2">{t('common.remove')}</button>
                   </div>
@@ -203,7 +203,7 @@ export function CustomerMenuPage() {
                     <span>${cartState.total.toFixed(2)}</span>
                   </div>
                   <button onClick={() => setTab('checkout')}
-                    className="w-full mt-4 py-3 bg-[#8B4513] text-white rounded-lg font-medium hover:bg-[#5C4033]">
+                    className="w-full mt-4 py-3 bg-[#0f766e] text-white rounded-lg font-medium hover:bg-[#1e3a5f]">
                     {t('nav.checkout')}
                   </button>
                 </div>
@@ -227,7 +227,7 @@ export function CustomerMenuPage() {
                 </div>
               </div>
               <button onClick={placeOrder} disabled={placing || cartState.items.length === 0}
-                className="w-full py-3 bg-[#8B4513] text-white rounded-lg font-medium hover:bg-[#5C4033] disabled:opacity-50">
+                className="w-full py-3 bg-[#0f766e] text-white rounded-lg font-medium hover:bg-[#1e3a5f] disabled:opacity-50">
                 {placing ? t('order.processOrder') + '...' : t('order.processOrder')}
               </button>
               <p className="text-xs text-gray-500 text-center">{t('payment.cash')}</p>
@@ -277,7 +277,7 @@ export function CustomerMenuPage() {
                           </button>
                           {getStripe() && (
                             <button onClick={() => setPayingOrderId(order.id)}
-                              className="flex-1 py-2 bg-[#8B4513] text-white rounded-lg text-sm hover:bg-[#5C4033]">
+                              className="flex-1 py-2 bg-[#0f766e] text-white rounded-lg text-sm hover:bg-[#1e3a5f]">
                               Pay with Card
                             </button>
                           )}
@@ -293,7 +293,7 @@ export function CustomerMenuPage() {
 
         {tab !== 'cart' && cartState.items.length > 0 && (
           <button onClick={() => setTab('cart')}
-            className="fixed bottom-6 right-6 bg-[#8B4513] text-white rounded-full px-6 py-3 shadow-lg flex items-center space-x-2 hover:bg-[#5C4033] z-20">
+            className="fixed bottom-6 right-6 bg-[#0f766e] text-white rounded-full px-6 py-3 shadow-lg flex items-center space-x-2 hover:bg-[#1e3a5f] z-20">
             <span>Cart ({cartState.items.length})</span>
             <span className="font-bold">${cartState.total.toFixed(2)}</span>
           </button>

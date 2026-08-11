@@ -72,7 +72,7 @@ export function InventoryManagement() {
       <div className="flex gap-2">
         {TABS.map(({ id, label, icon: Icon }) => (
           <button key={id} onClick={() => setTab(id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${tab === id ? 'bg-[#8B4513] text-white' : 'bg-white text-gray-700 border'}`}>
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${tab === id ? 'bg-[#0f766e] text-white' : 'bg-white text-gray-700 border'}`}>
             <Icon className="w-4 h-4" /> {label}
           </button>
         ))}
@@ -87,7 +87,7 @@ export function InventoryManagement() {
             <input type="number" value={newItem.currentStock || ''} onChange={(e) => setNewItem({ ...newItem, currentStock: +e.target.value })} placeholder={t('inventory.current')} className="rounded-md border-gray-300 text-sm" />
             <input type="number" value={newItem.minStock || ''} onChange={(e) => setNewItem({ ...newItem, minStock: +e.target.value })} placeholder={t('inventory.min')} className="rounded-md border-gray-300 text-sm" />
             <button disabled={busy || !newItem.name.trim()} onClick={() => run(async () => { await inventoryApi.create(slug!, newItem); setNewItem({ name: '', unit: 'units', currentStock: 0, minStock: 0, costPerUnit: 0 }); })}
-              className="flex items-center justify-center gap-1 bg-[#8B4513] text-white rounded-md text-sm hover:bg-[#5C4033] disabled:opacity-50"><Plus className="w-4 h-4" /> {t('inventory.addItem')}</button>
+              className="flex items-center justify-center gap-1 bg-[#0f766e] text-white rounded-md text-sm hover:bg-[#1e3a5f] disabled:opacity-50"><Plus className="w-4 h-4" /> {t('inventory.addItem')}</button>
           </div>
           {stock.length === 0 ? <p className="p-6 text-center text-gray-500 text-sm">{t('inventory.noStock')}</p> : (
             <div className="overflow-x-auto"><table className="w-full text-sm">
@@ -122,7 +122,7 @@ export function InventoryManagement() {
             <input value={newSupplier.email} onChange={(e) => setNewSupplier({ ...newSupplier, email: e.target.value })} placeholder={t('common.email')} className="rounded-md border-gray-300 text-sm" />
             <input value={newSupplier.phone} onChange={(e) => setNewSupplier({ ...newSupplier, phone: e.target.value })} placeholder={t('common.phone')} className="rounded-md border-gray-300 text-sm" />
             <button disabled={busy || !newSupplier.name.trim()} onClick={() => run(async () => { await procurementApi.createSupplier(slug!, newSupplier); setNewSupplier({ name: '', email: '', phone: '' }); })}
-              className="flex items-center justify-center gap-1 bg-[#8B4513] text-white rounded-md text-sm hover:bg-[#5C4033] disabled:opacity-50"><Plus className="w-4 h-4" /> {t('inventory.addSupplier')}</button>
+              className="flex items-center justify-center gap-1 bg-[#0f766e] text-white rounded-md text-sm hover:bg-[#1e3a5f] disabled:opacity-50"><Plus className="w-4 h-4" /> {t('inventory.addSupplier')}</button>
           </div>
           {suppliers.length === 0 ? <p className="p-6 text-center text-gray-500 text-sm">{t('inventory.noSuppliers')}</p> : (
             <div className="divide-y">{suppliers.map((s) => (
@@ -139,7 +139,7 @@ export function InventoryManagement() {
       {tab === 'orders' && (
         <div className="space-y-3">
           <button onClick={autoReorder} disabled={busy}
-            className="flex items-center gap-2 px-4 py-2 bg-[#8B4513] text-white rounded-lg text-sm hover:bg-[#5C4033] disabled:opacity-50">
+            className="flex items-center gap-2 px-4 py-2 bg-[#0f766e] text-white rounded-lg text-sm hover:bg-[#1e3a5f] disabled:opacity-50">
             <RefreshCw className="w-4 h-4" /> {t('inventory.autoReorder')}
           </button>
           {orders.length === 0 ? <p className="bg-white rounded-lg shadow p-6 text-center text-gray-500 text-sm">{t('inventory.noPOs')}</p> : orders.map((po) => (

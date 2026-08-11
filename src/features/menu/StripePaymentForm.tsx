@@ -45,7 +45,7 @@ export function StripePaymentForm({ stripePromise, slug, orderId, amount, tip, p
   return (
     <Elements
       stripe={stripePromise}
-      options={{ clientSecret, appearance: { theme: 'stripe', variables: { colorPrimary: '#8B4513' } } }}
+      options={{ clientSecret, appearance: { theme: 'stripe', variables: { colorPrimary: '#0f766e' } } }}
     >
       <PaymentInner amount={amount} onSuccess={onSuccess} onCancel={onCancel} />
     </Elements>
@@ -92,7 +92,7 @@ function PaymentInner({ amount, onSuccess, onCancel }: { amount: number; onSucce
         <button type="button" onClick={onCancel}
           className="flex-1 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">{t('common.cancel')}</button>
         <button type="submit" disabled={!stripe || processing}
-          className="flex-1 py-2 bg-[#8B4513] text-white rounded-lg hover:bg-[#5C4033] disabled:opacity-50">
+          className="flex-1 py-2 bg-[#0f766e] text-white rounded-lg hover:bg-[#1e3a5f] disabled:opacity-50">
           {processing ? `${t('common.loading')}...` : `${t('payment.pay')} ${amount.toFixed(2)}`}
         </button>
       </div>

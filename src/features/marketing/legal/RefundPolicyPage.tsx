@@ -54,7 +54,7 @@ export function RefundPolicyPage() {
       <S n={7} title="Contact">
         <p>
           For billing questions or refund requests, email{' '}
-          <a href={`mailto:${SUPPORT_CONTACT}`} className="text-[#8B4513] hover:underline">{SUPPORT_CONTACT}</a>.
+          <a href={`mailto:${SUPPORT_CONTACT}`} className="text-[#0f766e] hover:underline">{SUPPORT_CONTACT}</a>.
         </p>
       </S>
     </LegalLayout>

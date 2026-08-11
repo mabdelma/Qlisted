@@ -35,7 +35,7 @@ export class ErrorBoundary extends Component<Props, State> {
           </pre>
           <button
             onClick={() => { this.setState({ error: null }); window.location.reload(); }}
-            className="mt-4 inline-flex items-center px-4 py-2 bg-[#8B4513] text-white rounded-lg hover:bg-[#5C4033]"
+            className="mt-4 inline-flex items-center px-4 py-2 bg-[#0f766e] text-white rounded-lg hover:bg-[#1e3a5f]"
           >
             Reload
           </button>

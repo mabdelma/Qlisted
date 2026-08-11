@@ -76,7 +76,7 @@ export function WaiterPanel() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Waiter Panel</h2>
-        <button onClick={load} className="flex items-center gap-1 px-3 py-1.5 bg-[#8B4513] text-white text-sm rounded-lg hover:bg-[#5C4033]">
+        <button onClick={load} className="flex items-center gap-1 px-3 py-1.5 bg-[#0f766e] text-white text-sm rounded-lg hover:bg-[#1e3a5f]">
           <RefreshCw className="w-4 h-4" /> Refresh
         </button>
       </div>

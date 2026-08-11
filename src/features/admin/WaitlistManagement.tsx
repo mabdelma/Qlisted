@@ -75,13 +75,13 @@ export function WaitlistManagement() {
         <div className="flex items-center gap-3">
           <h2 className="text-2xl font-bold text-gray-900">{t('waitlist.title')}</h2>
           {waitingCount > 0 && (
-            <span className="bg-[#8B4513] text-white text-sm px-3 py-1 rounded-full">
+            <span className="bg-[#0f766e] text-white text-sm px-3 py-1 rounded-full">
               {t('waitlist.waitingCount', { count: waitingCount })}
             </span>
           )}
         </div>
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
-          className="rounded-md border-gray-300 shadow-sm text-sm focus:border-[#8B4513] focus:ring-[#8B4513]">
+          className="rounded-md border-gray-300 shadow-sm text-sm focus:border-[#0f766e] focus:ring-[#0f766e]">
           <option value="waiting">{t('waitlist.waiting')}</option>
           <option value="">{t('reservations.allStatuses')}</option>
           <option value="notified">{t('waitlist.notified')}</option>

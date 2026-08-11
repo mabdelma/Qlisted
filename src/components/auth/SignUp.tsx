@@ -70,7 +70,7 @@ export function SignUp() {
               required
               value={formData.name}
               onChange={handleChange}
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#8B4513] focus:border-[#8B4513]"
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#0f766e] focus:border-[#0f766e]"
             />
           </div>
         </div>
@@ -88,7 +88,7 @@ export function SignUp() {
               required
               value={formData.email}
               onChange={handleChange}
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#8B4513] focus:border-[#8B4513]"
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#0f766e] focus:border-[#0f766e]"
             />
           </div>
         </div>
@@ -106,7 +106,7 @@ export function SignUp() {
               required
               value={formData.password}
               onChange={handleChange}
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#8B4513] focus:border-[#8B4513]"
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#0f766e] focus:border-[#0f766e]"
             />
           </div>
         </div>
@@ -121,7 +121,7 @@ export function SignUp() {
               name="role"
               value={formData.role}
               onChange={handleChange}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#8B4513] focus:border-[#8B4513]"
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#0f766e] focus:border-[#0f766e]"
             >
               <option value="waiter">{t('staff.waiter')}</option>
               <option value="kitchen">{t('staff.kitchen')}</option>
@@ -133,7 +133,7 @@ export function SignUp() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8B4513] hover:bg-[#5C4033] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B4513] disabled:opacity-50"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#0f766e] hover:bg-[#1e3a5f] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0f766e] disabled:opacity-50"
           >
             {loading ? <LoadingSpinner /> : t('auth.signup')}
           </button>
@@ -143,7 +143,7 @@ export function SignUp() {
           <button
             type="button"
             onClick={() => navigate('/signin')}
-            className="font-medium text-[#8B4513] hover:text-[#5C4033]"
+            className="font-medium text-[#0f766e] hover:text-[#1e3a5f]"
           >
             {t('auth.haveAccount')} {t('cta.signIn')}
           </button>

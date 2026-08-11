@@ -64,7 +64,7 @@ export default function GiftCards() {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">{t('giftCards.title')}</h2>
         <button onClick={() => setShowForm(true)}
-          className="flex items-center px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]">
+          className="flex items-center px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]">
           <Plus className="w-5 h-5 mr-2" /> {t('giftCards.create')}
         </button>
       </div>
@@ -76,19 +76,19 @@ export default function GiftCards() {
               <label className="block text-sm font-medium text-gray-700">{t('giftCards.code')}</label>
               <input type="text" value={form.code} required
                 onChange={(e) => setForm({ ...form, code: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513] text-sm" />
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e] text-sm" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">{t('giftCards.initialBalance')} ($)</label>
               <input type="number" min="1" step="0.01" value={form.initialBalance || ''} required
                 onChange={(e) => setForm({ ...form, initialBalance: parseFloat(e.target.value) || 0 })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513] text-sm" />
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e] text-sm" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">{t('giftCards.expiresAt')}</label>
               <input type="date" value={form.expiresAt}
                 onChange={(e) => setForm({ ...form, expiresAt: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513] text-sm" />
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e] text-sm" />
             </div>
           </div>
           {error && <p className="text-red-600 text-sm">{error}</p>}
@@ -96,7 +96,7 @@ export default function GiftCards() {
             <button type="button" onClick={() => setShowForm(false)}
               className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">{t('common.cancel')}</button>
             <button type="submit"
-              className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]">{t('giftCards.create')}</button>
+              className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]">{t('giftCards.create')}</button>
           </div>
         </form>
       )}
@@ -106,7 +106,7 @@ export default function GiftCards() {
           <div key={card.id} className={`bg-white rounded-lg shadow p-4 border-l-4 ${card.isActive ? 'border-l-green-500' : 'border-l-red-500'}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Gift className="w-5 h-5 text-[#8B4513]" />
+                <Gift className="w-5 h-5 text-[#0f766e]" />
                 <span className="font-mono font-bold text-lg">{card.code}</span>
               </div>
               {card.isActive ? (

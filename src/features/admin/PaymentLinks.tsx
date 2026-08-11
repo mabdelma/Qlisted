@@ -41,7 +41,7 @@ export function PaymentLinks() {
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
       <div className="flex items-center gap-2">
-        <Link2 className="h-6 w-6 text-[#8B4513]" />
+        <Link2 className="h-6 w-6 text-[#0f766e]" />
         <h1 className="text-2xl font-bold text-gray-900">{t('paymentLinks.title')}</h1>
       </div>
       <p className="text-sm text-gray-500">{t('paymentLinks.subtitle')}</p>
@@ -52,16 +52,16 @@ export function PaymentLinks() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t('paymentLinks.amount')}</label>
             <input type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00" className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-[#8B4513] focus:border-[#8B4513]" />
+              placeholder="0.00" className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-[#0f766e] focus:border-[#0f766e]" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t('paymentLinks.description')}</label>
             <input type="text" value={description} onChange={(e) => setDescription(e.target.value)}
-              placeholder={t('paymentLinks.descPlaceholder')} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-[#8B4513] focus:border-[#8B4513]" />
+              placeholder={t('paymentLinks.descPlaceholder')} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-[#0f766e] focus:border-[#0f766e]" />
           </div>
         </div>
         <button onClick={generate} disabled={busy}
-          className="flex items-center gap-2 rounded-lg bg-[#8B4513] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#5C4033] disabled:opacity-50">
+          className="flex items-center gap-2 rounded-lg bg-[#0f766e] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1e3a5f] disabled:opacity-50">
           <Plus className="h-4 w-4" /> {busy ? '…' : t('paymentLinks.generate')}
         </button>
       </div>
@@ -72,7 +72,7 @@ export function PaymentLinks() {
             <div key={l.url} className="flex items-center gap-3 p-4">
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium text-gray-900">${l.amount.toFixed(2)} · <span className="text-gray-500">{l.description}</span></div>
-                <div className="truncate text-xs text-[#8B4513]">{l.url}</div>
+                <div className="truncate text-xs text-[#0f766e]">{l.url}</div>
               </div>
               <button onClick={() => copy(i)} className="shrink-0 rounded-lg border border-gray-300 p-2 text-gray-500 hover:bg-gray-50" aria-label="Copy link">
                 {l.copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}

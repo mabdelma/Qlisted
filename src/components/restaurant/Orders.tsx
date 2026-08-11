@@ -40,10 +40,10 @@ export function Orders() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="flex justify-between items-center mb-8">
-        <h2 className="text-2xl font-bold text-[#5C4033]">Your Orders</h2>
+        <h2 className="text-2xl font-bold text-[#1e3a5f]">Your Orders</h2>
         <button
           onClick={() => loadOrders()}
-          className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]"
+          className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]"
         >
           Refresh Orders
         </button>

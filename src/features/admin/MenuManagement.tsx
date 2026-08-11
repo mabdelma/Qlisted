@@ -211,13 +211,13 @@ export function MenuManagement() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowCategories(true)}
-            className="flex items-center px-4 py-2 border border-[#8B4513] text-[#8B4513] rounded-md hover:bg-[#F5DEB3]/30"
+            className="flex items-center px-4 py-2 border border-[#0f766e] text-[#0f766e] rounded-md hover:bg-[#ccfbf1]/30"
           >
             <FolderTree className="w-5 h-5 mr-2" aria-hidden /> {t('category.manage')}
           </button>
           <button
             onClick={() => setEditing({ name: '', price: 0, categoryId: selectedCategory, available: true })}
-            className="flex items-center px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]"
+            className="flex items-center px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]"
           >
             <PlusCircle className="w-5 h-5 mr-2" aria-hidden /> {t('menu.addItem')}
           </button>
@@ -245,7 +245,7 @@ export function MenuManagement() {
                   type="text" required
                   value={editing.name || ''}
                   onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]"
                 />
               </div>
               <div>
@@ -254,7 +254,7 @@ export function MenuManagement() {
                   id="menu-desc"
                   value={editing.description || ''}
                   onChange={(e) => setEditing({ ...editing, description: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]"
                 />
               </div>
               <div>
@@ -290,7 +290,7 @@ export function MenuManagement() {
                     type="number" step="0.01" min="0" required
                     value={editing.price || 0}
                     onChange={(e) => setEditing({ ...editing, price: parseFloat(e.target.value) || 0 })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]"
                   />
                 </div>
                 <div>
@@ -299,7 +299,7 @@ export function MenuManagement() {
                     id="menu-category"
                     value={editing.categoryId || ''}
                     onChange={(e) => setEditing({ ...editing, categoryId: e.target.value, subCategoryId: undefined })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]"
                   >
                     {categories.map((c) => (
                       <option key={c.id} value={c.id}>{c.name}</option>
@@ -316,7 +316,7 @@ export function MenuManagement() {
                       id="menu-subcategory"
                       value={editing.subCategoryId || ''}
                       onChange={(e) => setEditing({ ...editing, subCategoryId: e.target.value || undefined })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]"
                     >
                       <option value="">—</option>
                       {subs.map((s) => (
@@ -331,7 +331,7 @@ export function MenuManagement() {
                   type="checkbox" id="menu-avail"
                   checked={editing.available ?? true}
                   onChange={(e) => setEditing({ ...editing, available: e.target.checked })}
-                  className="h-4 w-4 text-[#8B4513] border-gray-300 rounded"
+                  className="h-4 w-4 text-[#0f766e] border-gray-300 rounded"
                 />
                 <label htmlFor="menu-avail" className="ml-2 text-sm text-gray-900">{t('menu.available')}</label>
               </div>
@@ -352,7 +352,7 @@ export function MenuManagement() {
                           tr[locale.code] = { ...tr[locale.code], name: e.target.value };
                           setEditing({ ...editing, translations: tr });
                         }}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513] text-sm" />
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e] text-sm" />
                       <textarea placeholder={t('menu.descPlaceholder', { code: locale.code })}
                         value={(editing.translations?.[locale.code] as { description?: string } | undefined)?.description || ''}
                         onChange={(e) => {
@@ -360,7 +360,7 @@ export function MenuManagement() {
                           tr[locale.code] = { ...tr[locale.code], description: e.target.value };
                           setEditing({ ...editing, translations: tr });
                         }}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513] text-sm" rows={2} />
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e] text-sm" rows={2} />
                     </div>
                   ))}
                 </div>
@@ -384,7 +384,7 @@ export function MenuManagement() {
                               setLinkedGroupIds(linkedGroupIds.filter((id) => id !== g.id));
                             }
                           }}
-                          className="h-4 w-4 text-[#8B4513] border-gray-300 rounded"
+                          className="h-4 w-4 text-[#0f766e] border-gray-300 rounded"
                         />
                         <span className="text-sm text-gray-900">{g.name}</span>
                         <span className="text-xs text-gray-400">
@@ -401,7 +401,7 @@ export function MenuManagement() {
                   {t('common.cancel')}
                 </button>
                 <button type="submit"
-                  className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]">
+                  className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]">
                   {t('common.save')}
                 </button>
               </div>
@@ -417,7 +417,7 @@ export function MenuManagement() {
             onClick={() => setSelectedCategory(c.id)}
             className={`px-4 py-2 rounded-lg whitespace-nowrap ${
               selectedCategory === c.id
-                ? 'bg-[#F5DEB3] text-[#8B4513]'
+                ? 'bg-[#ccfbf1] text-[#0f766e]'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -428,7 +428,7 @@ export function MenuManagement() {
           onClick={() => setSelectedCategory('')}
           className={`px-4 py-2 rounded-lg whitespace-nowrap ${
             selectedCategory === ''
-              ? 'bg-[#F5DEB3] text-[#8B4513]'
+              ? 'bg-[#ccfbf1] text-[#0f766e]'
               : 'bg-white text-gray-700 hover:bg-gray-50'
           }`}
         >

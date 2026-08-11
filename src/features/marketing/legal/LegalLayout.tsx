@@ -25,7 +25,7 @@ export function LegalLayout({ title, intro, children }: { title: string; intro?:
         <div className="mt-12 rounded-xl bg-gray-50 border border-gray-100 p-5 text-sm text-gray-500">
           This document is provided for general information and does not constitute legal advice.
           Questions? Contact us at{' '}
-          <a href={`mailto:${LEGAL_CONTACT}`} className="text-[#8B4513] hover:underline">{LEGAL_CONTACT}</a>.
+          <a href={`mailto:${LEGAL_CONTACT}`} className="text-[#0f766e] hover:underline">{LEGAL_CONTACT}</a>.
         </div>
       </article>
       <Footer />

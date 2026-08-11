@@ -5,11 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "start": "tsx src/server.ts"
+    "start": "tsx src/server.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@qlisted/shared": "*",
     "fastify": "^5.1.0",
+    "ioredis": "^5.4.1",
     "pg": "^8.13.1",
     "stripe": "^17.6.0"
   },

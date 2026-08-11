@@ -192,7 +192,6 @@ export async function splitPayment(tenantId: string, orderId: string, splits: Ar
     .where(and(eq(schema.payments.orderId, orderId), eq(schema.payments.status, 'paid')));
   const totalPaidSoFar = existingPayments.reduce((s, p) => s + p.amount + (p.tip || 0), 0);
   const remainingBalance = order.total - totalPaidSoFar;
-  const totalSplitAmount = splits.reduce((s, sp) => s + sp.amount, 0);
 
   if (remainingBalance <= 0) return { error: 'Order already fully paid', status: 400 as const };
 

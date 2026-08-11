@@ -90,7 +90,7 @@ export function KitchenDisplay() {
           <h2 className="text-2xl font-bold text-gray-900">Kitchen Display</h2>
           <p className="text-sm text-gray-500">{orders.length} order{orders.length !== 1 ? 's' : ''} in queue</p>
         </div>
-        <button onClick={load} className="flex items-center gap-1 px-3 py-1.5 bg-[#8B4513] text-white text-sm rounded-lg hover:bg-[#5C4033]">
+        <button onClick={load} className="flex items-center gap-1 px-3 py-1.5 bg-[#0f766e] text-white text-sm rounded-lg hover:bg-[#1e3a5f]">
           <RefreshCw className="w-4 h-4" /> Refresh
         </button>
       </div>
@@ -98,7 +98,7 @@ export function KitchenDisplay() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {orders.map((order) => {
           const age = getOrderAge(order.createdAt);
-          const warnColor = age > 20 ? 'red' : age > 10 ? 'yellow' : '[#8B4513]';
+          const warnColor = age > 20 ? 'red' : age > 10 ? 'yellow' : '[#0f766e]';
 
           return (
             <div
@@ -106,7 +106,7 @@ export function KitchenDisplay() {
               className={`bg-white rounded-xl shadow-sm border-l-4 ${
                 warnColor === 'red' ? 'border-red-500' :
                 warnColor === 'yellow' ? 'border-yellow-500' :
-                'border-[#8B4513]'
+                'border-[#0f766e]'
               }`}
             >
               <div className="p-4">
@@ -135,7 +135,7 @@ export function KitchenDisplay() {
                 <div className="space-y-2 mb-4">
                   {order.items?.map((item) => (
                     <div key={item.id} className="flex items-center gap-2">
-                      <span className="w-7 h-7 flex items-center justify-center bg-[#F5DEB3] text-[#8B4513] rounded-full text-sm font-bold">
+                      <span className="w-7 h-7 flex items-center justify-center bg-[#ccfbf1] text-[#0f766e] rounded-full text-sm font-bold">
                         {item.quantity}
                       </span>
                       <span className="text-gray-900 font-medium">{item.name}</span>
@@ -150,7 +150,7 @@ export function KitchenDisplay() {
                   {order.status === 'pending' && (
                     <button
                       onClick={() => updateStatus(order.id, 'preparing')}
-                      className="flex-1 bg-[#8B4513] text-white py-3 rounded-lg text-sm font-medium hover:bg-[#5C4033]"
+                      className="flex-1 bg-[#0f766e] text-white py-3 rounded-lg text-sm font-medium hover:bg-[#1e3a5f]"
                     >
                       Start Preparing
                     </button>

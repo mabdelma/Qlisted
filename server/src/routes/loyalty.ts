@@ -69,7 +69,7 @@ async function ensureTier(tenantId: string, summary: { id: string; lifetimePoint
 loyalty.get('/:slug/loyalty', authMiddleware, requireRole('admin', 'manager', 'waiter', 'cashier'), resolveTenant, async (c) => {
   const tenantId = c.get('tenantId') as string;
   const summary = await getOrCreate(tenantId);
-  const tier = await ensureTier(tenantId, summary);
+  await ensureTier(tenantId, summary);
 
   const history = await db
     .select()

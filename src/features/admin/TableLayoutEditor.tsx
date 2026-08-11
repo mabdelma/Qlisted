@@ -93,7 +93,7 @@ export function TableLayoutEditor() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-[#5C4033]">{t('layout.title')}</h2>
+        <h2 className="text-2xl font-bold text-[#1e3a5f]">{t('layout.title')}</h2>
         <div className="flex items-center gap-3">
           <div className="flex items-center bg-white rounded-lg border border-gray-200">
             <button onClick={() => setZoom((z) => Math.max(0.5, z - 0.1))} title={t('layout.zoomOut')}
@@ -107,7 +107,7 @@ export function TableLayoutEditor() {
             </button>
           </div>
           <button onClick={handleSave} disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 bg-[#8B4513] text-white rounded-lg hover:bg-[#6B3410] transition-colors disabled:opacity-50">
+            className="flex items-center gap-2 px-4 py-2 bg-[#0f766e] text-white rounded-lg hover:bg-[#115e59] transition-colors disabled:opacity-50">
             <Save className="w-4 h-4" /> {saving ? t('layout.saving') : t('layout.save')}
           </button>
         </div>
@@ -152,7 +152,7 @@ export function TableLayoutEditor() {
                   table.status === 'occupied' ? 'border-orange-400 bg-orange-50 hover:shadow-lg' :
                   table.status === 'reserved' ? 'border-blue-400 bg-blue-50 hover:shadow-lg' :
                   'border-gray-300 bg-gray-50 hover:shadow-lg'
-                } ${isDragging ? 'shadow-xl ring-2 ring-[#8B4513]' : 'shadow-sm'}`}>
+                } ${isDragging ? 'shadow-xl ring-2 ring-[#0f766e]' : 'shadow-sm'}`}>
                 <div className="text-center">
                   <TableIcon className={`w-5 h-5 mx-auto mb-0.5 ${
                     table.status === 'available' ? 'text-green-600' :

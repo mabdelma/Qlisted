@@ -119,7 +119,7 @@ export function TableOrders() {
                       {(order.status === 'delivered' || order.status === 'ready') && order.paymentStatus !== 'paid' && (
                         <button
                           onClick={() => setPayingOrder(order)}
-                          className="ml-4 px-3 py-1 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]"
+                          className="ml-4 px-3 py-1 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]"
                         >
                           Pay Now
                         </button>
@@ -165,7 +165,7 @@ export function TableOrders() {
             
             <div className="mb-6">
               <p className="text-gray-600 mb-2">Total Amount:</p>
-              <p className="text-3xl font-bold text-[#8B4513]">${payingOrder.total.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-[#0f766e]">${payingOrder.total.toFixed(2)}</p>
             </div>
 
             <div className="space-y-3">
@@ -178,12 +178,12 @@ export function TableOrders() {
                     onClick={() => setSelectedPaymentMethod(method.id)}
                     className={`w-full flex items-center justify-between p-4 rounded-lg border-2 transition-colors ${
                       selectedPaymentMethod === method.id
-                        ? 'border-[#8B4513] bg-[#F5DEB3] bg-opacity-20'
+                        ? 'border-[#0f766e] bg-[#ccfbf1] bg-opacity-20'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <div className="flex items-center">
-                      <Icon className="w-5 h-5 mr-3 text-[#8B4513]" />
+                      <Icon className="w-5 h-5 mr-3 text-[#0f766e]" />
                       <span className="font-medium">{method.name}</span>
                     </div>
                   </button>
@@ -204,7 +204,7 @@ export function TableOrders() {
               <button
                 onClick={() => selectedPaymentMethod && handlePayment(payingOrder)}
                 disabled={!selectedPaymentMethod || processingPayment}
-                className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033] disabled:opacity-50"
+                className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f] disabled:opacity-50"
               >
                 {processingPayment ? 'Processing...' : 'Pay Now'}
               </button>

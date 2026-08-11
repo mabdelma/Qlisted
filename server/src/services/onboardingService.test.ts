@@ -27,7 +27,7 @@ import crypto from 'crypto';
 describe('onboardingService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(crypto.randomBytes).mockReturnValue({ toString: () => 'mock-verification-token' } as any);
+    vi.mocked(crypto.randomBytes).mockReturnValue({ toString: () => 'mock-verification-token' } as unknown as Buffer);
   });
 
   describe('onboardTenant', () => {

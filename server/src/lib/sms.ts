@@ -1,4 +1,7 @@
+import { createRequire } from 'module';
 import { logger } from './logger.js';
+
+const _require = createRequire(import.meta.url);
 
 function getTwilio() {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -6,7 +9,7 @@ function getTwilio() {
   const fromNumber = process.env.TWILIO_PHONE_NUMBER;
   if (!accountSid || !authToken || !fromNumber) return null;
   try {
-    const twilio = require('twilio');
+    const twilio = _require('twilio');
     return { client: twilio(accountSid, authToken), from: fromNumber };
   } catch {
     logger.warn('twilio package not installed, SMS will be logged only');

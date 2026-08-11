@@ -226,23 +226,23 @@ export function OrdersDisplay() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <h2 className="text-2xl font-bold text-[#5C4033]">Kitchen Display</h2>
-          <span className="text-sm bg-[#8B4513] text-white px-3 py-1 rounded-full">{orders.length} active</span>
+          <h2 className="text-2xl font-bold text-[#1e3a5f]">Kitchen Display</h2>
+          <span className="text-sm bg-[#0f766e] text-white px-3 py-1 rounded-full">{orders.length} active</span>
         </div>
         <div className="flex items-center space-x-3">
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortMode)}
-            className="rounded-md border-gray-300 text-sm focus:border-[#8B4513] focus:ring-[#8B4513]">
+            className="rounded-md border-gray-300 text-sm focus:border-[#0f766e] focus:ring-[#0f766e]">
             <option value="priority">Priority (oldest first)</option>
             <option value="time">Newest first</option>
             <option value="table">Table number</option>
           </select>
           <select value={groupBy} onChange={(e) => setGroupBy(e.target.value as GroupMode)}
-            className="rounded-md border-gray-300 text-sm focus:border-[#8B4513] focus:ring-[#8B4513]">
+            className="rounded-md border-gray-300 text-sm focus:border-[#0f766e] focus:ring-[#0f766e]">
             <option value="status">Group by status</option>
             <option value="none">Flat list</option>
           </select>
           <button onClick={() => setSoundEnabled(!soundEnabled)}
-            className={`p-2 rounded-lg ${soundEnabled ? 'bg-[#8B4513] text-white' : 'bg-gray-200 text-gray-500'}`}
+            className={`p-2 rounded-lg ${soundEnabled ? 'bg-[#0f766e] text-white' : 'bg-gray-200 text-gray-500'}`}
             title={soundEnabled ? 'Mute alerts' : 'Enable alerts'}>
             <Bell className="w-4 h-4" />
           </button>

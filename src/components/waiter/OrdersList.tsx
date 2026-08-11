@@ -108,8 +108,8 @@ export function OrdersList() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-[#5C4033]">Active Orders</h2>
-        <button onClick={loadOrders} className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]">Refresh Orders</button>
+        <h2 className="text-2xl font-bold text-[#1e3a5f]">Active Orders</h2>
+        <button onClick={loadOrders} className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]">Refresh Orders</button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -120,7 +120,7 @@ export function OrdersList() {
 
           return (
             <div key={order.id}
-              className={`bg-white rounded-lg shadow-sm border-l-4 ${isDelayed ? 'border-red-500' : 'border-[#8B4513]'}`}>
+              className={`bg-white rounded-lg shadow-sm border-l-4 ${isDelayed ? 'border-red-500' : 'border-[#0f766e]'}`}>
               <div className="p-4">
                 <div className="flex justify-between items-start mb-4">
                   <div>

@@ -146,7 +146,7 @@ export function PointOfSale() {
               placeholder="Search menu items..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#8B4513] dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+              className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0f766e] dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
             />
             <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
           </div>
@@ -159,7 +159,7 @@ export function PointOfSale() {
                   onClick={() => setSelectedCategory(category.id)}
                   className={`px-4 py-2 rounded-lg whitespace-nowrap ${
                     selectedCategory === category.id
-                      ? 'bg-[#F5DEB3] text-[#8B4513]'
+                      ? 'bg-[#ccfbf1] text-[#0f766e]'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
                   }`}
                 >
@@ -175,7 +175,7 @@ export function PointOfSale() {
               <button
                 key={item.id}
                 onClick={() => addToCart(item)}
-                className="p-4 rounded-lg border border-gray-200 hover:border-[#8B4513] hover:shadow-md transition-all text-left dark:border-gray-700 dark:hover:border-brand"
+                className="p-4 rounded-lg border border-gray-200 hover:border-[#0f766e] hover:shadow-md transition-all text-left dark:border-gray-700 dark:hover:border-brand"
               >
                 <div className="aspect-square mb-2 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-800">
                   {item.imageUrl ? (
@@ -187,7 +187,7 @@ export function PointOfSale() {
                   )}
                 </div>
                 <h3 className="font-medium text-gray-900 dark:text-gray-100">{item.name}</h3>
-                <p className="text-[#8B4513] font-medium mt-1">${item.price.toFixed(2)}</p>
+                <p className="text-[#0f766e] font-medium mt-1">${item.price.toFixed(2)}</p>
               </button>
             ))}
           </div>
@@ -214,16 +214,16 @@ export function PointOfSale() {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => updateQuantity(item.menuItem.id, -1)}
-                          className="p-1 hover:bg-[#F5DEB3] rounded text-[#8B4513] transition-colors dark:hover:bg-gray-700"
+                          className="p-1 hover:bg-[#ccfbf1] rounded text-[#0f766e] transition-colors dark:hover:bg-gray-700"
                         >
                           <Minus className="w-4 h-4" />
                         </button>
-                        <span className="w-8 text-center text-[#5C4033] dark:text-gray-300 font-medium">
+                        <span className="w-8 text-center text-[#1e3a5f] dark:text-gray-300 font-medium">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => updateQuantity(item.menuItem.id, 1)}
-                          className="p-1 hover:bg-[#F5DEB3] rounded text-[#8B4513] transition-colors dark:hover:bg-gray-700"
+                          className="p-1 hover:bg-[#ccfbf1] rounded text-[#0f766e] transition-colors dark:hover:bg-gray-700"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
@@ -234,7 +234,7 @@ export function PointOfSale() {
                             setEditingNotes(item.menuItem.id);
                             setNoteText(item.notes || '');
                           }}
-                          className="p-1 text-[#8B4513] hover:bg-[#F5DEB3] rounded transition-colors dark:hover:bg-gray-700"
+                          className="p-1 text-[#0f766e] hover:bg-[#ccfbf1] rounded transition-colors dark:hover:bg-gray-700"
                           title={item.notes || 'Add notes'}
                         >
                           <MessageCircle className="w-4 h-4" />
@@ -255,7 +255,7 @@ export function PointOfSale() {
                         value={noteText}
                         onChange={(e) => setNoteText(e.target.value)}
                         placeholder="Add special instructions..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#8B4513] focus:border-[#8B4513] text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0f766e] focus:border-[#0f766e] text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                         rows={2}
                       />
                       <div className="flex justify-end space-x-2">
@@ -267,7 +267,7 @@ export function PointOfSale() {
                         </button>
                         <button
                           onClick={() => saveNotes(item.menuItem.id)}
-                          className="px-3 py-1 text-sm bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]"
+                          className="px-3 py-1 text-sm bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]"
                         >
                           Save
                         </button>
@@ -301,7 +301,7 @@ export function PointOfSale() {
             <button
               onClick={processOrder}
               disabled={cart.length === 0 || processing}
-              className="px-4 py-2 bg-[#8B4513] text-white rounded-lg hover:bg-[#5C4033] disabled:opacity-50 flex items-center justify-center"
+              className="px-4 py-2 bg-[#0f766e] text-white rounded-lg hover:bg-[#1e3a5f] disabled:opacity-50 flex items-center justify-center"
             >
               {processing ? (
                 <LoadingSpinner />

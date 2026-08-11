@@ -54,6 +54,20 @@ export interface EmailRequest {
 export type DomainEvent =
   | { type: "user.registered"; userId: string; email: string; tenantId?: string | null; locale?: string }
   | { type: "order.placed"; orderId: string; tenantId: string; total: number }
+  | { type: "order.updated"; orderId: string; tenantId: string }
+  | { type: "order.status.changed"; orderId: string; tenantId: string; status: string; tableId?: string | null }
   | { type: "order.ready"; orderId: string; tenantId: string; tableId?: string | null }
   | { type: "payment.succeeded"; tenantId: string; orderId?: string; amount: number }
-  | { type: "subscription.updated"; tenantId: string; plan: PlanId };
+  | { type: "subscription.updated"; tenantId: string; plan: PlanId }
+  | { type: "menu.category.created"; categoryId: string; tenantId: string; name: string }
+  | { type: "menu.category.updated"; categoryId: string; tenantId: string }
+  | { type: "menu.category.deleted"; categoryId: string; tenantId: string }
+  | { type: "menu.item.created"; itemId: string; tenantId: string; name: string }
+  | { type: "menu.item.updated"; itemId: string; tenantId: string }
+  | { type: "menu.item.deleted"; itemId: string; tenantId: string }
+  | { type: "loyalty.points.earned"; tenantId: string; amount: number }
+  | { type: "loyalty.points.redeemed"; tenantId: string; amount: number }
+  | { type: "promo.validated"; campaignId: string; tenantId: string; code: string }
+  | { type: "campaign.sent"; campaignId: string; tenantId: string; recipients: number }
+  | { type: "sms.sent"; to: string; tenantId?: string }
+  | { type: "push.sent"; tenantId: string; recipients: number };

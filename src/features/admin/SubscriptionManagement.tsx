@@ -135,7 +135,7 @@ export function SubscriptionManagement() {
 
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center gap-3 mb-4">
-          <CreditCard className="w-6 h-6 text-[#8B4513]" />
+          <CreditCard className="w-6 h-6 text-[#0f766e]" />
           <h3 className="text-lg font-medium">{t('sub.currentPlan')}</h3>
         </div>
         {info && (
@@ -167,9 +167,9 @@ export function SubscriptionManagement() {
             const isCurrent = plan.id === currentPlanId;
             const isDowngrade = PLANS.indexOf(plan) < PLANS.findIndex((p) => p.id === currentPlanId);
             return (
-              <div key={plan.id} className={`border rounded-lg p-4 ${isCurrent ? 'border-[#8B4513] bg-[#F5DEB3]/20' : 'border-gray-200'}`}>
+              <div key={plan.id} className={`border rounded-lg p-4 ${isCurrent ? 'border-[#0f766e] bg-[#ccfbf1]/20' : 'border-gray-200'}`}>
                 <h4 className="text-lg font-bold text-gray-900">{plan.name}</h4>
-                <p className="text-2xl font-bold text-[#8B4513] mt-2">{formatPrice(plan.price, locale)}<span className="text-sm text-gray-500 font-normal">{t('pricing.perMonth')}</span></p>
+                <p className="text-2xl font-bold text-[#0f766e] mt-2">{formatPrice(plan.price, locale)}<span className="text-sm text-gray-500 font-normal">{t('pricing.perMonth')}</span></p>
                 <ul className="mt-3 space-y-1">
                   {plan.features.map((f, i) => (
                     <li key={i} className="text-sm text-gray-600 flex items-center gap-1">
@@ -182,7 +182,7 @@ export function SubscriptionManagement() {
                   disabled={isCurrent || changing}
                   className={`mt-4 w-full py-2 rounded-lg text-sm font-medium ${
                     isCurrent ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
-                    'bg-[#8B4513] text-white hover:bg-[#5C4033] disabled:opacity-50'
+                    'bg-[#0f766e] text-white hover:bg-[#1e3a5f] disabled:opacity-50'
                   }`}
                 >
                   {changing ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> :
@@ -223,7 +223,7 @@ export function SubscriptionManagement() {
 
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center gap-3 mb-4">
-          <DollarSign className="w-6 h-6 text-[#8B4513]" />
+          <DollarSign className="w-6 h-6 text-[#0f766e]" />
           <h3 className="text-lg font-medium">{t('sub.payouts')}</h3>
         </div>
         {connectLoading ? (
@@ -247,9 +247,9 @@ export function SubscriptionManagement() {
             <div className="flex items-center gap-2">
               <input type="number" min="1" step="0.01" value={payoutAmount || ''} placeholder={t('sub.amount')}
                 onChange={(e) => setPayoutAmount(parseFloat(e.target.value) || 0)}
-                className="w-40 rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513] text-sm" />
+                className="w-40 rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e] text-sm" />
               <button onClick={handlePayout} disabled={payoutCreating}
-                className="flex items-center px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033] disabled:opacity-50">
+                className="flex items-center px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f] disabled:opacity-50">
                 {payoutCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Plus className="w-4 h-4 mr-1" /> {t('sub.payout')}</>}
               </button>
             </div>
@@ -273,10 +273,10 @@ export function SubscriptionManagement() {
             <p className="text-sm text-gray-500">{t('sub.connectStripe')}</p>
             <input type="email" placeholder={t('sub.emailForStripe')} value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="block w-80 rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513] text-sm" />
+              className="block w-80 rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e] text-sm" />
             <div className="flex gap-2">
               <button onClick={handleCreateAccount}
-                className="flex items-center px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033] text-sm">
+                className="flex items-center px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f] text-sm">
                 <Plus className="w-4 h-4 mr-1" /> {t('sub.createAccount')}
               </button>
               <button onClick={handleOnboarding}

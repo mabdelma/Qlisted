@@ -7,6 +7,7 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { useI18n } from '../../contexts/I18nContext';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
+import { Logo } from '../ui/Logo';
 import { homePathForRole } from '../../lib/roleRoutes';
 import { GoogleSignInButton } from './GoogleSignInButton';
 
@@ -52,8 +53,8 @@ const AUDIENCES: Record<Audience, {
     brandSubtitle: 'For owners and managers.',
     formTitle: 'Restaurant sign-in',
     formSubtitle: 'For restaurant owners and managers.',
-    gradient: 'from-[#8B4513] to-[#3f2415]',
-    button: 'bg-[#8B4513] hover:bg-[#5C4033] focus:ring-[#8B4513]',
+    gradient: 'from-[#0f766e] to-[#1e3a5f]',
+    button: 'bg-[#0f766e] hover:bg-[#1e3a5f] focus:ring-[#0f766e]',
     Icon: Store,
     placeholder: 'you@restaurant.com',
     points: [
@@ -89,8 +90,8 @@ const AUDIENCES: Record<Audience, {
     brandSubtitle: 'One secure sign-in for super admins, restaurant admins, and staff.',
     formTitle: 'Sign in',
     formSubtitle: 'Super admins, restaurant admins, and staff all sign in here.',
-    gradient: 'from-[#8B4513] to-[#3f2415]',
-    button: 'bg-[#8B4513] hover:bg-[#5C4033] focus:ring-[#8B4513]',
+    gradient: 'from-[#0f766e] to-[#1e3a5f]',
+    button: 'bg-[#0f766e] hover:bg-[#1e3a5f] focus:ring-[#0f766e]',
     Icon: UtensilsCrossed,
     placeholder: 'you@restaurant.com',
     points: [
@@ -138,8 +139,7 @@ export function SignIn() {
         <div className="pointer-events-none absolute -bottom-32 -left-16 h-96 w-96 rounded-full bg-white/5 blur-3xl" />
 
         <Link to="/" className="relative flex items-center gap-2">
-          <a.Icon className="h-8 w-8" />
-          <span className="text-2xl font-bold">Qlisted</span>
+          <Logo tone="light" size={30} />
           <span className="ml-2 rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-medium">{a.badge}</span>
         </Link>
 
@@ -169,8 +169,7 @@ export function SignIn() {
         <div className="mx-auto w-full max-w-md">
           {/* Mobile logo */}
           <Link to="/" className="mb-8 flex items-center justify-center gap-2 lg:hidden">
-            <a.Icon className="h-8 w-8 text-gray-900" />
-            <span className="text-2xl font-bold text-gray-900">Qlisted</span>
+            <Logo size={28} />
             <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600">{a.badge}</span>
           </Link>
 

@@ -1,5 +1,5 @@
 import { db, schema } from '../db/index.js';
-import { eq, and, sql, gte, lte } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { v4 as uuid } from 'uuid';
 import { logger } from '../lib/logger.js';
 

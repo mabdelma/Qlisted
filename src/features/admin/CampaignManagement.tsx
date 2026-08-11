@@ -135,7 +135,7 @@ export function CampaignManagement() {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">{t('promo.title')}</h2>
         <button onClick={() => startEdit()}
-          className="flex items-center px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]">
+          className="flex items-center px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]">
           <PlusCircle className="w-5 h-5 mr-2" /> {t('promo.create')}
         </button>
       </div>
@@ -153,13 +153,13 @@ export function CampaignManagement() {
                 <label className="block text-sm font-medium text-gray-700">{t('promo.name')}</label>
                 <input type="text" required value={editing.name || ''}
                   onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">{t('promo.type')}</label>
                 <select value={editing.type || 'percentage'}
                   onChange={(e) => setEditing({ ...editing, type: e.target.value as CampaignInput['type'] })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]">
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]">
                   {CAMPAIGN_TYPES.map((t) => (
                     <option key={t} value={t}>{typeLabel(t)}</option>
                   ))}
@@ -169,20 +169,20 @@ export function CampaignManagement() {
                 <label className="block text-sm font-medium text-gray-700">{t('promo.value')}</label>
                 <input type="number" step="0.01" min="0" required value={editing.value ?? 0}
                   onChange={(e) => setEditing({ ...editing, value: parseFloat(e.target.value) || 0 })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">{t('promo.minOrder')}</label>
                   <input type="number" step="0.01" min="0" value={editing.minOrderAmount ?? ''}
                     onChange={(e) => setEditing({ ...editing, minOrderAmount: e.target.value ? parseFloat(e.target.value) : undefined })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">{t('promo.maxDiscount')}</label>
                   <input type="number" step="0.01" min="0" value={editing.maxDiscount ?? ''}
                     onChange={(e) => setEditing({ ...editing, maxDiscount: e.target.value ? parseFloat(e.target.value) : undefined })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -190,45 +190,45 @@ export function CampaignManagement() {
                   <label className="block text-sm font-medium text-gray-700">{t('promo.startDate')}</label>
                   <input type="date" value={editing.startDate?.split('T')[0] || ''}
                     onChange={(e) => setEditing({ ...editing, startDate: e.target.value || undefined })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">{t('promo.endDate')}</label>
                   <input type="date" value={editing.endDate?.split('T')[0] || ''}
                     onChange={(e) => setEditing({ ...editing, endDate: e.target.value || undefined })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">{t('promo.daysOfWeek')}</label>
                 <input type="text" placeholder="e.g. 1,2,3,4,5" value={editing.daysOfWeek || ''}
                   onChange={(e) => setEditing({ ...editing, daysOfWeek: e.target.value || undefined })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">{t('promo.timeStart')}</label>
                   <input type="time" value={editing.timeStart || ''}
                     onChange={(e) => setEditing({ ...editing, timeStart: e.target.value || undefined })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">{t('promo.timeEnd')}</label>
                   <input type="time" value={editing.timeEnd || ''}
                     onChange={(e) => setEditing({ ...editing, timeEnd: e.target.value || undefined })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">{t('promo.usageLimit')}</label>
                 <input type="number" min="0" value={editing.usageLimit ?? ''}
                   onChange={(e) => setEditing({ ...editing, usageLimit: e.target.value ? parseInt(e.target.value) : undefined })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
               </div>
               <div className="flex justify-end space-x-3 pt-2">
                 <button type="button" onClick={resetForm}
                   className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">{t('common.cancel')}</button>
-                <button type="submit" className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]">{t('common.save')}</button>
+                <button type="submit" className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]">{t('common.save')}</button>
               </div>
             </form>
           </div>
@@ -240,7 +240,7 @@ export function CampaignManagement() {
           <div key={campaign.id} className={`bg-white rounded-lg shadow p-6 border-l-4 ${campaign.isActive ? 'border-green-500' : 'border-gray-300'}`}>
             <div className="flex justify-between items-start">
               <div className="flex items-center gap-3">
-                <Tag className={`w-5 h-5 ${campaign.isActive ? 'text-[#8B4513]' : 'text-gray-400'}`} />
+                <Tag className={`w-5 h-5 ${campaign.isActive ? 'text-[#0f766e]' : 'text-gray-400'}`} />
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">{campaign.name}</h3>
                   <div className="flex flex-wrap gap-2 mt-1">

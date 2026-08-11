@@ -51,7 +51,7 @@ export function AdminProfile() {
   return (
     <div className="max-w-3xl mx-auto p-6">
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="relative h-32 bg-gradient-to-r from-[#8B4513] to-[#5C4033]">
+        <div className="relative h-32 bg-gradient-to-r from-[#0f766e] to-[#1e3a5f]">
           <div className="absolute -bottom-16 left-6">
             <div className="relative">
               <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 overflow-hidden">
@@ -75,7 +75,7 @@ export function AdminProfile() {
                 <div className="mt-1 relative">
                   <input id="admin-profile-name" type="text" value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                   <User className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
                 </div>
               </div>
@@ -85,7 +85,7 @@ export function AdminProfile() {
                 <div className="mt-1 relative">
                   <input id="admin-profile-email" type="email" value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                   <Mail className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
                 </div>
               </div>
@@ -94,7 +94,7 @@ export function AdminProfile() {
                 <button type="button" onClick={() => setEditing(false)}
                   className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">{t('common.cancel')}</button>
                 <button type="submit" disabled={loading}
-                  className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033] disabled:opacity-50">
+                  className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f] disabled:opacity-50">
                   {loading ? <LoadingSpinner /> : t('profile.saveChanges')}
                 </button>
               </div>
@@ -104,7 +104,7 @@ export function AdminProfile() {
               <div className="flex justify-between items-start">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">{state.user.name}</h2>
-                  <span className="inline-block mt-1 px-3 py-1 bg-[#F5DEB3] text-[#8B4513] rounded-full text-sm font-medium capitalize">
+                  <span className="inline-block mt-1 px-3 py-1 bg-[#ccfbf1] text-[#0f766e] rounded-full text-sm font-medium capitalize">
                     {state.user.role}
                   </span>
                 </div>

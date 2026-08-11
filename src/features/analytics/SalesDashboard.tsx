@@ -136,7 +136,7 @@ export function SalesDashboard() {
                       <div key={point.date} className="flex-1 flex flex-col items-center justify-end h-full">
                         <span className="text-xs text-gray-500 mb-1">${point.revenue.toFixed(0)}</span>
                         <div
-                          className="w-full bg-[#8B4513] rounded-t hover:opacity-80 transition-opacity"
+                          className="w-full bg-[#0f766e] rounded-t hover:opacity-80 transition-opacity"
                           style={{ height: `${Math.max(height, 2)}%` }}
                         />
                         <span className="text-xs text-gray-500 mt-1">{label}</span>
@@ -158,7 +158,7 @@ export function SalesDashboard() {
               {summary.popularItems.slice(0, 5).map((item, idx) => (
                 <div key={item.name} className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <span className="w-6 h-6 rounded-full bg-[#8B4513] text-white text-xs flex items-center justify-center font-medium mr-2">
+                    <span className="w-6 h-6 rounded-full bg-[#0f766e] text-white text-xs flex items-center justify-center font-medium mr-2">
                       {idx + 1}
                     </span>
                     <span className="text-sm text-gray-700">{item.name}</span>
@@ -178,7 +178,7 @@ export function SalesDashboard() {
 
       {/* Hourly traffic — orders by hour of day */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="flex items-center gap-2 text-lg font-medium text-gray-900 mb-4"><Clock className="w-5 h-5 text-[#8B4513]" /> {t('analytics.hourlyTraffic')}</h3>
+        <h3 className="flex items-center gap-2 text-lg font-medium text-gray-900 mb-4"><Clock className="w-5 h-5 text-[#0f766e]" /> {t('analytics.hourlyTraffic')}</h3>
         {hourly.length === 0 ? (
           <p className="text-gray-500 text-sm">{t('analytics.noData')}</p>
         ) : (() => {
@@ -190,7 +190,7 @@ export function SalesDashboard() {
                 const count = byHour.get(h) || 0;
                 return (
                   <div key={h} className="flex-1 flex flex-col items-center justify-end h-full" title={`${h}:00 — ${count} ${t('analytics.orders')}`}>
-                    <div className="w-full bg-[#8B4513] rounded-t hover:opacity-80 transition-opacity" style={{ height: `${count > 0 ? Math.max((count / maxOrders) * 100, 4) : 0}%` }} />
+                    <div className="w-full bg-[#0f766e] rounded-t hover:opacity-80 transition-opacity" style={{ height: `${count > 0 ? Math.max((count / maxOrders) * 100, 4) : 0}%` }} />
                     {h % 6 === 0 && <span className="text-[10px] text-gray-400 mt-1">{h}:00</span>}
                   </div>
                 );
@@ -212,7 +212,7 @@ export function SalesDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Payment methods breakdown */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="flex items-center gap-2 text-lg font-medium text-gray-900 mb-4"><CreditCard className="w-5 h-5 text-[#8B4513]" /> {t('analytics.paymentMethods')}</h3>
+          <h3 className="flex items-center gap-2 text-lg font-medium text-gray-900 mb-4"><CreditCard className="w-5 h-5 text-[#0f766e]" /> {t('analytics.paymentMethods')}</h3>
           {!financial || Object.keys(financial.paymentMethods).length === 0 ? (
             <p className="text-gray-500 text-sm">{t('analytics.noData')}</p>
           ) : (() => {
@@ -226,7 +226,7 @@ export function SalesDashboard() {
                       <span className="capitalize text-gray-700">{method}</span>
                       <span className="font-medium text-gray-900">${amount.toFixed(2)} ({Math.round((amount / total) * 100)}%)</span>
                     </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-[#8B4513] rounded-full" style={{ width: `${(amount / total) * 100}%` }} /></div>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-[#0f766e] rounded-full" style={{ width: `${(amount / total) * 100}%` }} /></div>
                   </div>
                 ))}
               </div>
@@ -236,7 +236,7 @@ export function SalesDashboard() {
 
         {/* Trending items */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="flex items-center gap-2 text-lg font-medium text-gray-900 mb-4"><TrendingUp className="w-5 h-5 text-[#8B4513]" /> {t('analytics.trending')}</h3>
+          <h3 className="flex items-center gap-2 text-lg font-medium text-gray-900 mb-4"><TrendingUp className="w-5 h-5 text-[#0f766e]" /> {t('analytics.trending')}</h3>
           {trending.length === 0 ? (
             <p className="text-gray-500 text-sm">{t('analytics.noData')}</p>
           ) : (
@@ -244,7 +244,7 @@ export function SalesDashboard() {
               {trending.slice(0, 5).map((item, idx) => (
                 <div key={item.id} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-[#8B4513] text-white text-xs flex items-center justify-center font-medium">{idx + 1}</span>
+                    <span className="w-6 h-6 rounded-full bg-[#0f766e] text-white text-xs flex items-center justify-center font-medium">{idx + 1}</span>
                     <span className="text-sm text-gray-700">{item.name}</span>
                   </div>
                   <span className="text-sm text-gray-500">{t('analytics.recentOrders', { count: item.recentOrders })}</span>
@@ -257,7 +257,7 @@ export function SalesDashboard() {
 
       {/* Category performance */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="flex items-center gap-2 text-lg font-medium text-gray-900 mb-4"><Tag className="w-5 h-5 text-[#8B4513]" /> {t('analytics.categoryPerformance')}</h3>
+        <h3 className="flex items-center gap-2 text-lg font-medium text-gray-900 mb-4"><Tag className="w-5 h-5 text-[#0f766e]" /> {t('analytics.categoryPerformance')}</h3>
         {categoryPerf.length === 0 ? (
           <p className="text-gray-500 text-sm">{t('analytics.noData')}</p>
         ) : (() => {

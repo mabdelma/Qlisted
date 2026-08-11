@@ -196,24 +196,24 @@ export function SuperAdminPortal() {
       {mobileNav && <div className="fixed inset-0 z-30 bg-black/40 lg:hidden" onClick={() => setMobileNav(false)} />}
 
       {/* Central sidebar — off-canvas drawer on mobile, static on desktop */}
-      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-[#5C4033] text-white flex flex-col p-4 transition-transform duration-300 lg:static lg:w-60 lg:shrink-0 lg:translate-x-0 ${mobileNav ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-[#1e3a5f] text-white flex flex-col p-4 transition-transform duration-300 lg:static lg:w-60 lg:shrink-0 lg:translate-x-0 ${mobileNav ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-between mb-8 px-2">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-7 h-7" />
             <span className="text-lg font-bold">Qlisted Central</span>
           </div>
-          <button onClick={() => setMobileNav(false)} className="lg:hidden p-1 text-[#F5DEB3]" aria-label="Close menu"><X className="w-5 h-5" /></button>
+          <button onClick={() => setMobileNav(false)} className="lg:hidden p-1 text-[#ccfbf1]" aria-label="Close menu"><X className="w-5 h-5" /></button>
         </div>
-        <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-wider text-[#C9A26B]">Platform</p>
+        <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-wider text-[#1e3a5f]">Platform</p>
         <nav className="space-y-1 flex-1 overflow-y-auto">
           {nav.map(({ id, label, icon: Icon }) => (
             <button key={id} onClick={() => { setSection(id); setMobileNav(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg transition-colors ${section === id ? 'bg-[#8B4513] text-white' : 'text-[#F5DEB3] hover:bg-[#6A4B35]'}`}>
+              className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg transition-colors ${section === id ? 'bg-[#0f766e] text-white' : 'text-[#ccfbf1] hover:bg-[#115e59]'}`}>
               <Icon className="w-5 h-5" />{label}
             </button>
           ))}
         </nav>
-        <button onClick={logout} className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#F5DEB3] hover:bg-[#6A4B35] rounded-lg">
+        <button onClick={logout} className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#ccfbf1] hover:bg-[#115e59] rounded-lg">
           <LogOut className="w-4 h-4" /> Sign out
         </button>
       </aside>
@@ -228,7 +228,7 @@ export function SuperAdminPortal() {
             </div>
           </div>
           {section === 'restaurants' && (
-            <button onClick={() => setShowCreate(true)} className="flex shrink-0 items-center gap-2 rounded-lg bg-[#8B4513] px-3 sm:px-4 py-2 text-sm font-medium text-white hover:bg-[#5C4033]">
+            <button onClick={() => setShowCreate(true)} className="flex shrink-0 items-center gap-2 rounded-lg bg-[#0f766e] px-3 sm:px-4 py-2 text-sm font-medium text-white hover:bg-[#1e3a5f]">
               <Plus className="w-4 h-4" /> <span className="hidden sm:inline">New restaurant</span><span className="sm:hidden">New</span>
             </button>
           )}
@@ -277,7 +277,7 @@ export function SuperAdminPortal() {
                     <div className="flex items-end gap-0.5 h-32">
                       {series.map((p) => (
                         <div key={p.date} className="flex-1 bg-gray-100 rounded-t flex items-end" title={`${p.date}: ${money(p.revenue)} · ${p.orders} orders`}>
-                          <div className="w-full bg-[#8B4513] rounded-t transition-all" style={{ height: `${(p.revenue / maxSeriesRev) * 100}%` }} />
+                          <div className="w-full bg-[#0f766e] rounded-t transition-all" style={{ height: `${(p.revenue / maxSeriesRev) * 100}%` }} />
                         </div>
                       ))}
                     </div>
@@ -296,7 +296,7 @@ export function SuperAdminPortal() {
                   {topByRevenue.length === 0 ? <p className="text-gray-400 text-sm">No data yet.</p> : topByRevenue.map((t) => (
                     <div key={t.id} className="mb-3">
                       <div className="flex justify-between text-sm mb-1"><span className="text-gray-700">{t.name}</span><span className="font-medium text-gray-900">{money(t.revenue)}</span></div>
-                      <div className="h-2 rounded-full bg-gray-100"><div className="h-2 rounded-full bg-[#8B4513]" style={{ width: `${((t.revenue || 0) / maxRevenue) * 100}%` }} /></div>
+                      <div className="h-2 rounded-full bg-gray-100"><div className="h-2 rounded-full bg-[#0f766e]" style={{ width: `${((t.revenue || 0) / maxRevenue) * 100}%` }} /></div>
                     </div>
                   ))}
                 </div>
@@ -305,7 +305,7 @@ export function SuperAdminPortal() {
                   {topByOrders.length === 0 ? <p className="text-gray-400 text-sm">No data yet.</p> : topByOrders.map((t) => (
                     <div key={t.id} className="mb-3">
                       <div className="flex justify-between text-sm mb-1"><span className="text-gray-700">{t.name}</span><span className="font-medium text-gray-900">{t.orders ?? 0}</span></div>
-                      <div className="h-2 rounded-full bg-gray-100"><div className="h-2 rounded-full bg-[#C9A26B]" style={{ width: `${((t.orders || 0) / maxOrders) * 100}%` }} /></div>
+                      <div className="h-2 rounded-full bg-gray-100"><div className="h-2 rounded-full bg-[#1e3a5f]" style={{ width: `${((t.orders || 0) / maxOrders) * 100}%` }} /></div>
                     </div>
                   ))}
                 </div>
@@ -321,7 +321,7 @@ export function SuperAdminPortal() {
                 <div className="relative w-64">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                   <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search name or slug…"
-                    className="w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm focus:border-[#8B4513] focus:ring-1 focus:ring-[#8B4513] focus:outline-none" />
+                    className="w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm focus:border-[#0f766e] focus:ring-1 focus:ring-[#0f766e] focus:outline-none" />
                 </div>
               </div>
               {loading ? <p className="p-6 text-gray-500">Loading…</p> : filteredRows.length === 0 ? <p className="p-6 text-gray-500">No restaurants.</p> : (
@@ -338,7 +338,7 @@ export function SuperAdminPortal() {
                     {filteredRows.map((t) => (
                       <tr key={t.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelected(t)}>
                         <td className="px-6 py-3"><div className="font-medium text-gray-900">{t.name}</div><div className="text-gray-400">{t.email}</div></td>
-                        <td className="px-6 py-3"><span className="text-[#8B4513]">/{t.slug}</span></td>
+                        <td className="px-6 py-3"><span className="text-[#0f766e]">/{t.slug}</span></td>
                         <td className="px-6 py-3 text-right">{t.orders ?? '—'}</td>
                         <td className="px-6 py-3 text-right">{t.revenue != null ? money(t.revenue) : '—'}</td>
                         <td className="px-6 py-3 text-right">{t.users ?? '—'}</td>
@@ -366,7 +366,7 @@ export function SuperAdminPortal() {
                 <div className="relative w-64">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                   <input value={userQuery} onChange={(e) => setUserQuery(e.target.value)} placeholder="Search name or email…"
-                    className="w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm focus:border-[#8B4513] focus:ring-1 focus:ring-[#8B4513] focus:outline-none" />
+                    className="w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm focus:border-[#0f766e] focus:ring-1 focus:ring-[#0f766e] focus:outline-none" />
                 </div>
               </div>
               {users.length === 0 ? <p className="p-6 text-gray-500">Loading…</p> : (
@@ -380,7 +380,7 @@ export function SuperAdminPortal() {
                       <tr key={u.id}>
                         <td className="px-6 py-3 font-medium text-gray-900">{u.name}</td>
                         <td className="px-6 py-3 text-gray-500">{u.email}</td>
-                        <td className="px-6 py-3"><span className="px-2 py-0.5 rounded-full text-xs bg-[#F5DEB3] text-[#5C4033]">{u.role}</span></td>
+                        <td className="px-6 py-3"><span className="px-2 py-0.5 rounded-full text-xs bg-[#ccfbf1] text-[#1e3a5f]">{u.role}</span></td>
                         <td className="px-6 py-3 text-gray-500">{u.tenantName || (u.role === 'super_admin' ? '— platform —' : '—')}</td>
                         <td className="px-6 py-3">{statusPill(u.isActive)}</td>
                       </tr>
@@ -411,7 +411,7 @@ export function SuperAdminPortal() {
                         <td className="px-6 py-3 text-gray-500">{l.size || '—'}</td>
                         <td className="px-6 py-3 text-gray-600 max-w-md whitespace-pre-wrap">{l.message || <span className="text-gray-400">—</span>}</td>
                         <td className="px-6 py-3"><span className="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800">{l.status}</span></td>
-                        <td className="px-6 py-3 text-right"><button onClick={() => convertLead(l)} className="rounded-lg bg-[#8B4513] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#5C4033]">Convert</button></td>
+                        <td className="px-6 py-3 text-right"><button onClick={() => convertLead(l)} className="rounded-lg bg-[#0f766e] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#1e3a5f]">Convert</button></td>
                       </tr>
                     ))}
                   </tbody>
@@ -462,7 +462,7 @@ export function SuperAdminPortal() {
                       <tr key={a.id}>
                         <td className="px-6 py-3 text-gray-500 whitespace-nowrap">{new Date(a.createdAt).toLocaleString()}</td>
                         <td className="px-6 py-3 text-gray-900">{a.userName || '—'}</td>
-                        <td className="px-6 py-3"><span className="px-2 py-0.5 rounded-full text-xs bg-[#F5DEB3] text-[#5C4033]">{a.action}</span></td>
+                        <td className="px-6 py-3"><span className="px-2 py-0.5 rounded-full text-xs bg-[#ccfbf1] text-[#1e3a5f]">{a.action}</span></td>
                         <td className="px-6 py-3 text-gray-500">{a.resource}{a.resourceId ? ` · ${a.resourceId.slice(0, 8)}` : ''}</td>
                         <td className="px-6 py-3 text-gray-500">{a.tenantName || '—'}</td>
                         <td className="px-6 py-3 text-gray-400">{a.ip || '—'}</td>
@@ -484,7 +484,7 @@ export function SuperAdminPortal() {
                   <div className="flex justify-between"><dt className="text-gray-500">Role</dt><dd className="font-medium text-gray-900">{state.user?.role}</dd></div>
                   <div className="flex justify-between"><dt className="text-gray-500">2-factor auth</dt><dd>{statusPill(!!state.user?.totpEnabled)}</dd></div>
                 </dl>
-                <a href="/admin/profile" className="mt-4 inline-block text-sm font-medium text-[#8B4513] hover:underline">Manage security & 2FA →</a>
+                <a href="/admin/profile" className="mt-4 inline-block text-sm font-medium text-[#0f766e] hover:underline">Manage security & 2FA →</a>
               </div>
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h3 className="font-semibold text-gray-900 mb-4">Platform totals</h3>
@@ -579,13 +579,13 @@ export function SuperAdminPortal() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">{f.label}</label>
                   <input type={f.type} required={f.req} value={form[f.k]} placeholder={f.ph}
                     onChange={(e) => setForm({ ...form, [f.k]: e.target.value })}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#8B4513] focus:ring-1 focus:ring-[#8B4513] focus:outline-none" />
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#0f766e] focus:ring-1 focus:ring-[#0f766e] focus:outline-none" />
                 </div>
               ))}
             </div>
             <div className="mt-5 flex justify-end gap-2">
               <button type="button" onClick={() => setShowCreate(false)} className="rounded-lg px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100">Cancel</button>
-              <button type="submit" disabled={creating} className="rounded-lg bg-[#8B4513] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#5C4033] disabled:opacity-50">
+              <button type="submit" disabled={creating} className="rounded-lg bg-[#0f766e] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1e3a5f] disabled:opacity-50">
                 {creating ? 'Creating…' : 'Create restaurant'}
               </button>
             </div>

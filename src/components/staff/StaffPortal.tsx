@@ -30,13 +30,13 @@ export function StaffPortal() {
       <span className="w-px h-5 bg-gray-200" />
       <button
         onClick={() => setStaffView('classic')}
-        className={`px-3 py-1.5 text-xs font-medium rounded-md ${staffView === 'classic' ? 'bg-[#8B4513] text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+        className={`px-3 py-1.5 text-xs font-medium rounded-md ${staffView === 'classic' ? 'bg-[#0f766e] text-white' : 'text-gray-600 hover:bg-gray-100'}`}
       >
         Classic
       </button>
       <button
         onClick={() => setStaffView('enhanced')}
-        className={`px-3 py-1.5 text-xs font-medium rounded-md ${staffView === 'enhanced' ? 'bg-[#8B4513] text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+        className={`px-3 py-1.5 text-xs font-medium rounded-md ${staffView === 'enhanced' ? 'bg-[#0f766e] text-white' : 'text-gray-600 hover:bg-gray-100'}`}
       >
         Enhanced
       </button>
@@ -60,7 +60,7 @@ export function StaffPortal() {
         <NotificationsProvider role={role}>
           {viewToggle}
           <div className="min-h-screen bg-gray-50">
-            <div className="bg-[#5C4033] text-white px-6 py-3 flex items-center gap-4">
+            <div className="bg-[#1e3a5f] text-white px-6 py-3 flex items-center gap-4">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -68,7 +68,7 @@ export function StaffPortal() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      activeTab === tab.id ? 'bg-[#8B4513] text-white' : 'text-[#F5DEB3] hover:bg-[#6A4B35]'
+                      activeTab === tab.id ? 'bg-[#0f766e] text-white' : 'text-[#ccfbf1] hover:bg-[#115e59]'
                     }`}
                   >
                     <Icon className="w-4 h-4" />

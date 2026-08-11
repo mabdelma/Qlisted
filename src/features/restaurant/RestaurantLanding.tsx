@@ -106,12 +106,12 @@ export function RestaurantLanding() {
             </div>
             {wlResult ? (
               <div className="text-center py-8">
-                <Clock className="w-12 h-12 text-[#8B4513] mx-auto mb-3" />
+                <Clock className="w-12 h-12 text-[#0f766e] mx-auto mb-3" />
                 <p className="text-lg font-medium text-gray-900">You're #{wlResult.position} in line!</p>
                 <p className="text-sm text-gray-500 mt-1">Estimated wait: ~{wlResult.estimatedWaitMinutes} minutes</p>
                 <p className="text-xs text-gray-400 mt-4">We'll notify you when your table is ready.</p>
                 <button onClick={() => { setShowWaitlist(false); setWlResult(null); }}
-                  className="mt-4 px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]">Done</button>
+                  className="mt-4 px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]">Done</button>
               </div>
             ) : (
               <form onSubmit={async (e) => {
@@ -132,26 +132,26 @@ export function RestaurantLanding() {
                   <label className="block text-sm font-medium text-gray-700">Name *</label>
                   <input type="text" required value={wlForm.customerName}
                     onChange={(e) => setWlForm({ ...wlForm, customerName: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Party Size *</label>
                   <input type="number" min="1" required value={wlForm.partySize}
                     onChange={(e) => setWlForm({ ...wlForm, partySize: parseInt(e.target.value) || 2 })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Phone (for notification)</label>
                   <input type="tel" value={wlForm.customerPhone} onChange={(e) => setWlForm({ ...wlForm, customerPhone: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Email (optional)</label>
                   <input type="email" value={wlForm.customerEmail} onChange={(e) => setWlForm({ ...wlForm, customerEmail: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                 </div>
                 <button type="submit" disabled={wlSaving}
-                  className="w-full px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033] disabled:opacity-50">
+                  className="w-full px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f] disabled:opacity-50">
                   {wlSaving ? 'Joining...' : 'Join Waitlist'}
                 </button>
               </form>
@@ -174,7 +174,7 @@ export function RestaurantLanding() {
                 <p className="text-lg font-medium text-gray-900">Reservation Request Sent!</p>
                 <p className="text-sm text-gray-500 mt-1">We'll confirm your booking shortly.</p>
                 <button onClick={() => { setShowReservation(false); setResDone(false); }}
-                  className="mt-4 px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]">Done</button>
+                  className="mt-4 px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]">Done</button>
               </div>
             ) : (
               <form onSubmit={async (e) => {
@@ -195,49 +195,49 @@ export function RestaurantLanding() {
                   <label className="block text-sm font-medium text-gray-700">Name *</label>
                   <input type="text" required value={resForm.customerName}
                     onChange={(e) => setResForm({ ...resForm, customerName: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Email</label>
                     <input type="email" value={resForm.customerEmail}
                       onChange={(e) => setResForm({ ...resForm, customerEmail: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Phone</label>
                     <input type="tel" value={resForm.customerPhone}
                       onChange={(e) => setResForm({ ...resForm, customerPhone: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Party Size *</label>
                   <input type="number" min="1" required value={resForm.partySize}
                     onChange={(e) => setResForm({ ...resForm, partySize: parseInt(e.target.value) || 2 })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Date *</label>
                     <input type="date" required value={resForm.date}
                       onChange={(e) => setResForm({ ...resForm, date: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Time *</label>
                     <input type="time" required value={resForm.time}
                       onChange={(e) => setResForm({ ...resForm, time: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Special Requests</label>
                   <textarea value={resForm.specialRequests} onChange={(e) => setResForm({ ...resForm, specialRequests: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" rows={2} />
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" rows={2} />
                 </div>
                 <button type="submit" disabled={resSaving}
-                  className="w-full px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033] disabled:opacity-50">
+                  className="w-full px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f] disabled:opacity-50">
                   {resSaving ? 'Submitting...' : 'Request Reservation'}
                 </button>
               </form>

@@ -63,7 +63,7 @@ export function QrCodeModal({ url, label, onClose }: QrCodeModalProps) {
 
         <div className="flex gap-3">
           <button onClick={downloadPng}
-            className="flex-1 flex items-center justify-center px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]">
+            className="flex-1 flex items-center justify-center px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]">
             <Download className="w-4 h-4 mr-2" /> PNG
           </button>
           <button onClick={downloadSvg}

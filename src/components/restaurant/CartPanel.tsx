@@ -88,11 +88,11 @@ export const CartPanel = React.memo(function CartPanel({ isOpen, onClose, tableI
                             }
                           }}
                           aria-label="Decrease quantity"
-                          className="p-1 hover:bg-[#F5DEB3] rounded text-[#8B4513] transition-colors"
+                          className="p-1 hover:bg-[#ccfbf1] rounded text-[#0f766e] transition-colors"
                         >
                           <Minus className="w-4 h-4" />
                         </button>
-                        <span className="w-8 text-center text-[#5C4033] font-medium">
+                        <span className="w-8 text-center text-[#1e3a5f] font-medium">
                           {item.quantity}
                         </span>
                         <button
@@ -101,7 +101,7 @@ export const CartPanel = React.memo(function CartPanel({ isOpen, onClose, tableI
                             payload: { id: item.menuItem.id, quantity: item.quantity + 1 }
                           })}
                           aria-label="Increase quantity"
-                          className="p-1 hover:bg-[#F5DEB3] rounded text-[#8B4513] transition-colors"
+                          className="p-1 hover:bg-[#ccfbf1] rounded text-[#0f766e] transition-colors"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
@@ -113,7 +113,7 @@ export const CartPanel = React.memo(function CartPanel({ isOpen, onClose, tableI
                             setCommentText(item.comment || '');
                           }}
                           aria-label="Add note"
-                          className="p-1 text-[#8B4513] hover:bg-[#F5DEB3] rounded transition-colors"
+                          className="p-1 text-[#0f766e] hover:bg-[#ccfbf1] rounded transition-colors"
                           title={item.comment || 'Add comment'}
                         >
                           <MessageCircle className="w-4 h-4" />
@@ -135,7 +135,7 @@ export const CartPanel = React.memo(function CartPanel({ isOpen, onClose, tableI
                         value={commentText}
                         onChange={(e) => setCommentText(e.target.value)}
                         placeholder="Add special instructions..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#8B4513] focus:border-[#8B4513] text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0f766e] focus:border-[#0f766e] text-sm"
                         rows={2}
                       />
                       <div className="flex justify-end space-x-2">
@@ -147,7 +147,7 @@ export const CartPanel = React.memo(function CartPanel({ isOpen, onClose, tableI
                         </button>
                         <button
                           onClick={() => handleSaveComment(item.menuItem.id)}
-                          className="px-3 py-1 text-sm bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]"
+                          className="px-3 py-1 text-sm bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]"
                         >
                           Save
                         </button>
@@ -167,8 +167,8 @@ export const CartPanel = React.memo(function CartPanel({ isOpen, onClose, tableI
 
           <div className="border-t p-4 space-y-4">
             <div className="flex justify-between items-center text-lg font-semibold">
-              <span className="text-[#5C4033]">Total</span>
-              <span className="text-[#8B4513]">${state.total.toFixed(2)}</span>
+              <span className="text-[#1e3a5f]">Total</span>
+              <span className="text-[#0f766e]">${state.total.toFixed(2)}</span>
             </div>
             <button
               onClick={() => dispatch({ type: 'CLEAR_CART' })}
@@ -180,7 +180,7 @@ export const CartPanel = React.memo(function CartPanel({ isOpen, onClose, tableI
             <button
               onClick={handleCheckout}
               disabled={state.items.length === 0}
-              className="w-full bg-[#6A4B35] text-white py-3 rounded-lg font-medium hover:bg-[#5C4033] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-[#115e59] text-white py-3 rounded-lg font-medium hover:bg-[#1e3a5f] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Proceed to Checkout
             </button>

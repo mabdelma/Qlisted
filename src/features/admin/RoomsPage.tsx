@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, X, BedDouble, Hotel, LogIn, LogOut, Ban, User, ChevronLeft, ChevronRight, Receipt, Trash2, RefreshCw, Check, CreditCard } from 'lucide-react';
+import { Plus, X, BedDouble, Hotel, LogIn, LogOut, Ban, User as UserIcon, ChevronLeft, ChevronRight, Receipt, Trash2, RefreshCw, Check, CreditCard } from 'lucide-react';
 import { hotelApi, userApi } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useI18n } from '../../contexts/I18nContext';
@@ -226,7 +226,7 @@ export function RoomsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2"><Hotel className="w-6 h-6 text-[#8B4513]" /> {t('hotel.title')}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2"><Hotel className="w-6 h-6 text-[#0f766e]" /> {t('hotel.title')}</h2>
         <div className="flex items-center gap-2">
         <button onClick={() => slug && navigator.clipboard?.writeText(`${window.location.origin}/r/${slug}/book`)}
           title={`${window.location.origin}/r/${slug ?? ''}/book`}
@@ -235,13 +235,13 @@ export function RoomsPage() {
         </button>
         {view === 'rooms' && (
           <button onClick={() => setCreating({ number: '', type: '', floor: '', rate: '' })}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#8B4513] text-white text-sm hover:bg-[#5C4033]">
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#0f766e] text-white text-sm hover:bg-[#1e3a5f]">
             <Plus className="w-4 h-4" /> {t('hotel.addRoom')}
           </button>
         )}
         {view !== 'rooms' && (
           <button onClick={() => { setBookingError(''); setBooking({ roomId: '', guestName: '', guestEmail: '', guestPhone: '', checkIn: '', checkOut: '' }); }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#8B4513] text-white text-sm hover:bg-[#5C4033]">
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#0f766e] text-white text-sm hover:bg-[#1e3a5f]">
             <Plus className="w-4 h-4" /> {t('hotel.addBooking')}
           </button>
         )}
@@ -251,7 +251,7 @@ export function RoomsPage() {
       <div className="flex gap-1 border-b border-gray-200">
         {(['rooms', 'bookings', 'calendar', 'report'] as const).map((v) => (
           <button key={v} onClick={() => setView(v)}
-            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${view === v ? 'border-[#8B4513] text-[#8B4513]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${view === v ? 'border-[#0f766e] text-[#0f766e]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
             {v === 'rooms' ? t('hotel.title') : v === 'bookings' ? t('hotel.bookings') : v === 'calendar' ? t('hotel.calendar') : t('hotel.report')}
           </button>
         ))}
@@ -272,7 +272,7 @@ export function RoomsPage() {
         <div className="flex gap-2 flex-wrap">
           {(['all', ...STATUSES] as const).map((s) => (
             <button key={s} onClick={() => setFilter(s)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm ${filter === s ? 'bg-[#8B4513] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm ${filter === s ? 'bg-[#0f766e] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
               {s !== 'all' && <span className={`w-2 h-2 rounded-full ${DOT[s]}`} />}
               {s === 'all' ? t('menu.categoryAll') : statusLabel(s)}
             </button>
@@ -295,7 +295,7 @@ export function RoomsPage() {
               {room.guestName && <p className="text-xs mt-1 font-medium truncate">{room.guestName}</p>}
               {room.status === 'cleaning' && staffName(room.housekeeperId) && <p className="text-xs mt-1 opacity-80 truncate">🧹 {staffName(room.housekeeperId)}</p>}
               <select value={room.status} onChange={(e) => setStatus(room, e.target.value as RoomStatus)}
-                className="mt-3 w-full text-xs rounded-md border-0 bg-white/70 py-1.5 font-medium focus:ring-1 focus:ring-[#8B4513]">
+                className="mt-3 w-full text-xs rounded-md border-0 bg-white/70 py-1.5 font-medium focus:ring-1 focus:ring-[#0f766e]">
                 {STATUSES.map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
               </select>
             </div>
@@ -339,7 +339,7 @@ export function RoomsPage() {
               </tr></thead>
               <tbody>{bookings.map((b) => (
                 <tr key={b.id} className="border-t border-gray-100">
-                  <td className="p-3 font-medium text-gray-800 flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-gray-400" />{b.guestName}</td>
+                  <td className="p-3 font-medium text-gray-800 flex items-center gap-1.5"><UserIcon className="w-3.5 h-3.5 text-gray-400" />{b.guestName}</td>
                   <td className="p-3 text-gray-600">{b.roomNumber || '—'}</td>
                   <td className="p-3 text-gray-500 hidden sm:table-cell">{b.checkIn}</td>
                   <td className="p-3 text-gray-500 hidden sm:table-cell">{b.checkOut}</td>
@@ -418,11 +418,11 @@ export function RoomsPage() {
         <div className="space-y-4">
           <div className="flex flex-wrap items-end gap-3 bg-white rounded-lg shadow p-4">
             <div><label className="block text-xs text-gray-500 mb-1">{t('hotel.from')}</label>
-              <input type="date" value={reportRange.from} onChange={(e) => setReportRange({ ...reportRange, from: e.target.value })} className="rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" /></div>
+              <input type="date" value={reportRange.from} onChange={(e) => setReportRange({ ...reportRange, from: e.target.value })} className="rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></div>
             <div><label className="block text-xs text-gray-500 mb-1">{t('hotel.to')}</label>
-              <input type="date" value={reportRange.to} min={reportRange.from} onChange={(e) => setReportRange({ ...reportRange, to: e.target.value })} className="rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" /></div>
+              <input type="date" value={reportRange.to} min={reportRange.from} onChange={(e) => setReportRange({ ...reportRange, to: e.target.value })} className="rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></div>
             <button onClick={runReport} disabled={reportLoading || reportRange.to <= reportRange.from}
-              className="px-4 py-2 rounded-lg bg-[#8B4513] text-white text-sm hover:bg-[#5C4033] disabled:opacity-50">{reportLoading ? `${t('common.loading')}...` : t('hotel.run')}</button>
+              className="px-4 py-2 rounded-lg bg-[#0f766e] text-white text-sm hover:bg-[#1e3a5f] disabled:opacity-50">{reportLoading ? `${t('common.loading')}...` : t('hotel.run')}</button>
           </div>
           {report && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -450,20 +450,20 @@ export function RoomsPage() {
         <Modal title={t('hotel.addBooking')} onClose={() => { setBooking(null); setBookingError(''); }}>
           {bookingError && <div className="bg-red-50 border-l-4 border-red-400 p-3 text-sm text-red-700">{bookingError}</div>}
           <div className="grid grid-cols-2 gap-3">
-            <Field label={t('hotel.checkInDate')}><input type="date" value={booking.checkIn} onChange={(e) => setBooking({ ...booking, checkIn: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" /></Field>
-            <Field label={t('hotel.checkOutDate')}><input type="date" value={booking.checkOut} min={booking.checkIn || undefined} onChange={(e) => setBooking({ ...booking, checkOut: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" /></Field>
+            <Field label={t('hotel.checkInDate')}><input type="date" value={booking.checkIn} onChange={(e) => setBooking({ ...booking, checkIn: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
+            <Field label={t('hotel.checkOutDate')}><input type="date" value={booking.checkOut} min={booking.checkIn || undefined} onChange={(e) => setBooking({ ...booking, checkOut: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
           </div>
           <Field label={t('hotel.room')}>
-            <select value={booking.roomId} onChange={(e) => setBooking({ ...booking, roomId: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]">
+            <select value={booking.roomId} onChange={(e) => setBooking({ ...booking, roomId: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]">
               <option value="">{t('hotel.selectRoom')}</option>
               {roomOptions.map((r) => <option key={r.id} value={r.id}>{r.number}{r.type ? ` · ${r.type}` : ''}{r.rate ? ` — ${money(r.rate)}` : ''}</option>)}
             </select>
             {availRooms && <p className="text-xs text-gray-500 mt-1">{t('hotel.roomsAvailable', { n: String(availRooms.length) })}</p>}
           </Field>
-          <Field label={t('hotel.guest')}><input value={booking.guestName} onChange={(e) => setBooking({ ...booking, guestName: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" /></Field>
+          <Field label={t('hotel.guest')}><input value={booking.guestName} onChange={(e) => setBooking({ ...booking, guestName: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label={t('common.email')}><input type="email" value={booking.guestEmail} onChange={(e) => setBooking({ ...booking, guestEmail: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" /></Field>
-            <Field label={t('common.phone')}><input value={booking.guestPhone} onChange={(e) => setBooking({ ...booking, guestPhone: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" /></Field>
+            <Field label={t('common.email')}><input type="email" value={booking.guestEmail} onChange={(e) => setBooking({ ...booking, guestEmail: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
+            <Field label={t('common.phone')}><input value={booking.guestPhone} onChange={(e) => setBooking({ ...booking, guestPhone: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
           </div>
           {bTotal > 0 && (
             <div className="flex items-center justify-between rounded-lg bg-amber-50 px-4 py-2.5 text-sm">
@@ -473,7 +473,7 @@ export function RoomsPage() {
           )}
           <div className="flex justify-end gap-2">
             <button onClick={() => setBooking(null)} className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50">{t('common.cancel')}</button>
-            <button onClick={saveBooking} disabled={saving || !booking.roomId || !booking.guestName.trim() || !booking.checkIn || !booking.checkOut} className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033] disabled:opacity-50">{t('common.save')}</button>
+            <button onClick={saveBooking} disabled={saving || !booking.roomId || !booking.guestName.trim() || !booking.checkIn || !booking.checkOut} className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f] disabled:opacity-50">{t('common.save')}</button>
           </div>
         </Modal>
       )}
@@ -507,13 +507,13 @@ export function RoomsPage() {
                 <div className="flex flex-wrap gap-2">
                   {folioData.deposit <= 0 && <button onClick={takeDeposit} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 whitespace-nowrap">{t('hotel.deposit')}</button>}
                   {folioData.balance > 0 && <button onClick={openPayLink} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 whitespace-nowrap"><CreditCard className="w-4 h-4" /> {t('hotel.paymentLink')}</button>}
-                  <button onClick={markSettled} disabled={saving} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md bg-[#8B4513] text-white text-sm hover:bg-[#5C4033] disabled:opacity-50 whitespace-nowrap"><Check className="w-4 h-4" /> {t('hotel.markPaid')}</button>
+                  <button onClick={markSettled} disabled={saving} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md bg-[#0f766e] text-white text-sm hover:bg-[#1e3a5f] disabled:opacity-50 whitespace-nowrap"><Check className="w-4 h-4" /> {t('hotel.markPaid')}</button>
                 </div>
               )}
               <div className="flex gap-2 items-end pt-3 border-t border-gray-100">
-                <div className="flex-1"><label className="block text-xs text-gray-500 mb-1">{t('hotel.chargeDesc')}</label><input value={folioLine.description} onChange={(e) => setFolioLine({ ...folioLine, description: e.target.value })} placeholder={t('hotel.chargeHint')} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" /></div>
-                <div className="w-24"><label className="block text-xs text-gray-500 mb-1">{t('hotel.amount')}</label><input type="number" min="0" step="0.01" value={folioLine.amount} onChange={(e) => setFolioLine({ ...folioLine, amount: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" /></div>
-                <button onClick={addFolioLine} disabled={saving || !folioLine.description.trim()} className="px-3 py-2 bg-[#8B4513] text-white rounded-md text-sm hover:bg-[#5C4033] disabled:opacity-50 whitespace-nowrap">{t('hotel.addCharge')}</button>
+                <div className="flex-1"><label className="block text-xs text-gray-500 mb-1">{t('hotel.chargeDesc')}</label><input value={folioLine.description} onChange={(e) => setFolioLine({ ...folioLine, description: e.target.value })} placeholder={t('hotel.chargeHint')} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></div>
+                <div className="w-24"><label className="block text-xs text-gray-500 mb-1">{t('hotel.amount')}</label><input type="number" min="0" step="0.01" value={folioLine.amount} onChange={(e) => setFolioLine({ ...folioLine, amount: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></div>
+                <button onClick={addFolioLine} disabled={saving || !folioLine.description.trim()} className="px-3 py-2 bg-[#0f766e] text-white rounded-md text-sm hover:bg-[#1e3a5f] disabled:opacity-50 whitespace-nowrap">{t('hotel.addCharge')}</button>
               </div>
             </>
           )}
@@ -522,15 +522,15 @@ export function RoomsPage() {
 
       {creating && (
         <Modal title={t('hotel.addRoom')} onClose={() => setCreating(null)}>
-          <Field label={t('hotel.roomNumber')}><input autoFocus value={creating.number} onChange={(e) => setCreating({ ...creating, number: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" /></Field>
+          <Field label={t('hotel.roomNumber')}><input autoFocus value={creating.number} onChange={(e) => setCreating({ ...creating, number: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
           <div className="grid grid-cols-3 gap-3">
-            <Field label={t('hotel.roomType')}><input value={creating.type} onChange={(e) => setCreating({ ...creating, type: e.target.value })} placeholder={t('hotel.roomTypeHint')} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" /></Field>
-            <Field label={t('hotel.floor')}><input value={creating.floor} onChange={(e) => setCreating({ ...creating, floor: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" /></Field>
-            <Field label={t('hotel.ratePerNight')}><input type="number" min="0" step="0.01" value={creating.rate} onChange={(e) => setCreating({ ...creating, rate: e.target.value })} placeholder="0" className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" /></Field>
+            <Field label={t('hotel.roomType')}><input value={creating.type} onChange={(e) => setCreating({ ...creating, type: e.target.value })} placeholder={t('hotel.roomTypeHint')} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
+            <Field label={t('hotel.floor')}><input value={creating.floor} onChange={(e) => setCreating({ ...creating, floor: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
+            <Field label={t('hotel.ratePerNight')}><input type="number" min="0" step="0.01" value={creating.rate} onChange={(e) => setCreating({ ...creating, rate: e.target.value })} placeholder="0" className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
           </div>
           <div className="flex justify-end gap-2">
             <button onClick={() => setCreating(null)} className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50">{t('common.cancel')}</button>
-            <button onClick={create} disabled={saving || !creating.number.trim()} className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033] disabled:opacity-50">{t('common.save')}</button>
+            <button onClick={create} disabled={saving || !creating.number.trim()} className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f] disabled:opacity-50">{t('common.save')}</button>
           </div>
         </Modal>
       )}
@@ -538,28 +538,28 @@ export function RoomsPage() {
       {editing && (
         <Modal title={`${t('hotel.room')} ${editing.number}`} onClose={() => setEditing(null)}>
           <div className="grid grid-cols-2 gap-3">
-            <Field label={t('hotel.roomNumber')}><input value={editing.number} onChange={(e) => setEditing({ ...editing, number: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" /></Field>
-            <Field label={t('hotel.floor')}><input value={editing.floor || ''} onChange={(e) => setEditing({ ...editing, floor: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" /></Field>
+            <Field label={t('hotel.roomNumber')}><input value={editing.number} onChange={(e) => setEditing({ ...editing, number: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
+            <Field label={t('hotel.floor')}><input value={editing.floor || ''} onChange={(e) => setEditing({ ...editing, floor: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <Field label={t('hotel.roomType')}><input value={editing.type || ''} onChange={(e) => setEditing({ ...editing, type: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" /></Field>
-            <Field label={t('hotel.ratePerNight')}><input type="number" min="0" step="0.01" value={editing.rate ?? 0} onChange={(e) => setEditing({ ...editing, rate: Number(e.target.value) })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" /></Field>
+            <Field label={t('hotel.roomType')}><input value={editing.type || ''} onChange={(e) => setEditing({ ...editing, type: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
+            <Field label={t('hotel.ratePerNight')}><input type="number" min="0" step="0.01" value={editing.rate ?? 0} onChange={(e) => setEditing({ ...editing, rate: Number(e.target.value) })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
           </div>
           <Field label={t('hotel.status.label')}>
-            <select value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value as RoomStatus })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]">
+            <select value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value as RoomStatus })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]">
               {STATUSES.map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
             </select>
           </Field>
           {(editing.status === 'occupied' || editing.status === 'reserved') && (
-            <Field label={t('hotel.guest')}><input value={editing.guestName || ''} onChange={(e) => setEditing({ ...editing, guestName: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" /></Field>
+            <Field label={t('hotel.guest')}><input value={editing.guestName || ''} onChange={(e) => setEditing({ ...editing, guestName: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
           )}
           <Field label={t('hotel.housekeeper')}>
-            <select value={editing.housekeeperId || ''} onChange={(e) => setEditing({ ...editing, housekeeperId: e.target.value || null })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]">
+            <select value={editing.housekeeperId || ''} onChange={(e) => setEditing({ ...editing, housekeeperId: e.target.value || null })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]">
               <option value="">{t('hotel.unassigned')}</option>
               {staff.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
             </select>
           </Field>
-          <Field label={t('common.notes')}><textarea value={editing.notes || ''} onChange={(e) => setEditing({ ...editing, notes: e.target.value })} rows={2} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" /></Field>
+          <Field label={t('common.notes')}><textarea value={editing.notes || ''} onChange={(e) => setEditing({ ...editing, notes: e.target.value })} rows={2} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
           <div className="rounded-lg bg-gray-50 p-2.5">
             <p className="text-xs text-gray-500 mb-1 flex items-center gap-1"><Receipt className="w-3.5 h-3.5" /> {t('roomService.title')}</p>
             <div className="flex items-center gap-2">
@@ -572,7 +572,7 @@ export function RoomsPage() {
             <button onClick={remove} disabled={saving} className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-md disabled:opacity-50">{t('common.delete')}</button>
             <div className="flex gap-2">
               <button onClick={() => setEditing(null)} className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50">{t('common.cancel')}</button>
-              <button onClick={saveEdit} disabled={saving} className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033] disabled:opacity-50">{t('common.save')}</button>
+              <button onClick={saveEdit} disabled={saving} className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f] disabled:opacity-50">{t('common.save')}</button>
             </div>
           </div>
         </Modal>

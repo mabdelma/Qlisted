@@ -37,11 +37,11 @@ export function WaveAvatar({ speaking, size = 220 }: { speaking: boolean; size?:
     if (!ctx) return;
 
     // Resolve brand colors once per mount (tracked by the CSS vars).
-    const color500 = cssVar('--color-brand-500', '#8b4513');
-    const color700 = cssVar('--color-brand-700', '#5c4033');
-    const color900 = cssVar('--color-brand-900', '#332019');
-    const stroke = cssVar('--color-accent-light', '#e8cfa8');
-    const glow = cssVar('--color-brand-300', '#dfb389');
+    const color500 = cssVar('--color-brand-500', '#0f766e');
+    const color700 = cssVar('--color-brand-700', '#1e3a5f');
+    const color900 = cssVar('--color-brand-900', '#0f2a3f');
+    const stroke = cssVar('--color-accent-light', '#ccfbf1');
+    const glow = cssVar('--color-brand-300', '#5eead4');
 
     const dpr = window.devicePixelRatio || 1;
     canvas.width = size * dpr;

@@ -59,7 +59,7 @@ export function TableGrid() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Table Overview</h2>
-        <button onClick={loadTables} className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]">Refresh</button>
+        <button onClick={loadTables} className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]">Refresh</button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

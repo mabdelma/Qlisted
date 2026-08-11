@@ -79,7 +79,7 @@ export function UserManagement() {
         <h2 className="text-2xl font-bold text-gray-900">{t('users.management')}</h2>
         <button
           onClick={() => setEditingUser({ name: '', email: '', role: 'waiter', password: '' })}
-          className="flex items-center px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]"
+          className="flex items-center px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]"
         >
           <PlusCircle className="w-5 h-5 mr-2" />
           {t('users.addUser')}
@@ -104,7 +104,7 @@ export function UserManagement() {
                   type="text" required
                   value={editingUser.name || ''}
                   onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]"
                 />
               </div>
               <div>
@@ -114,7 +114,7 @@ export function UserManagement() {
                   type="email" required
                   value={editingUser.email || ''}
                   onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]"
                 />
               </div>
               {!editingUser.id && (
@@ -125,7 +125,7 @@ export function UserManagement() {
                     type="password" required
                     value={editingUser.password || ''}
                     onChange={(e) => setEditingUser({ ...editingUser, password: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]"
                   />
                 </div>
               )}
@@ -135,7 +135,7 @@ export function UserManagement() {
                   id="user-role"
                   value={editingUser.role || 'waiter'}
                   onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]"
                 >
                   <option value="waiter">{t('staff.waiter')}</option>
                   <option value="cashier">{t('staff.cashier')}</option>
@@ -150,7 +150,7 @@ export function UserManagement() {
                   {t('common.cancel')}
                 </button>
                 <button type="submit"
-                  className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]">
+                  className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]">
                   {t('common.save')}
                 </button>
               </div>

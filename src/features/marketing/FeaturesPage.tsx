@@ -73,8 +73,8 @@ export function FeaturesPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {group.items.map((item) => (
                 <div key={item.title} className="bg-white rounded-xl border border-gray-100 p-6">
-                  <div className="w-12 h-12 bg-[#8B4513]/10 rounded-lg flex items-center justify-center mb-4">
-                    <item.icon className="h-6 w-6 text-[#8B4513]" />
+                  <div className="w-12 h-12 bg-[#0f766e]/10 rounded-lg flex items-center justify-center mb-4">
+                    <item.icon className="h-6 w-6 text-[#0f766e]" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
                   <p className="text-sm text-gray-600 leading-relaxed">{item.desc}</p>

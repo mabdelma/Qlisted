@@ -63,7 +63,7 @@ export function TwoFactorSettings() {
         {/* Disabled, not enrolling → offer to set up */}
         {!enabled && step === 'idle' && (
           <button onClick={startSetup} disabled={busy}
-            className="rounded-lg bg-[#8B4513] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#5C4033] disabled:opacity-50">
+            className="rounded-lg bg-[#0f766e] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1e3a5f] disabled:opacity-50">
             {busy ? t('twofa.starting') : t('twofa.setup')}
           </button>
         )}
@@ -80,18 +80,18 @@ export function TwoFactorSettings() {
                   {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
                 </button>
               </div>
-              <a href={otpauthUrl} className="mt-1 inline-block text-xs text-[#8B4513] hover:underline">{t('twofa.openApp')}</a>
+              <a href={otpauthUrl} className="mt-1 inline-block text-xs text-[#0f766e] hover:underline">{t('twofa.openApp')}</a>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-700 mb-1">{t('twofa.step2')}</p>
               <input inputMode="numeric" maxLength={6} value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="123456"
-                className="w-40 rounded-lg border border-gray-300 px-3 py-2 tracking-[0.4em] focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                className="w-40 rounded-lg border border-gray-300 px-3 py-2 tracking-[0.4em] focus:border-[#0f766e] focus:ring-[#0f766e]" />
             </div>
             <div className="flex gap-2">
               <button onClick={confirmEnable} disabled={busy || code.length !== 6}
-                className="rounded-lg bg-[#8B4513] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#5C4033] disabled:opacity-50">
+                className="rounded-lg bg-[#0f766e] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1e3a5f] disabled:opacity-50">
                 {busy ? t('twofa.verifying') : t('twofa.enable')}
               </button>
               <button onClick={() => { setStep('idle'); setError(''); }} className="rounded-lg px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100">{t('common.cancel')}</button>
@@ -126,7 +126,7 @@ export function TwoFactorSettings() {
               <input inputMode="numeric" maxLength={6} value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="123456"
-                className="w-40 rounded-lg border border-gray-300 px-3 py-2 tracking-[0.4em] focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                className="w-40 rounded-lg border border-gray-300 px-3 py-2 tracking-[0.4em] focus:border-[#0f766e] focus:ring-[#0f766e]" />
             </div>
             <button onClick={disable} disabled={busy || code.length !== 6}
               className="rounded-lg bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700 hover:bg-red-100 disabled:opacity-50">

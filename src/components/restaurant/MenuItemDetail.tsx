@@ -104,7 +104,7 @@ export function MenuItemDetail() {
         <p className="text-gray-600 mb-6">This menu item is currently unavailable.</p>
         <button
           onClick={() => navigate(`/r/${slug}/table/${tableId}/menu`)}
-          className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]"
+          className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]"
         >
           Return to Menu
         </button>
@@ -137,7 +137,7 @@ export function MenuItemDetail() {
       <div className="p-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">{item.name}</h2>
         <p className="text-gray-600 text-lg mb-4">{item.description}</p>
-        <p className="text-2xl font-bold text-[#8B4513] mb-6">
+        <p className="text-2xl font-bold text-[#0f766e] mb-6">
           ${item.price.toFixed(2)}
         </p>
 
@@ -160,7 +160,7 @@ export function MenuItemDetail() {
                         key={opt.id}
                         className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
                           isSelected
-                            ? 'border-[#8B4513] bg-[#F5DEB3]'
+                            ? 'border-[#0f766e] bg-[#ccfbf1]'
                             : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
@@ -170,7 +170,7 @@ export function MenuItemDetail() {
                             name={`modifier-${group.id}`}
                             checked={isSelected}
                             onChange={() => toggleOption(group.id, opt.id, group.selectionType)}
-                            className="h-4 w-4 text-[#8B4513] border-gray-300"
+                            className="h-4 w-4 text-[#0f766e] border-gray-300"
                           />
                           <span className="text-sm text-gray-900">{opt.name}</span>
                         </div>
@@ -195,7 +195,7 @@ export function MenuItemDetail() {
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Add any special requests..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-[#8B4513] focus:border-[#8B4513] text-gray-700 placeholder-gray-400"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-[#0f766e] focus:border-[#0f766e] text-gray-700 placeholder-gray-400"
               rows={3}
             />
           </div>
@@ -205,7 +205,7 @@ export function MenuItemDetail() {
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 aria-label="Decrease quantity"
-                className="p-2 rounded-full border-2 border-[#8B4513] text-[#8B4513] hover:bg-[#F5DEB3]"
+                className="p-2 rounded-full border-2 border-[#0f766e] text-[#0f766e] hover:bg-[#ccfbf1]"
               >
                 <Minus className="w-4 h-4" />
               </button>
@@ -213,7 +213,7 @@ export function MenuItemDetail() {
               <button
                 onClick={() => setQuantity(quantity + 1)}
                 aria-label="Increase quantity"
-                className="p-2 rounded-full border-2 border-[#8B4513] text-[#8B4513] hover:bg-[#F5DEB3]"
+                className="p-2 rounded-full border-2 border-[#0f766e] text-[#0f766e] hover:bg-[#ccfbf1]"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -222,7 +222,7 @@ export function MenuItemDetail() {
             <button
               onClick={handleAddToCart}
               disabled={modifierGroups.some((g) => g.isRequired && (selections[g.id] ?? []).length === 0)}
-              className="px-8 py-4 bg-[#8B4513] text-white rounded-lg hover:bg-[#5C4033] disabled:opacity-50 disabled:cursor-not-allowed flex items-center text-lg font-medium transition-colors"
+              className="px-8 py-4 bg-[#0f766e] text-white rounded-lg hover:bg-[#1e3a5f] disabled:opacity-50 disabled:cursor-not-allowed flex items-center text-lg font-medium transition-colors"
             >
               <ShoppingBag className="w-5 h-5 mr-2" />
               Add to Cart - ${((item.price + modifiersTotal()) * quantity).toFixed(2)}

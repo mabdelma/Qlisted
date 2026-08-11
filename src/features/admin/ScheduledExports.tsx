@@ -53,7 +53,7 @@ export function ScheduledExports() {
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center gap-3 mb-6">
-          <FileText className="w-6 h-6 text-[#8B4513]" />
+          <FileText className="w-6 h-6 text-[#0f766e]" />
           <h3 className="text-lg font-medium">{t('exports.title')}</h3>
         </div>
 
@@ -64,7 +64,7 @@ export function ScheduledExports() {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-[#8B4513] focus:border-[#8B4513]"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-[#0f766e] focus:border-[#0f766e]"
             />
           </div>
           <div>
@@ -73,7 +73,7 @@ export function ScheduledExports() {
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-[#8B4513] focus:border-[#8B4513]"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-[#0f766e] focus:border-[#0f766e]"
             />
           </div>
         </div>
@@ -84,7 +84,7 @@ export function ScheduledExports() {
           <button
             onClick={() => handleExport('orders')}
             disabled={exporting !== null || !slug}
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-[#8B4513] text-white rounded-lg hover:bg-[#5C4033] disabled:opacity-50 transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-[#0f766e] text-white rounded-lg hover:bg-[#1e3a5f] disabled:opacity-50 transition-colors"
           >
             <Download className="w-5 h-5" />
             {exporting === 'orders' ? t('exports.exporting') : t('exports.exportOrders')}
@@ -92,7 +92,7 @@ export function ScheduledExports() {
           <button
             onClick={() => handleExport('payments')}
             disabled={exporting !== null || !slug}
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-[#8B4513] text-white rounded-lg hover:bg-[#5C4033] disabled:opacity-50 transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-[#0f766e] text-white rounded-lg hover:bg-[#1e3a5f] disabled:opacity-50 transition-colors"
           >
             <DollarSign className="w-5 h-5" />
             {exporting === 'payments' ? t('exports.exporting') : t('exports.exportPayments')}
@@ -100,7 +100,7 @@ export function ScheduledExports() {
           <button
             onClick={() => handleExport('menu')}
             disabled={exporting !== null || !slug}
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-[#8B4513] text-white rounded-lg hover:bg-[#5C4033] disabled:opacity-50 transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-[#0f766e] text-white rounded-lg hover:bg-[#1e3a5f] disabled:opacity-50 transition-colors"
           >
             <Menu className="w-5 h-5" />
             {exporting === 'menu' ? t('exports.exporting') : t('exports.exportMenu')}

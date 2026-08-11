@@ -77,7 +77,7 @@ export function SchedulingPage() {
         </select>
         <input type="time" value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} className="rounded-md border-gray-300 text-sm" />
         <input type="time" value={form.endTime} onChange={(e) => setForm({ ...form, endTime: e.target.value })} className="rounded-md border-gray-300 text-sm" />
-        <button onClick={addShift} disabled={!form.userId} className="flex items-center justify-center gap-1 bg-[#8B4513] text-white rounded-md text-sm hover:bg-[#5C4033] disabled:opacity-50"><Plus className="w-4 h-4" /> {t('scheduling.addShift')}</button>
+        <button onClick={addShift} disabled={!form.userId} className="flex items-center justify-center gap-1 bg-[#0f766e] text-white rounded-md text-sm hover:bg-[#1e3a5f] disabled:opacity-50"><Plus className="w-4 h-4" /> {t('scheduling.addShift')}</button>
       </div>
 
       {/* Week grid */}
@@ -90,13 +90,13 @@ export function SchedulingPage() {
                 <div className="text-xs font-semibold text-gray-700 mb-2">{dow[i]} <span className="text-gray-400">{d.slice(5)}</span></div>
                 <div className="space-y-2">
                   {dayShifts.length === 0 ? <p className="text-[11px] text-gray-300">—</p> : dayShifts.map((s) => (
-                    <div key={s.id} className="group bg-[#F5DEB3]/30 rounded p-2 text-xs">
+                    <div key={s.id} className="group bg-[#ccfbf1]/30 rounded p-2 text-xs">
                       <div className="flex items-start justify-between">
                         <span className="font-medium text-gray-800">{s.userName || '—'}</span>
                         <button onClick={() => del(s.id)} className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-600"><Trash2 className="w-3 h-3" /></button>
                       </div>
                       <span className="text-gray-500">{s.startTime}–{s.endTime}</span>
-                      {s.role && <span className="block text-[10px] text-[#8B4513]">{s.role}</span>}
+                      {s.role && <span className="block text-[10px] text-[#0f766e]">{s.role}</span>}
                     </div>
                   ))}
                 </div>

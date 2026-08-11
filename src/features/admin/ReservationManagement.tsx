@@ -159,14 +159,14 @@ export function ReservationManagement() {
         <h2 className="text-2xl font-bold text-gray-900">{t('reservations.title')}</h2>
         <div className="flex gap-3 items-center">
           <input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)}
-            className="rounded-md border-gray-300 shadow-sm text-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+            className="rounded-md border-gray-300 shadow-sm text-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
           <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
-            className="rounded-md border-gray-300 shadow-sm text-sm focus:border-[#8B4513] focus:ring-[#8B4513]">
+            className="rounded-md border-gray-300 shadow-sm text-sm focus:border-[#0f766e] focus:ring-[#0f766e]">
             <option value="">{t('reservations.allStatuses')}</option>
             {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
           </select>
           <button onClick={() => startEdit()}
-            className="flex items-center px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033] text-sm">
+            className="flex items-center px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f] text-sm">
             <CalendarDays className="w-4 h-4 mr-2" /> {t('reservations.newReservation')}
           </button>
         </div>
@@ -188,8 +188,8 @@ export function ReservationManagement() {
               <div key={res.id} className="bg-white rounded-lg shadow p-5">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
-                    <div className="bg-[#8B4513]/10 p-3 rounded-full">
-                      <User className="w-5 h-5 text-[#8B4513]" />
+                    <div className="bg-[#0f766e]/10 p-3 rounded-full">
+                      <User className="w-5 h-5 text-[#0f766e]" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900">{res.customerName}</h3>
@@ -217,7 +217,7 @@ export function ReservationManagement() {
                     <select
                       value={res.tableId || ''}
                       onChange={(e) => e.target.value && handleAssignTable(res.id, e.target.value)}
-                      className="text-xs rounded border-gray-200 py-1 focus:border-[#8B4513] focus:ring-[#8B4513]">
+                      className="text-xs rounded border-gray-200 py-1 focus:border-[#0f766e] focus:ring-[#0f766e]">
                       <option value="">{t('reservations.assignTable')}</option>
                       {tables.filter((tb) => tb.status === 'available' || tb.id === res.tableId).map((tb) => (
                         <option key={tb.id} value={tb.id}>Table {tb.number} (cap. {tb.capacity})</option>
@@ -226,7 +226,7 @@ export function ReservationManagement() {
                     <select
                       value={res.status}
                       onChange={(e) => changeStatus(res.id, e.target.value)}
-                      className="text-xs rounded border-gray-200 py-1 focus:border-[#8B4513] focus:ring-[#8B4513]">
+                      className="text-xs rounded border-gray-200 py-1 focus:border-[#0f766e] focus:ring-[#0f766e]">
                       {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
                     </select>
                   </div>
@@ -249,46 +249,46 @@ export function ReservationManagement() {
               <div>
                 <label className="block text-sm font-medium text-gray-700">{t('reservations.customerName')}</label>
                 <input type="text" required value={editing.customerName || ''} onChange={(e) => setEditing({ ...editing, customerName: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">{t('reservations.email')}</label>
                   <input type="email" value={editing.customerEmail || ''} onChange={(e) => setEditing({ ...editing, customerEmail: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">{t('reservations.phone')}</label>
                   <input type="tel" value={editing.customerPhone || ''} onChange={(e) => setEditing({ ...editing, customerPhone: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">{t('reservations.partySize')}</label>
                 <input type="number" min="1" required value={editing.partySize || 2} onChange={(e) => setEditing({ ...editing, partySize: parseInt(e.target.value) || 2 })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">{t('reservations.date')}</label>
                   <input type="date" required value={editing.date || filterDate} onChange={(e) => setEditing({ ...editing, date: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">{t('reservations.time')}</label>
                   <input type="time" required value={editing.time || '19:00'} onChange={(e) => setEditing({ ...editing, time: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">{t('reservations.specialRequests')}</label>
                 <textarea value={editing.specialRequests || ''} onChange={(e) => setEditing({ ...editing, specialRequests: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" rows={2} />
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" rows={2} />
               </div>
               <div className="flex justify-end space-x-3 pt-2">
                 <button type="button" onClick={resetForm}
                   className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">{t('common.cancel')}</button>
-                <button type="submit" className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]">{t('common.save')}</button>
+                <button type="submit" className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]">{t('common.save')}</button>
               </div>
             </form>
           </div>

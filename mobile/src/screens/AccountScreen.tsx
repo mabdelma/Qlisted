@@ -9,14 +9,12 @@ interface AccountScreenProps {
 }
 
 const AccountScreen: React.FC<AccountScreenProps> = ({ slug, baseUrl, isOnline }) => {
-  const [pushToken, setPushToken] = useState<string | null>(null);
   const [pushEnabled, setPushEnabled] = useState(false);
   const [pushLoading, setPushLoading] = useState(false);
 
   useEffect(() => {
     registerForPushNotificationsAsync().then((token) => {
       if (token) {
-        setPushToken(token);
         setPushEnabled(true);
       }
     });

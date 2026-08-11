@@ -55,15 +55,15 @@ export function ContactPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
             {contactInfo.map((item) => (
               <div key={item.labelKey} className="text-center p-6 bg-gray-50 rounded-xl">
-                <div className="w-12 h-12 bg-[#8B4513]/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <item.icon className="h-6 w-6 text-[#8B4513]" />
+                <div className="w-12 h-12 bg-[#0f766e]/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <item.icon className="h-6 w-6 text-[#0f766e]" />
                 </div>
                 <h3 className="font-medium text-gray-900 mb-1">{t(item.labelKey as TranslationKey)}</h3>
                 <div className="space-y-1">
                   {item.items.map((c) => (
                     <p key={c.text} className="text-sm text-gray-600">
                       {'href' in c && c.href
-                        ? <a href={c.href} className="hover:text-[#8B4513] transition-colors">{c.text}</a>
+                        ? <a href={c.href} className="hover:text-[#0f766e] transition-colors">{c.text}</a>
                         : c.text}
                     </p>
                   ))}
@@ -86,22 +86,22 @@ export function ContactPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="contact-name" className="block text-sm font-medium text-gray-700 mb-1">{t('contact.formName')}</label>
-                    <input id="contact-name" type="text" required className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-[#8B4513] focus:border-[#8B4513]" placeholder={t('contact.formNamePlaceholder')} />
+                    <input id="contact-name" type="text" required className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-[#0f766e] focus:border-[#0f766e]" placeholder={t('contact.formNamePlaceholder')} />
                   </div>
                   <div>
                     <label htmlFor="contact-email" className="block text-sm font-medium text-gray-700 mb-1">{t('contact.formEmail')}</label>
-                    <input id="contact-email" type="email" required className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-[#8B4513] focus:border-[#8B4513]" placeholder={t('contact.formEmailPlaceholder')} />
+                    <input id="contact-email" type="email" required className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-[#0f766e] focus:border-[#0f766e]" placeholder={t('contact.formEmailPlaceholder')} />
                   </div>
                 </div>
                 <div>
                   <label htmlFor="contact-subject" className="block text-sm font-medium text-gray-700 mb-1">{t('contact.formSubject')}</label>
-                  <input id="contact-subject" type="text" required className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-[#8B4513] focus:border-[#8B4513]" placeholder={t('contact.formSubjectPlaceholder')} />
+                  <input id="contact-subject" type="text" required className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-[#0f766e] focus:border-[#0f766e]" placeholder={t('contact.formSubjectPlaceholder')} />
                 </div>
                 <div>
                   <label htmlFor="contact-message" className="block text-sm font-medium text-gray-700 mb-1">{t('contact.formMessage')}</label>
-                  <textarea id="contact-message" rows={5} required className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-[#8B4513] focus:border-[#8B4513]" placeholder={t('contact.formMessagePlaceholder')} />
+                  <textarea id="contact-message" rows={5} required className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-[#0f766e] focus:border-[#0f766e]" placeholder={t('contact.formMessagePlaceholder')} />
                 </div>
-                <button type="submit" className="w-full bg-[#8B4513] text-white py-3 rounded-lg font-medium hover:bg-[#5C4033] transition-colors">
+                <button type="submit" className="w-full bg-[#0f766e] text-white py-3 rounded-lg font-medium hover:bg-[#1e3a5f] transition-colors">
                   {t('contact.sendMessage')}
                 </button>
               </form>

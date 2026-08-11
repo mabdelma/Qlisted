@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { db, schema } from '../db/index.js';
-import { eq, and, sql, desc } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { v4 as uuid } from 'uuid';
 import { authMiddleware, requireRole } from '../middleware/auth.js';
 

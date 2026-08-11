@@ -39,7 +39,7 @@ export default defineConfig({
         name: 'Qlisted — Hospitality OS',
         short_name: 'Qlisted',
         description: 'The AI-native operating system for hospitality: ordering, payments, operations, and guests, for restaurants and hotels.',
-        theme_color: '#8B4513',
+        theme_color: '#0f766e',
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'any',

@@ -10,9 +10,6 @@ test.describe('Customer ordering flow', () => {
     const searchInput = page.locator('input[aria-label="Search menu..."]');
     await expect(searchInput).toBeVisible({ timeout: 10000 });
 
-    const catButtons = page.locator('button').filter({ hasText: /./ }).filter({
-      has: page.locator('span'),
-    });
     const catCount = await page.locator('div.flex.space-x-2.overflow-x-auto button').count();
     expect(catCount).toBeGreaterThanOrEqual(1);
 

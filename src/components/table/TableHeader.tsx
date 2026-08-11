@@ -18,7 +18,7 @@ export function TableHeader() {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-8">
               <div className="flex items-center">
-                <ChefHat className="h-8 w-8 text-[#8B4513]" />
+                <ChefHat className="h-8 w-8 text-[#0f766e]" />
                 <span className="ml-2 text-xl font-bold text-gray-900">{t('app.name')}</span>
               </div>
               
@@ -27,8 +27,8 @@ export function TableHeader() {
                 className={({ isActive }) =>
                   `px-4 py-2 text-sm font-medium rounded-md ${
                     isActive
-                      ? 'bg-[#F5DEB3] text-[#8B4513] shadow-sm'
-                      : 'text-gray-500 hover:text-[#8B4513] hover:bg-[#F5DEB3]/50'
+                      ? 'bg-[#ccfbf1] text-[#0f766e] shadow-sm'
+                      : 'text-gray-500 hover:text-[#0f766e] hover:bg-[#ccfbf1]/50'
                   }`
                 }
               >
@@ -39,12 +39,12 @@ export function TableHeader() {
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setIsCartOpen(true)}
-                className="flex items-center px-4 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-[#8B4513] hover:bg-[#F5DEB3]/50 relative transition-colors"
+                className="flex items-center px-4 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-[#0f766e] hover:bg-[#ccfbf1]/50 relative transition-colors"
               >
                 <ShoppingCart className="h-5 w-5 mr-1" />
                 {t('nav.cart')}
                 {state.items.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#8B4513] text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                  <span className="absolute -top-1 -right-1 bg-[#0f766e] text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
                     {state.items.length}
                   </span>
                 )}
@@ -54,8 +54,8 @@ export function TableHeader() {
                 className={({ isActive }) =>
                   `flex items-center px-3 py-2 text-sm font-medium rounded-md ${
                     isActive
-                      ? 'text-[#8B4513] bg-[#F5DEB3] shadow-sm'
-                      : 'text-gray-500 hover:text-[#8B4513] hover:bg-[#F5DEB3]/50'
+                      ? 'text-[#0f766e] bg-[#ccfbf1] shadow-sm'
+                      : 'text-gray-500 hover:text-[#0f766e] hover:bg-[#ccfbf1]/50'
                   }`
                 }
               >

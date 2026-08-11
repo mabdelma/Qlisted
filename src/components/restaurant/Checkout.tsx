@@ -40,10 +40,10 @@ export function Checkout() {
   if (state.items.length === 0) {
     return (
       <div className="max-w-2xl mx-auto p-8 text-center">
-        <h2 className="text-2xl font-serif text-[#5C4033] mb-4">Your cart is empty</h2>
+        <h2 className="text-2xl font-serif text-[#1e3a5f] mb-4">Your cart is empty</h2>
         <button
           onClick={() => navigate(tableId ? `/table/${tableId}/menu` : '/menu')}
-          className="text-[#8B4513] hover:text-[#5C4033]"
+          className="text-[#0f766e] hover:text-[#1e3a5f]"
         >
           Return to menu
         </button>
@@ -53,7 +53,7 @@ export function Checkout() {
 
   return (
     <div className="max-w-2xl mx-auto p-8">
-      <h2 className="text-2xl font-serif text-[#5C4033] mb-8">Checkout</h2>
+      <h2 className="text-2xl font-serif text-[#1e3a5f] mb-8">Checkout</h2>
 
       {/* Order Summary */}
       <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
@@ -78,21 +78,21 @@ export function Checkout() {
             </div>
           ))}
           <div className="border-t pt-4 flex justify-between font-medium">
-            <span className="text-[#5C4033]">Total</span>
-            <span className="text-[#8B4513]">${state.total.toFixed(2)}</span>
+            <span className="text-[#1e3a5f]">Total</span>
+            <span className="text-[#0f766e]">${state.total.toFixed(2)}</span>
           </div>
 
           <div className="mt-6 flex justify-end space-x-3">
             <button
               onClick={() => navigate(slug ? `/r/${slug}/table/${tableId}/menu` : '/menu')}
-              className="text-[#8B4513] hover:text-[#5C4033]"
+              className="text-[#0f766e] hover:text-[#1e3a5f]"
             >
               Continue Shopping
             </button>
             <button
               onClick={handleOrder}
               disabled={processing}
-              className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033] disabled:opacity-50"
+              className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f] disabled:opacity-50"
             >
               {processing ? 'Processing...' : 'Place Order'}
             </button>

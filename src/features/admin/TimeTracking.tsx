@@ -46,10 +46,10 @@ export default function TimeTracking() {
       </div>
 
       <div className="flex space-x-2">
-        <button onClick={() => setTab('active')} className={`px-4 py-2 rounded-lg text-sm font-medium ${tab === 'active' ? 'bg-[#8B4513] text-white' : 'bg-white text-gray-700 border'}`}>
+        <button onClick={() => setTab('active')} className={`px-4 py-2 rounded-lg text-sm font-medium ${tab === 'active' ? 'bg-[#0f766e] text-white' : 'bg-white text-gray-700 border'}`}>
           <Users className="w-4 h-4 inline mr-1" /> {t('timeTracking.active')}
         </button>
-        <button onClick={() => setTab('history')} className={`px-4 py-2 rounded-lg text-sm font-medium ${tab === 'history' ? 'bg-[#8B4513] text-white' : 'bg-white text-gray-700 border'}`}>
+        <button onClick={() => setTab('history')} className={`px-4 py-2 rounded-lg text-sm font-medium ${tab === 'history' ? 'bg-[#0f766e] text-white' : 'bg-white text-gray-700 border'}`}>
           <Clock className="w-4 h-4 inline mr-1" /> {t('timeTracking.timesheet')}
         </button>
       </div>

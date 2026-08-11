@@ -125,50 +125,50 @@ export function CashierHistory() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-[#5C4033]">Transaction History</h2>
+          <h2 className="text-2xl font-bold text-[#1e3a5f]">Transaction History</h2>
           <div className="mt-2 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <p className="text-sm text-gray-500">Total</p>
-              <p className="text-xl font-bold text-[#5C4033]">{metrics.totalTransactions}</p>
+              <p className="text-xl font-bold text-[#1e3a5f]">{metrics.totalTransactions}</p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <p className="text-sm text-gray-500">Total Amount</p>
-              <p className="text-xl font-bold text-[#5C4033]">${metrics.totalAmount.toFixed(2)}</p>
+              <p className="text-xl font-bold text-[#1e3a5f]">${metrics.totalAmount.toFixed(2)}</p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <p className="text-sm text-gray-500">Avg Processing</p>
-              <p className="text-xl font-bold text-[#5C4033]">{metrics.avgProcessingTime.toFixed(1)} min</p>
+              <p className="text-xl font-bold text-[#1e3a5f]">{metrics.avgProcessingTime.toFixed(1)} min</p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <p className="text-sm text-gray-500">Cash</p>
-              <p className="text-xl font-bold text-[#5C4033]">{metrics.cashPayments}</p>
+              <p className="text-xl font-bold text-[#1e3a5f]">{metrics.cashPayments}</p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <p className="text-sm text-gray-500">Card</p>
-              <p className="text-xl font-bold text-[#5C4033]">{metrics.cardPayments}</p>
+              <p className="text-xl font-bold text-[#1e3a5f]">{metrics.cardPayments}</p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <p className="text-sm text-gray-500">Wallet</p>
-              <p className="text-xl font-bold text-[#5C4033]">{metrics.walletPayments}</p>
+              <p className="text-xl font-bold text-[#1e3a5f]">{metrics.walletPayments}</p>
             </div>
           </div>
         </div>
         <button onClick={loadTransactions}
-          className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]">Refresh</button>
+          className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]">Refresh</button>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 relative">
           <input type="text" placeholder="Search by order ID or items..." value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#8B4513]" />
+            className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0f766e]" />
           <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
         </div>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <Filter className="h-5 w-5 text-gray-400" />
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-lg border border-gray-300 py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-[#8B4513]">
+              className="rounded-lg border border-gray-300 py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-[#0f766e]">
               <option value="all">All Status</option>
               <option value="paid">Paid</option>
               <option value="unpaid">Unpaid</option>
@@ -176,21 +176,21 @@ export function CashierHistory() {
             </select>
           </div>
           <select value={methodFilter} onChange={(e) => setMethodFilter(e.target.value)}
-            className="rounded-lg border border-gray-300 py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-[#8B4513]">
+            className="rounded-lg border border-gray-300 py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-[#0f766e]">
             <option value="all">All Methods</option>
             <option value="cash">Cash</option>
             <option value="card">Card</option>
             <option value="wallet">Digital Wallet</option>
           </select>
           <select value={timeFilter} onChange={(e) => setTimeFilter(e.target.value)}
-            className="rounded-lg border border-gray-300 py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-[#8B4513]">
+            className="rounded-lg border border-gray-300 py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-[#0f766e]">
             <option value="all">All Time</option>
             <option value="today">Today</option>
             <option value="week">This Week</option>
             <option value="month">This Month</option>
           </select>
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value as 'time' | 'amount')}
-            className="rounded-lg border border-gray-300 py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-[#8B4513]">
+            className="rounded-lg border border-gray-300 py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-[#0f766e]">
             <option value="time">Sort by Time</option>
             <option value="amount">Sort by Amount</option>
           </select>

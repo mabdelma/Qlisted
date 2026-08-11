@@ -73,13 +73,13 @@ export function MarketingLanding() {
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden bg-gradient-to-b from-amber-50 via-white to-white">
         {/* decorative blobs */}
-        <div className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-[#8B4513]/10 blur-3xl" />
+        <div className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-[#0f766e]/10 blur-3xl" />
         <div className="pointer-events-none absolute top-40 -left-24 h-80 w-80 rounded-full bg-amber-200/40 blur-3xl" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 md:pt-24 md:pb-28">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="text-center lg:text-left">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-[#8B4513]/10 text-[#8B4513] mb-6">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-[#0f766e]/10 text-[#0f766e] mb-6">
                 <Star className="h-3.5 w-3.5 fill-current" /> {t('marketing.trustedBy')}
               </span>
               <h1 className="text-4xl md:text-6xl font-bold text-gray-900 tracking-tight mb-6">
@@ -89,7 +89,7 @@ export function MarketingLanding() {
                 {t('marketing.heroDesc')}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link to="/onboarding" className="inline-flex items-center justify-center px-8 py-3.5 bg-[#8B4513] text-white font-medium rounded-lg hover:bg-[#5C4033] transition-colors text-lg shadow-sm">
+                <Link to="/onboarding" className="inline-flex items-center justify-center px-8 py-3.5 bg-[#0f766e] text-white font-medium rounded-lg hover:bg-[#1e3a5f] transition-colors text-lg shadow-sm">
                   {t('cta.startTrial')} <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
                 <Link to="/demo" className="inline-flex items-center justify-center px-8 py-3.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors text-lg">
@@ -98,7 +98,7 @@ export function MarketingLanding() {
               </div>
               <p className="mt-5 text-sm text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1 justify-center lg:justify-start">
                 <Check className="h-4 w-4 text-green-600" /> {t('marketing.noCreditCard')}
-                <Link to="/pricing" className="font-medium text-[#8B4513] hover:underline">· {t('nav.pricing')}</Link>
+                <Link to="/pricing" className="font-medium text-[#0f766e] hover:underline">· {t('nav.pricing')}</Link>
               </p>
             </div>
 
@@ -114,7 +114,7 @@ export function MarketingLanding() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {stats.map((s) => (
               <div key={s.label}>
-                <div className="text-3xl font-bold text-[#8B4513]">{s.value}</div>
+                <div className="text-3xl font-bold text-[#0f766e]">{s.value}</div>
                 <div className="text-sm text-gray-500 mt-1">{s.label}</div>
               </div>
             ))}
@@ -131,9 +131,9 @@ export function MarketingLanding() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((f) => (
-              <div key={f.title} className="group bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-xl hover:border-[#8B4513]/20 hover:-translate-y-1 transition-all">
-                <div className="w-12 h-12 bg-[#8B4513]/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#8B4513] transition-colors">
-                  <f.icon className="h-6 w-6 text-[#8B4513] group-hover:text-white transition-colors" />
+              <div key={f.title} className="group bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-xl hover:border-[#0f766e]/20 hover:-translate-y-1 transition-all">
+                <div className="w-12 h-12 bg-[#0f766e]/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#0f766e] transition-colors">
+                  <f.icon className="h-6 w-6 text-[#0f766e] group-hover:text-white transition-colors" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{f.title}</h3>
                 <p className="text-sm text-gray-600 leading-relaxed">{f.desc}</p>
@@ -143,7 +143,7 @@ export function MarketingLanding() {
 
           {/* Everything-else capabilities strip */}
           <div className="mt-12 text-center">
-            <p className="text-sm font-semibold uppercase tracking-wider text-[#8B4513] mb-4">{t('marketing.alsoTitle')}</p>
+            <p className="text-sm font-semibold uppercase tracking-wider text-[#0f766e] mb-4">{t('marketing.alsoTitle')}</p>
             <div className="flex flex-wrap justify-center gap-2">
               {alsoIncluded.map((label) => (
                 <span key={label} className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3.5 py-1.5 text-sm text-gray-700">
@@ -163,13 +163,13 @@ export function MarketingLanding() {
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">{t('marketing.howItWorksDesc')}</p>
           </div>
           <div className="relative grid grid-cols-1 md:grid-cols-3 gap-10">
-            <div className="hidden md:block absolute top-8 left-[16.66%] right-[16.66%] h-px bg-gradient-to-r from-[#8B4513]/30 via-[#8B4513]/30 to-[#8B4513]/30" />
+            <div className="hidden md:block absolute top-8 left-[16.66%] right-[16.66%] h-px bg-gradient-to-r from-[#0f766e]/30 via-[#0f766e]/30 to-[#0f766e]/30" />
             {steps.map((s) => (
               <div key={s.num} className="relative text-center">
-                <div className="w-16 h-16 bg-[#8B4513] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[#8B4513]/20">
+                <div className="w-16 h-16 bg-[#0f766e] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[#0f766e]/20">
                   <s.icon className="h-7 w-7 text-white" />
                 </div>
-                <div className="text-xs font-semibold text-[#8B4513] tracking-widest mb-2">{t('marketing.stepLabel', { num: s.num })}</div>
+                <div className="text-xs font-semibold text-[#0f766e] tracking-widest mb-2">{t('marketing.stepLabel', { num: s.num })}</div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">{s.title}</h3>
                 <p className="text-gray-600 max-w-xs mx-auto">{s.desc}</p>
               </div>
@@ -212,7 +212,7 @@ export function MarketingLanding() {
       <section className="py-20 md:py-28 bg-gradient-to-b from-white to-amber-50/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-14 items-center">
           <div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-[#8B4513]/10 text-[#8B4513] mb-6">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-[#0f766e]/10 text-[#0f766e] mb-6">
               <Sparkles className="h-3.5 w-3.5 fill-current" /> {t('marketing.aiBadge')}
             </span>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">{t('marketing.aiTitle')}</h2>
@@ -220,8 +220,8 @@ export function MarketingLanding() {
             <ul className="space-y-4">
               {[t('marketing.aiItem1'), t('marketing.aiItem2'), t('marketing.aiItem3')].map((b) => (
                 <li key={b} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#8B4513]/10">
-                    <Check className="h-4 w-4 text-[#8B4513]" />
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#0f766e]/10">
+                    <Check className="h-4 w-4 text-[#0f766e]" />
                   </span>
                   <span className="text-gray-700">{b}</span>
                 </li>
@@ -249,7 +249,7 @@ export function MarketingLanding() {
                 </div>
                 <blockquote className="text-gray-700 leading-relaxed flex-1">"{tItem.quote}"</blockquote>
                 <figcaption className="mt-6 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-[#8B4513]/10 text-[#8B4513] flex items-center justify-center font-semibold">
+                  <div className="h-10 w-10 rounded-full bg-[#0f766e]/10 text-[#0f766e] flex items-center justify-center font-semibold">
                     {tItem.name.charAt(0)}
                   </div>
                   <div>
@@ -272,9 +272,9 @@ export function MarketingLanding() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto items-start">
             {plans.map((plan) => (
-              <div key={plan.name} className={`relative rounded-2xl border p-8 bg-white ${plan.popular ? 'border-[#8B4513] shadow-xl md:scale-105' : 'border-gray-200'}`}>
+              <div key={plan.name} className={`relative rounded-2xl border p-8 bg-white ${plan.popular ? 'border-[#0f766e] shadow-xl md:scale-105' : 'border-gray-200'}`}>
                 {plan.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#8B4513] text-white text-xs font-medium rounded-full">{t('marketing.mostPopular')}</span>
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#0f766e] text-white text-xs font-medium rounded-full">{t('marketing.mostPopular')}</span>
                 )}
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{plan.name}</h3>
                 <p className="text-sm text-gray-600 mb-4">{plan.desc}</p>
@@ -289,7 +289,7 @@ export function MarketingLanding() {
                     </li>
                   ))}
                 </ul>
-                <Link to="/onboarding" className={`block text-center py-3 rounded-lg font-medium transition-colors ${plan.popular ? 'bg-[#8B4513] text-white hover:bg-[#5C4033]' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'}`}>
+                <Link to="/onboarding" className={`block text-center py-3 rounded-lg font-medium transition-colors ${plan.popular ? 'bg-[#0f766e] text-white hover:bg-[#1e3a5f]' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'}`}>
                   {t('cta.getStarted')}
                 </Link>
               </div>
@@ -320,13 +320,13 @@ export function MarketingLanding() {
       </section>
 
       {/* ── CTA ─────────────────────────────────────────────────────────── */}
-      <section className="py-20 md:py-28 bg-[#8B4513] relative overflow-hidden">
+      <section className="py-20 md:py-28 bg-[#0f766e] relative overflow-hidden">
         <div className="pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">{t('marketing.ctaTitle')}</h2>
           <p className="text-lg text-amber-100 mb-10 max-w-2xl mx-auto">{t('marketing.ctaDesc')}</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/onboarding" className="inline-flex items-center justify-center px-8 py-3.5 bg-white text-[#8B4513] font-medium rounded-lg hover:bg-amber-50 transition-colors text-lg">
+            <Link to="/onboarding" className="inline-flex items-center justify-center px-8 py-3.5 bg-white text-[#0f766e] font-medium rounded-lg hover:bg-amber-50 transition-colors text-lg">
               {t('cta.startTrial')} <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
             <Link to="/demo" className="inline-flex items-center justify-center px-8 py-3.5 border border-white/40 text-white font-medium rounded-lg hover:bg-white/10 transition-colors text-lg">
@@ -353,7 +353,7 @@ function PhoneMockup() {
     <div className="relative">
       {/* floating QR chip */}
       <div className="absolute -left-6 top-10 z-10 hidden sm:flex flex-col items-center gap-1 rounded-xl bg-white p-3 shadow-xl ring-1 ring-gray-100">
-        <QrCode className="h-10 w-10 text-[#8B4513]" />
+        <QrCode className="h-10 w-10 text-[#0f766e]" />
         <span className="text-[10px] font-medium text-gray-500">{t('marketing.scanToOrder')}</span>
       </div>
 
@@ -362,7 +362,7 @@ function PhoneMockup() {
           {/* notch */}
           <div className="absolute left-1/2 top-0 z-10 h-5 w-28 -translate-x-1/2 rounded-b-2xl bg-gray-900" />
           {/* app header */}
-          <div className="bg-[#8B4513] px-5 pb-4 pt-7 text-white">
+          <div className="bg-[#0f766e] px-5 pb-4 pt-7 text-white">
             <div className="text-xs/none opacity-80">{t('marketing.phoneTableDineIn', { num: '4' })}</div>
             <div className="mt-1 text-lg font-bold">{t('marketing.phoneDemoCafe')}</div>
           </div>
@@ -376,13 +376,13 @@ function PhoneMockup() {
                   <div className="truncate text-sm font-medium text-gray-900">{it.name}</div>
                   <div className="text-xs text-gray-500">${it.price}</div>
                 </div>
-                <button className="h-7 w-7 rounded-full bg-[#8B4513] text-base font-bold leading-none text-white">+</button>
+                <button className="h-7 w-7 rounded-full bg-[#0f766e] text-base font-bold leading-none text-white">+</button>
               </div>
             ))}
           </div>
           {/* cart bar */}
           <div className="px-4 pb-5">
-            <div className="flex items-center justify-between rounded-xl bg-[#8B4513] px-4 py-3 text-white shadow-lg">
+            <div className="flex items-center justify-between rounded-xl bg-[#0f766e] px-4 py-3 text-white shadow-lg">
               <span className="text-sm font-medium">{t('marketing.phoneViewCart', { count: '3' })}</span>
               <span className="text-sm font-bold">$32.97</span>
             </div>
@@ -392,7 +392,7 @@ function PhoneMockup() {
 
       {/* floating front-desk card — restaurants AND hotels on one platform */}
       <div className="absolute -right-6 bottom-6 z-10 hidden sm:block rounded-2xl bg-white p-3.5 shadow-xl ring-1 ring-gray-100 w-48">
-        <p className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500"><Hotel className="h-3.5 w-3.5 text-[#8B4513]" /> {t('hotel.title')}</p>
+        <p className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500"><Hotel className="h-3.5 w-3.5 text-[#0f766e]" /> {t('hotel.title')}</p>
         <div className="mt-2 grid grid-cols-3 gap-1.5 text-center">
           <div><p className="text-base font-bold text-gray-900">82%</p><p className="text-[9px] text-gray-500">{t('hotel.occupancy')}</p></div>
           <div><p className="text-base font-bold text-gray-900">6</p><p className="text-[9px] text-gray-500 truncate">{t('hotel.arrivalsToday')}</p></div>
@@ -461,7 +461,7 @@ function DashboardMockup() {
         <div className="mb-3 text-xs font-medium text-gray-500">{t('marketing.statRevenueWeek')}</div>
         <div className="flex h-28 items-end gap-2">
           {bars.map((h, i) => (
-            <div key={i} className="flex-1 rounded-t-md bg-[#8B4513]/80" style={{ height: `${h}%` }} />
+            <div key={i} className="flex-1 rounded-t-md bg-[#0f766e]/80" style={{ height: `${h}%` }} />
           ))}
         </div>
       </div>

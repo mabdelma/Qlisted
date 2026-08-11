@@ -40,9 +40,9 @@ export function FrontDeskWidget({ slug }: { slug?: string }) {
     <div className="bg-white rounded-lg shadow p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
-          <Hotel className="w-4 h-4 text-[#8B4513]" /> {t('hotel.title')}
+          <Hotel className="w-4 h-4 text-[#0f766e]" /> {t('hotel.title')}
         </h3>
-        <Link to="/admin/rooms" aria-label={t('hotel.title')} className="text-[#8B4513] hover:text-[#5C4033]">
+        <Link to="/admin/rooms" aria-label={t('hotel.title')} className="text-[#0f766e] hover:text-[#1e3a5f]">
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>

@@ -102,27 +102,27 @@ export function MailDashboard() {
 
       {/* Create mailbox */}
       <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-4"><Plus className="w-5 h-5 text-[#8B4513]" /> New mailbox</h2>
+        <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-4"><Plus className="w-5 h-5 text-[#0f766e]" /> New mailbox</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="flex">
             <input value={form.localPart} onChange={(e) => setForm({ ...form, localPart: e.target.value.replace(/[^a-z0-9._-]/gi, '').toLowerCase() })}
-              placeholder="name" className="w-full rounded-l-md border-gray-300 text-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+              placeholder="name" className="w-full rounded-l-md border-gray-300 text-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
             <span className="inline-flex items-center px-2 text-sm text-gray-400 bg-gray-50 border border-l-0 border-gray-300 rounded-r-md">@{domain}</span>
           </div>
           <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-            placeholder="Display name" className="rounded-md border-gray-300 text-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+            placeholder="Display name" className="rounded-md border-gray-300 text-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
           <div className="flex">
             <input value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}
-              placeholder="Password" className="w-full rounded-l-md border-gray-300 text-sm font-mono focus:border-[#8B4513] focus:ring-[#8B4513]" />
+              placeholder="Password" className="w-full rounded-l-md border-gray-300 text-sm font-mono focus:border-[#0f766e] focus:ring-[#0f766e]" />
             <button type="button" onClick={() => setForm({ ...form, password: gen() })} title="Generate"
               className="inline-flex items-center px-2 border border-l-0 border-gray-300 rounded-r-md text-gray-500 hover:bg-gray-50"><RefreshCw className="w-4 h-4" /></button>
           </div>
           <div className="flex items-center gap-2">
             <input type="number" min={64} step={256} value={form.quotaMb} onChange={(e) => setForm({ ...form, quotaMb: parseInt(e.target.value) || 1024 })}
-              className="w-24 rounded-md border-gray-300 text-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+              className="w-24 rounded-md border-gray-300 text-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
             <span className="text-xs text-gray-400">MB</span>
             <button onClick={createMailbox} disabled={busy}
-              className="ml-auto inline-flex items-center gap-1 rounded-md bg-[#8B4513] px-4 py-2 text-sm font-medium text-white hover:bg-[#5C4033] disabled:opacity-50">
+              className="ml-auto inline-flex items-center gap-1 rounded-md bg-[#0f766e] px-4 py-2 text-sm font-medium text-white hover:bg-[#1e3a5f] disabled:opacity-50">
               <Plus className="w-4 h-4" /> Create
             </button>
           </div>
@@ -155,7 +155,7 @@ export function MailDashboard() {
                     <td className="px-6 py-3">
                       {editing === m.username ? (
                         <input value={editVals.name} onChange={(e) => setEditVals({ ...editVals, name: e.target.value })}
-                          className="rounded-md border-gray-300 text-sm py-1 focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                          className="rounded-md border-gray-300 text-sm py-1 focus:border-[#0f766e] focus:ring-[#0f766e]" />
                       ) : (
                         <div className="font-medium text-gray-900">{m.name || '—'}</div>
                       )}
@@ -165,7 +165,7 @@ export function MailDashboard() {
                       {editing === m.username ? (
                         <span className="inline-flex items-center gap-1">
                           <input type="number" min={64} step={256} value={editVals.quotaMb} onChange={(e) => setEditVals({ ...editVals, quotaMb: parseInt(e.target.value) || 64 })}
-                            className="w-20 rounded-md border-gray-300 text-sm py-1 focus:border-[#8B4513] focus:ring-[#8B4513]" /> MB
+                            className="w-20 rounded-md border-gray-300 text-sm py-1 focus:border-[#0f766e] focus:ring-[#0f766e]" /> MB
                         </span>
                       ) : (
                         <>
@@ -185,7 +185,7 @@ export function MailDashboard() {
                         ) : (
                           <>
                             <button onClick={() => startEdit(m)} title="Edit name / quota" className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-gray-100 rounded"><Pencil className="w-4 h-4" /></button>
-                            <button onClick={() => resetPw(m.username)} disabled={busy} title="Reset password" className="p-1.5 text-gray-400 hover:text-[#8B4513] hover:bg-gray-100 rounded"><KeyRound className="w-4 h-4" /></button>
+                            <button onClick={() => resetPw(m.username)} disabled={busy} title="Reset password" className="p-1.5 text-gray-400 hover:text-[#0f766e] hover:bg-gray-100 rounded"><KeyRound className="w-4 h-4" /></button>
                             <button onClick={() => run(() => adminApi.setMailboxActive(m.username, !m.active))} disabled={busy} title={m.active ? 'Disable' : 'Enable'} className={`p-1.5 rounded hover:bg-gray-100 ${m.active ? 'text-gray-400 hover:text-amber-600' : 'text-green-600'}`}><Power className="w-4 h-4" /></button>
                             <button onClick={() => { if (window.confirm(`Delete ${m.username}? This permanently removes the mailbox and all its mail.`)) run(() => adminApi.deleteMailbox(m.username), `Deleted ${m.username}.`); }} disabled={busy} title="Delete" className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"><Trash2 className="w-4 h-4" /></button>
                           </>
@@ -202,19 +202,19 @@ export function MailDashboard() {
 
       {/* Aliases / forwarders */}
       <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-1"><AtSign className="w-5 h-5 text-[#8B4513]" /> Aliases &amp; forwarders</h2>
+        <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-1"><AtSign className="w-5 h-5 text-[#0f766e]" /> Aliases &amp; forwarders</h2>
         <p className="text-xs text-gray-400 mb-4">Forward an address to any inbox. Use <span className="font-mono">*</span> as the name for a catch-all (everything @{domain}).</p>
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr_auto] gap-2 items-center mb-4">
           <div className="flex">
             <input value={aliasForm.localPart} onChange={(e) => setAliasForm({ ...aliasForm, localPart: e.target.value })}
-              placeholder="sales or *" className="w-full rounded-l-md border-gray-300 text-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+              placeholder="sales or *" className="w-full rounded-l-md border-gray-300 text-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
             <span className="inline-flex items-center px-2 text-sm text-gray-400 bg-gray-50 border border-l-0 border-gray-300 rounded-r-md">@{domain}</span>
           </div>
           <ArrowRight className="w-4 h-4 text-gray-400 mx-auto hidden sm:block" />
           <input value={aliasForm.goto} onChange={(e) => setAliasForm({ ...aliasForm, goto: e.target.value })}
-            placeholder={`inbox@${domain}`} className="rounded-md border-gray-300 text-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+            placeholder={`inbox@${domain}`} className="rounded-md border-gray-300 text-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
           <button onClick={addAlias} disabled={busy}
-            className="inline-flex items-center gap-1 rounded-md bg-[#8B4513] px-4 py-2 text-sm font-medium text-white hover:bg-[#5C4033] disabled:opacity-50">
+            className="inline-flex items-center gap-1 rounded-md bg-[#0f766e] px-4 py-2 text-sm font-medium text-white hover:bg-[#1e3a5f] disabled:opacity-50">
             <Plus className="w-4 h-4" /> Add
           </button>
         </div>

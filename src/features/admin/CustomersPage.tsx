@@ -80,10 +80,10 @@ export function CustomersPage() {
           <div className="relative">
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('common.search')}
-              className="pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-[#8B4513] focus:border-[#8B4513]" />
+              className="pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" />
           </div>
           <button onClick={() => { setSentInfo(''); setCampaign({ subject: '', message: '' }); }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#8B4513] text-white text-sm hover:bg-[#5C4033]">
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#0f766e] text-white text-sm hover:bg-[#1e3a5f]">
             <Send className="w-4 h-4" /> {t('crm.emailSegment')}
           </button>
         </div>
@@ -93,7 +93,7 @@ export function CustomersPage() {
       <div className="flex gap-2 flex-wrap">
         {segs.map(({ id, label, icon: Icon }) => (
           <button key={id} onClick={() => setSeg(id)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm ${seg === id ? 'bg-[#8B4513] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm ${seg === id ? 'bg-[#0f766e] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
             {Icon && <Icon className="w-3.5 h-3.5" />}{label}
           </button>
         ))}
@@ -148,7 +148,7 @@ export function CustomersPage() {
               <textarea value={editing.notes || ''} onChange={(e) => setEditing({ ...editing, notes: e.target.value })} rows={3} className="mt-1 block w-full rounded-md border-gray-300 text-sm" /></div>
             <div className="flex justify-end gap-2">
               <button onClick={() => setEditing(null)} className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50">{t('common.cancel')}</button>
-              <button onClick={save} disabled={saving} className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033] disabled:opacity-50">{t('common.save')}</button>
+              <button onClick={save} disabled={saving} className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f] disabled:opacity-50">{t('common.save')}</button>
             </div>
           </div>
         </div>
@@ -158,7 +158,7 @@ export function CustomersPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setCampaign(null)}>
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold flex items-center gap-2"><Send className="w-4 h-4 text-[#8B4513]" /> {t('crm.emailSegment')}</h3>
+              <h3 className="text-lg font-semibold flex items-center gap-2"><Send className="w-4 h-4 text-[#0f766e]" /> {t('crm.emailSegment')}</h3>
               <button onClick={() => setCampaign(null)}><X className="w-4 h-4 text-gray-400" /></button>
             </div>
             <p className="text-xs text-gray-500">→ {segs.find((s) => s.id === (seg === 'new' ? 'all' : seg))?.label}</p>
@@ -167,7 +167,7 @@ export function CustomersPage() {
             <div className="flex justify-end gap-2">
               <button onClick={() => setCampaign(null)} className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50">{t('common.cancel')}</button>
               <button onClick={sendCampaign} disabled={sending || !campaign.subject.trim() || !campaign.message.trim()}
-                className="flex items-center gap-1.5 px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033] disabled:opacity-50">
+                className="flex items-center gap-1.5 px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f] disabled:opacity-50">
                 <Send className="w-4 h-4" /> {sending ? `${t('common.loading')}...` : t('crm.send')}
               </button>
             </div>

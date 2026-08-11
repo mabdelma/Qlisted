@@ -24,7 +24,7 @@ export function PaymentReturn() {
         <Icon className={`mx-auto h-14 w-14 ${color}`} />
         <h1 className="mt-4 text-xl font-bold text-gray-900">{title}</h1>
         <p className="mt-2 text-sm text-gray-600">{body}</p>
-        <Link to="/" className="mt-6 inline-block rounded-lg bg-[#8B4513] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#5C4033]">
+        <Link to="/" className="mt-6 inline-block rounded-lg bg-[#0f766e] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#1e3a5f]">
           Done
         </Link>
       </div>

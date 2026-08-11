@@ -41,7 +41,7 @@ export class RouteErrorBoundary extends Component<Props, State> {
           </p>
           <button
             onClick={this.handleRetry}
-            className="px-5 py-2.5 bg-[#8B4513] text-white rounded-lg hover:bg-[#5C4033] transition-colors text-sm font-medium"
+            className="px-5 py-2.5 bg-[#0f766e] text-white rounded-lg hover:bg-[#1e3a5f] transition-colors text-sm font-medium"
           >
             Try again
           </button>

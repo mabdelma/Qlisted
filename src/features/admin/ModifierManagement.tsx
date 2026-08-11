@@ -115,7 +115,7 @@ export function ModifierManagement() {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">{t('menu.modifierGroups')}</h2>
         <button onClick={() => setEditingGroup({ name: '', selectionType: 'single', isRequired: false, sortOrder: 0 })}
-          className="flex items-center px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]">
+          className="flex items-center px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]">
           <PlusCircle className="w-5 h-5 mr-2" /> {t('modifier.addGroup')}
         </button>
       </div>
@@ -133,13 +133,13 @@ export function ModifierManagement() {
                 <label className="block text-sm font-medium text-gray-700">{t('common.name')}</label>
                 <input type="text" required value={editingGroup.name || ''}
                   onChange={(e) => setEditingGroup({ ...editingGroup, name: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">{t('modifier.selectionType')}</label>
                 <select value={editingGroup.selectionType || 'single'}
                   onChange={(e) => setEditingGroup({ ...editingGroup, selectionType: e.target.value as 'single' | 'multiple' })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]">
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]">
                   <option value="single">{t('modifier.single')}</option>
                   <option value="multiple">{t('modifier.multiple')}</option>
                 </select>
@@ -147,13 +147,13 @@ export function ModifierManagement() {
               <div className="flex items-center">
                 <input type="checkbox" id="group-required" checked={editingGroup.isRequired ?? false}
                   onChange={(e) => setEditingGroup({ ...editingGroup, isRequired: e.target.checked })}
-                  className="h-4 w-4 text-[#8B4513] border-gray-300 rounded" />
+                  className="h-4 w-4 text-[#0f766e] border-gray-300 rounded" />
                 <label htmlFor="group-required" className="ml-2 text-sm text-gray-900">{t('modifier.required')}</label>
               </div>
               <div className="flex justify-end space-x-3">
                 <button type="button" onClick={() => setEditingGroup(null)}
                   className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">{t('common.cancel')}</button>
-                <button type="submit" className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]">{t('common.save')}</button>
+                <button type="submit" className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]">{t('common.save')}</button>
               </div>
             </form>
           </div>
@@ -169,18 +169,18 @@ export function ModifierManagement() {
                 <label className="block text-sm font-medium text-gray-700">{t('common.name')}</label>
                 <input type="text" required value={editingOption.option?.name || ''}
                   onChange={(e) => setEditingOption({ ...editingOption, option: { ...editingOption.option, name: e.target.value } })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">{t('modifier.priceAdjustment')} ($)</label>
                 <input type="number" step="0.01" value={editingOption.option?.priceAdjustment ?? 0}
                   onChange={(e) => setEditingOption({ ...editingOption, option: { ...editingOption.option, priceAdjustment: parseFloat(e.target.value) || 0 } })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
               </div>
               <div className="flex justify-end space-x-3">
                 <button type="button" onClick={() => setEditingOption(null)}
                   className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">{t('common.cancel')}</button>
-                <button type="submit" className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]">{t('common.save')}</button>
+                <button type="submit" className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]">{t('common.save')}</button>
               </div>
             </form>
           </div>
@@ -235,7 +235,7 @@ export function ModifierManagement() {
                 </div>
               ))}
               <button onClick={() => setEditingOption({ groupId: group.id, option: { name: '', priceAdjustment: 0 } })}
-                className="flex items-center text-sm text-[#8B4513] hover:text-[#5C4033] mt-2">
+                className="flex items-center text-sm text-[#0f766e] hover:text-[#1e3a5f] mt-2">
                 <PlusCircle className="w-4 h-4 mr-1" /> {t('modifier.addOption')}
               </button>
             </div>

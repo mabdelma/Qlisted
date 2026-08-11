@@ -95,7 +95,7 @@ export function LoyaltyPoints() {
 
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Gift className="w-5 h-5 text-[#8B4513]" />
+          <Gift className="w-5 h-5 text-[#0f766e]" />
           <h3 className="text-lg font-medium">{t('loyalty.rewards')}</h3>
         </div>
         {(data?.rewards ?? []).length === 0 ? (
@@ -107,12 +107,12 @@ export function LoyaltyPoints() {
                 <div>
                   <p className="font-medium text-gray-900">{reward.name}</p>
                   <p className="text-sm text-gray-500">{reward.description}</p>
-                  <p className="text-sm text-[#8B4513] font-medium mt-1">{reward.pointsCost} {t('loyalty.points')}</p>
+                  <p className="text-sm text-[#0f766e] font-medium mt-1">{reward.pointsCost} {t('loyalty.points')}</p>
                 </div>
                 <button
                   onClick={() => handleRedeem(reward)}
                   disabled={(data?.points ?? 0) < reward.pointsCost}
-                  className="px-3 py-1.5 bg-[#8B4513] text-white text-sm rounded-lg hover:bg-[#5C4033] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1.5 bg-[#0f766e] text-white text-sm rounded-lg hover:bg-[#1e3a5f] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {t('loyalty.redeem')}
                 </button>
@@ -124,7 +124,7 @@ export function LoyaltyPoints() {
 
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Clock className="w-5 h-5 text-[#8B4513]" />
+          <Clock className="w-5 h-5 text-[#0f766e]" />
           <h3 className="text-lg font-medium">{t('loyalty.transactions')}</h3>
         </div>
         {(data?.history ?? []).length === 0 ? (
@@ -137,7 +137,7 @@ export function LoyaltyPoints() {
                   {tx.type === 'earn' ? (
                     <Star className="w-4 h-4 text-green-500" />
                   ) : (
-                    <Gift className="w-4 h-4 text-[#8B4513]" />
+                    <Gift className="w-4 h-4 text-[#0f766e]" />
                   )}
                   <div>
                     <p className="text-sm font-medium text-gray-900">{tx.description}</p>
@@ -153,7 +153,7 @@ export function LoyaltyPoints() {
         )}
       </div>
 
-      <button onClick={load} className="flex items-center gap-2 text-sm text-[#8B4513] hover:underline">
+      <button onClick={load} className="flex items-center gap-2 text-sm text-[#0f766e] hover:underline">
         <RefreshCw className="w-4 h-4" /> {t('loyalty.refresh')}
       </button>
     </div>

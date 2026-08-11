@@ -106,7 +106,7 @@ export function StaffSignIn() {
           <button
             type="submit"
             disabled={state.loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8B4513] hover:bg-[#5C4033] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B4513] disabled:opacity-50"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#0f766e] hover:bg-[#1e3a5f] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0f766e] disabled:opacity-50"
           >
             {state.loading ? <LoadingSpinner /> : t('auth.signin')}
           </button>
@@ -116,7 +116,7 @@ export function StaffSignIn() {
           <button
             type="button"
             onClick={() => navigate('/staff/signup')}
-            className="font-medium text-[#8B4513] hover:text-[#5C4033]"
+            className="font-medium text-[#0f766e] hover:text-[#1e3a5f]"
           >
             {t('auth.noAccount')} {t('cta.signUp')}
           </button>

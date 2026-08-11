@@ -49,13 +49,13 @@ export function RoomServicePage() {
     } catch { /* ignore */ } finally { setPlacing(false); }
   }
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-amber-50"><Loader2 className="w-8 h-8 text-[#8B4513] animate-spin" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-amber-50"><Loader2 className="w-8 h-8 text-[#0f766e] animate-spin" /></div>;
 
   if (!stay?.active) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-amber-50 p-6">
         <div className="text-center max-w-sm">
-          <BedDouble className="w-12 h-12 text-[#8B4513] mx-auto mb-4" />
+          <BedDouble className="w-12 h-12 text-[#0f766e] mx-auto mb-4" />
           <h1 className="text-xl font-bold text-gray-900 mb-2">{t('roomService.title')}</h1>
           <p className="text-gray-600">{t('roomService.noStay')}</p>
         </div>
@@ -70,7 +70,7 @@ export function RoomServicePage() {
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"><Check className="w-8 h-8 text-green-600" /></div>
           <h1 className="text-xl font-bold text-gray-900 mb-2">{t('roomService.placed')}</h1>
           <p className="text-gray-600 mb-6">{t('roomService.placedDesc')}</p>
-          <button onClick={() => setPlaced(false)} className="px-5 py-2.5 bg-[#8B4513] text-white rounded-lg hover:bg-[#5C4033]">{t('roomService.orderMore')}</button>
+          <button onClick={() => setPlaced(false)} className="px-5 py-2.5 bg-[#0f766e] text-white rounded-lg hover:bg-[#1e3a5f]">{t('roomService.orderMore')}</button>
         </div>
       </div>
     );
@@ -78,7 +78,7 @@ export function RoomServicePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-28">
-      <header className="bg-gradient-to-r from-[#8B4513] to-[#5C4033] text-white px-4 py-6">
+      <header className="bg-gradient-to-r from-[#0f766e] to-[#1e3a5f] text-white px-4 py-6">
         <div className="max-w-2xl mx-auto">
           <p className="flex items-center gap-1.5 text-sm text-white/80"><ConciergeBell className="w-4 h-4" /> {t('roomService.title')}</p>
           <h1 className="text-2xl font-bold mt-1">{t('roomService.welcome', { name: stay.guestName || '' })}</h1>
@@ -96,16 +96,16 @@ export function RoomServicePage() {
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-gray-900 truncate">{tr(item)}</p>
                     {item.description && <p className="text-xs text-gray-500 line-clamp-1">{item.description}</p>}
-                    <p className="text-sm font-semibold text-[#8B4513] mt-0.5">{price(item.price)}</p>
+                    <p className="text-sm font-semibold text-[#0f766e] mt-0.5">{price(item.price)}</p>
                   </div>
                   {cart[item.id] ? (
                     <div className="flex items-center gap-2">
                       <button onClick={() => dec(item.id)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"><Minus className="w-4 h-4" /></button>
                       <span className="w-5 text-center font-semibold">{cart[item.id]}</span>
-                      <button onClick={() => inc(item.id)} className="w-8 h-8 rounded-full bg-[#8B4513] text-white flex items-center justify-center hover:bg-[#5C4033]"><Plus className="w-4 h-4" /></button>
+                      <button onClick={() => inc(item.id)} className="w-8 h-8 rounded-full bg-[#0f766e] text-white flex items-center justify-center hover:bg-[#1e3a5f]"><Plus className="w-4 h-4" /></button>
                     </div>
                   ) : (
-                    <button onClick={() => inc(item.id)} className="w-9 h-9 rounded-full bg-[#8B4513] text-white flex items-center justify-center hover:bg-[#5C4033] shrink-0"><Plus className="w-5 h-5" /></button>
+                    <button onClick={() => inc(item.id)} className="w-9 h-9 rounded-full bg-[#0f766e] text-white flex items-center justify-center hover:bg-[#1e3a5f] shrink-0"><Plus className="w-5 h-5" /></button>
                   )}
                 </div>
               ))}
@@ -118,7 +118,7 @@ export function RoomServicePage() {
         <div className="fixed inset-x-0 bottom-0 p-4">
           <div className="max-w-2xl mx-auto">
             <button onClick={placeOrder} disabled={placing}
-              className="w-full flex items-center justify-between px-5 py-3.5 bg-[#8B4513] text-white rounded-xl shadow-lg hover:bg-[#5C4033] disabled:opacity-60">
+              className="w-full flex items-center justify-between px-5 py-3.5 bg-[#0f766e] text-white rounded-xl shadow-lg hover:bg-[#1e3a5f] disabled:opacity-60">
               <span className="font-medium">{placing ? `${t('common.loading')}...` : `${t('roomService.addToRoom')} · ${count}`}</span>
               <span className="font-bold">{price(total)}</span>
             </button>

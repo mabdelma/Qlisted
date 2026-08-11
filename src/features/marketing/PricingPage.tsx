@@ -71,7 +71,7 @@ export function PricingPage() {
 
       <section className="bg-gradient-to-b from-amber-50 to-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#8B4513]/10 text-[#8B4513] mb-6">
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#0f766e]/10 text-[#0f766e] mb-6">
             {t('nav.pricing')}
           </span>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">{t('pricing.pageTitle')}</h1>
@@ -89,12 +89,12 @@ export function PricingPage() {
                 key={plan.name}
                 className={`relative rounded-2xl border p-8 ${
                   plan.popular
-                    ? 'border-[#8B4513] shadow-xl bg-white scale-105 z-10'
+                    ? 'border-[#0f766e] shadow-xl bg-white scale-105 z-10'
                     : 'border-gray-200 bg-white'
                 }`}
               >
                 {plan.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#8B4513] text-white text-xs font-medium rounded-full whitespace-nowrap">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#0f766e] text-white text-xs font-medium rounded-full whitespace-nowrap">
                     {t('marketing.mostPopular')}
                   </span>
                 )}
@@ -116,7 +116,7 @@ export function PricingPage() {
                   to="/demo"
                   className={`block text-center py-3 rounded-lg font-medium transition-colors ${
                     plan.popular
-                      ? 'bg-[#8B4513] text-white hover:bg-[#5C4033]'
+                      ? 'bg-[#0f766e] text-white hover:bg-[#1e3a5f]'
                       : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                   }`}
                 >

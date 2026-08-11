@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
-import { registerUser, loginUser, loginWithRefresh, refreshAccessToken, revokeRefreshToken, verifyEmail, resendVerificationEmail, getCurrentUser, requestPasswordReset, resetPassword, googleLogin, googleEnabled, setupTotp, enableTotp, disableTotp } from '../services/authService.js';
+import { registerUser, loginWithRefresh, refreshAccessToken, revokeRefreshToken, verifyEmail, resendVerificationEmail, getCurrentUser, requestPasswordReset, resetPassword, googleLogin, googleEnabled, setupTotp, enableTotp, disableTotp } from '../services/authService.js';
 
 const auth = new Hono();
 

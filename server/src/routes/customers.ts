@@ -1,6 +1,4 @@
 import { Hono } from 'hono';
-import { z } from 'zod';
-import { zValidator } from '@hono/zod-validator';
 import { authMiddleware, requireRole } from '../middleware/auth.js';
 import { resolveTenant } from '../middleware/tenant.js';
 import { getCustomers, findOrCreateCustomer, updateCustomer } from '../services/customerService.js';

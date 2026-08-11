@@ -4,38 +4,38 @@
 
 @theme {
   /* ------------------------------------------------------------------
-   * Brand palette — saddle brown ramp. Keeps legacy `--color-brand`
+   * Brand palette — Qlisted teal→navy ramp. Keeps legacy `--color-brand`
    * aliases working so existing `bg-brand` / `text-brand` / `ring-brand`
    * utilities keep resolving.
    * ------------------------------------------------------------------ */
-  --color-brand-50: #fbf6ef;
-  --color-brand-100: #f6e8d7;
-  --color-brand-200: #ecd2b3;
-  --color-brand-300: #dfb389;
-  --color-brand-400: #c9975c;
-  --color-brand-500: #8b4513;
-  --color-brand-600: #783b10;
-  --color-brand-700: #5c4033;
-  --color-brand-800: #452c22;
-  --color-brand-900: #332019;
-  --color-brand-950: #211512;
+  --color-brand-50: #f0fdfa;
+  --color-brand-100: #ccfbf1;
+  --color-brand-200: #99f6e4;
+  --color-brand-300: #5eead4;
+  --color-brand-400: #2dd4bf;
+  --color-brand-500: #0f766e;
+  --color-brand-600: #0e6b63;
+  --color-brand-700: #115e59;
+  --color-brand-800: #134e4a;
+  --color-brand-900: #0f3d3a;
+  --color-brand-950: #042f2e;
 
   /* Legacy brand aliases (used across the app already) */
-  --color-brand: #8b4513;
-  --color-brand-hover: #5c4033;
-  --color-brand-light: #f5deb3;
+  --color-brand: #0f766e;
+  --color-brand-hover: #115e59;
+  --color-brand-light: #ccfbf1;
 
-  /* Sidebar / nav semantics */
-  --color-sidebar-bg: #5c4033;
-  --color-sidebar-hover: #6a4b35;
-  --color-sidebar-active: #8b4513;
-  --color-sidebar-text: #f5deb3;
-  --color-sidebar-label: #c9a26b;
-  --color-sidebar-border: rgba(245, 222, 179, 0.12);
+  /* Sidebar / nav semantics — deep navy (the "listed" half of the mark) */
+  --color-sidebar-bg: #1e3a5f;
+  --color-sidebar-hover: #274b6d;
+  --color-sidebar-active: #0f766e;
+  --color-sidebar-text: #ccfbf1;
+  --color-sidebar-label: #5eead4;
+  --color-sidebar-border: rgba(204, 251, 241, 0.12);
 
-  /* Accent (CTA on dark surfaces) */
-  --color-accent: #c9a26b;
-  --color-accent-light: #e8cfa8;
+  /* Accent (CTA on dark surfaces) — bright teal, the cloche in the mark */
+  --color-accent: #14b8a6;
+  --color-accent-light: #ccfbf1;
 
   /* ------------------------------------------------------------------
    * Typography

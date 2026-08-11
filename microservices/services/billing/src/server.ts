@@ -2,7 +2,10 @@ import Fastify from "fastify";
 import pg from "pg";
 import Stripe from "stripe";
 import { randomUUID } from "node:crypto";
-import { createLogger, ok, err, verifyHs256, bearer, initSentry, captureError } from "@qlisted/shared";
+import { createLogger, ok, err, verifyHs256, bearer, initSentry, captureError, getEventBus } from "@qlisted/shared";
+import type { DomainEvent } from "@qlisted/shared";
+
+function publishDomain(e: DomainEvent) { void getEventBus().publish(e).catch(() => {}); }
 
 function getStripe(): Stripe | null {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -44,6 +47,7 @@ async function handleSubscriptionEvent(event: Stripe.Event): Promise<boolean> {
         pStart = iso(sub.current_period_start); pEnd = iso(sub.current_period_end);
       }
       await upsertSub(tenantId, { planId, stripeSubscriptionId: (s.subscription as string) || null, status: "active", currentPeriodStart: pStart, currentPeriodEnd: pEnd });
+      publishDomain({ type: "subscription.updated", tenantId, plan: (planId || "starter").toUpperCase() as "STARTER" | "GROWTH" | "ENTERPRISE" });
       return true;
     }
     case "customer.subscription.updated":
@@ -55,6 +59,7 @@ async function handleSubscriptionEvent(event: Stripe.Event): Promise<boolean> {
         : (sub.status === "past_due" || sub.status === "unpaid") ? "past_due"
         : sub.status === "canceled" ? "canceled" : "active";
       await upsertSub(tenantId, { stripeSubscriptionId: sub.id, status, currentPeriodStart: iso(sub.current_period_start), currentPeriodEnd: iso(sub.current_period_end), ...(sub.metadata?.planId ? { planId: sub.metadata.planId } : {}) });
+      publishDomain({ type: "subscription.updated", tenantId, plan: ((sub.metadata?.planId || "starter").toUpperCase()) as "STARTER" | "GROWTH" | "ENTERPRISE" });
       return true;
     }
     case "invoice.payment_failed": {
@@ -62,6 +67,8 @@ async function handleSubscriptionEvent(event: Stripe.Event): Promise<boolean> {
       const subId = (inv as unknown as { subscription?: string }).subscription;
       if (!subId) return true;
       await pool.query("UPDATE tenant_subscriptions SET status = 'past_due' WHERE stripe_subscription_id = $1", [subId]);
+      const t = await pool.query("SELECT tenant_id FROM tenant_subscriptions WHERE stripe_subscription_id = $1 LIMIT 1", [subId]);
+      if (t.rows[0]?.tenant_id) publishDomain({ type: "subscription.updated", tenantId: t.rows[0].tenant_id, plan: "STARTER" });
       return true;
     }
     default:
@@ -76,12 +83,12 @@ async function handleSubscriptionEvent(event: Stripe.Event): Promise<boolean> {
  * the monolith pending a deliberate, Stripe-test-mode cutover.
  */
 const log = createLogger("billing");
-const app = Fastify({ loggerInstance: log });
+export const app = Fastify({ loggerInstance: log });
 initSentry("billing");
 app.addHook("onError", async (req, _reply, error) => captureError(error, { url: req.url, method: req.method }));
 const PORT = Number(process.env.PORT || 8080);
 
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 5 });
+export const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 5 });
 
 // ── Receipt email (parity with monolith sendReceiptEmail) ───────────────────
 // Renders a branded receipt and hands it to the notifications service. No-op
@@ -270,14 +277,76 @@ app.post<{ Params: { slug: string }; Body: { orderId?: string; tip?: number } }>
   return reply.send({ clientSecret: intent.client_secret, paymentId, amount: chargeAmount });
 });
 
-// SaaS subscriptions (mirror monolith /api/admin/subscriptions).
-app.get("/v1/tenants/:id/subscription", async (req, reply) => {
-  if (!verifyHs256(bearer(req.headers.authorization))) return reply.code(401).send(err("Unauthorized"));
-  return err("not_implemented: port from getSubscription");
+// SaaS subscriptions (mirror monolith /api/admin/subscriptions) — wired to the
+// same handlers as the compat shims (which the gateway rewrites to).
+app.get<{ Params: { id: string } }>("/v1/tenants/:id/subscription", async (req, reply) => {
+  const claims = verifyHs256(bearer(req.headers.authorization));
+  if (!claims) return reply.code(401).send(err("Authentication required"));
+  if (!["admin", "manager", "super_admin"].includes(String(claims.role))) return reply.code(403).send(err("Forbidden"));
+  if (claims.role !== "super_admin" && claims.tenantId !== req.params.id) return reply.code(403).send(err("Forbidden"));
+
+  const t = await pool.query("SELECT id FROM tenants WHERE id = $1 LIMIT 1", [req.params.id]);
+  if (!t.rows[0]) return reply.code(404).send(err("Tenant not found"));
+  const s = await pool.query(
+    "SELECT plan_id, status, stripe_subscription_id, current_period_end, trial_ends_at FROM tenant_subscriptions WHERE tenant_id = $1 ORDER BY created_at DESC LIMIT 1",
+    [req.params.id],
+  );
+  const sub = s.rows[0];
+  const planId = sub?.plan_id || "starter";
+  const plan = getPlan(planId) || PLANS[0];
+  const u = await pool.query("SELECT COUNT(*)::int AS c FROM users WHERE tenant_id = $1", [req.params.id]);
+  const o = await pool.query("SELECT COUNT(*)::int AS c FROM orders WHERE tenant_id = $1", [req.params.id]);
+  return reply.send({
+    plan, plans: PLANS,
+    status: sub?.status || "trial",
+    stripeSubscriptionId: sub?.stripe_subscription_id || null,
+    renewDate: sub?.current_period_end || sub?.trial_ends_at || null,
+    billingEnabled: !!priceIdFor(planId) && !!process.env.STRIPE_SECRET_KEY,
+    usage: { users: Number(u.rows[0]?.c || 0), orders: Number(o.rows[0]?.c || 0) },
+  });
 });
-app.post("/v1/tenants/:id/subscription/checkout", async (req, reply) => {
-  if (!verifyHs256(bearer(req.headers.authorization))) return reply.code(401).send(err("Unauthorized"));
-  return err("not_implemented: port from createCheckoutSession");
+
+app.post<{ Params: { id: string }; Body: { planId?: string } }>("/v1/tenants/:id/subscription/checkout", async (req, reply) => {
+  const claims = verifyHs256(bearer(req.headers.authorization));
+  if (!claims) return reply.code(401).send(err("Authentication required"));
+  if (!["admin", "super_admin"].includes(String(claims.role))) return reply.code(403).send(err("Forbidden"));
+  if (claims.role !== "super_admin" && claims.tenantId !== req.params.id) return reply.code(403).send(err("Forbidden"));
+
+  const tr = await pool.query("SELECT id, email FROM tenants WHERE id = $1 LIMIT 1", [req.params.id]);
+  const tenant = tr.rows[0];
+  if (!tenant) return reply.code(404).send(err("Tenant not found"));
+  const planId = String(req.body?.planId ?? "");
+  const stripe = getStripe();
+  if (!stripe) return reply.code(501).send(err("Billing not configured (no Stripe key)"));
+  const price = priceIdFor(planId);
+  if (!price) return reply.code(400).send(err(`Plan "${planId}" has no Stripe price configured`));
+
+  const base = process.env.FRONTEND_URL || "http://localhost:5173";
+  const session = await stripe.checkout.sessions.create({
+    mode: "subscription",
+    line_items: [{ price, quantity: 1 }],
+    customer_email: tenant.email,
+    success_url: `${base}/admin/subscription?status=success`,
+    cancel_url: `${base}/admin/subscription?status=cancelled`,
+    metadata: { tenantId: req.params.id, planId },
+    subscription_data: { metadata: { tenantId: req.params.id, planId } },
+  });
+  return reply.send({ url: session.url });
+});
+
+app.post<{ Params: { id: string } }>("/v1/tenants/:id/subscription/cancel", async (req, reply) => {
+  const claims = verifyHs256(bearer(req.headers.authorization));
+  if (!claims) return reply.code(401).send(err("Authentication required"));
+  if (!["admin", "super_admin"].includes(String(claims.role))) return reply.code(403).send(err("Forbidden"));
+  if (claims.role !== "super_admin" && claims.tenantId !== req.params.id) return reply.code(403).send(err("Forbidden"));
+
+  const s = await pool.query("SELECT stripe_subscription_id FROM tenant_subscriptions WHERE tenant_id = $1 ORDER BY created_at DESC LIMIT 1", [req.params.id]);
+  const subId = s.rows[0]?.stripe_subscription_id;
+  if (!subId) return reply.code(400).send(err("No active subscription"));
+  const stripe = getStripe();
+  if (!stripe) return reply.code(501).send(err("Billing not configured"));
+  await stripe.subscriptions.update(subId, { cancel_at_period_end: true });
+  return reply.send({ success: true });
 });
 
 // Stripe webhook — ported from handleStripeWebhook. Verifies the signature over
@@ -315,6 +384,7 @@ app.post<{ Body: unknown }>("/compat/webhook", async (req, reply) => {
             const remaining = Number(o.rows[0].total) - totalPaid;
             const status = remaining <= 0 ? "paid" : totalPaid > 0 ? "partially_paid" : "unpaid";
             await pool.query("UPDATE orders SET payment_status = $1, paid_amount = $2, updated_at = $3 WHERE id = $4", [status, totalPaid, new Date().toISOString(), orderId]);
+            publishDomain({ type: "payment.succeeded", orderId, tenantId, amount: totalPaid });
             // Fire-and-forget receipt (parity with monolith); no-op without NOTIFICATIONS_URL/SMTP.
             void sendReceipt(orderId, tenantId);
           }
@@ -328,4 +398,6 @@ app.post<{ Body: unknown }>("/compat/webhook", async (req, reply) => {
   }
 });
 
-app.listen({ port: PORT, host: "0.0.0.0" }).then(() => log.info(`billing on :${PORT}`));
+if (process.env.NODE_ENV !== "test") {
+  app.listen({ port: PORT, host: "0.0.0.0" }).then(() => log.info(`billing on :${PORT}`));
+}

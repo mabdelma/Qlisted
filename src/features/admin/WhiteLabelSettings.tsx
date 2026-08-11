@@ -9,8 +9,8 @@ export function WhiteLabelSettings() {
   const { state: { tenant } } = useAuth();
   const slug = tenant?.slug;
   const [logoUrl, setLogoUrl] = useState(tenant?.logoUrl || '');
-  const [primaryColor, setPrimaryColor] = useState(tenant?.primaryColor || '#8B4513');
-  const [accentColor, setAccentColor] = useState('#5C4033');
+  const [primaryColor, setPrimaryColor] = useState(tenant?.primaryColor || '#0f766e');
+  const [accentColor, setAccentColor] = useState('#1e3a5f');
   const [restaurantName, setRestaurantName] = useState(tenant?.name || '');
   const [favicon, setFavicon] = useState('');
   const [customDomain, setCustomDomain] = useState('');
@@ -22,8 +22,8 @@ export function WhiteLabelSettings() {
   useEffect(() => {
     if (tenant) {
       setLogoUrl(tenant.logoUrl || '');
-      setPrimaryColor(tenant.primaryColor || '#8B4513');
-      setAccentColor(tenant.accentColor || '#5C4033');
+      setPrimaryColor(tenant.primaryColor || '#0f766e');
+      setAccentColor(tenant.accentColor || '#1e3a5f');
       setRestaurantName(tenant.name || '');
       setFavicon(tenant.faviconUrl || '');
       setCustomDomain(tenant.customDomain || '');
@@ -190,7 +190,7 @@ export function WhiteLabelSettings() {
             <span className="ml-auto text-white/70 text-xs bg-white/20 px-2 py-1 rounded">{t('table.tableNumber', { number: 1 })}</span>
           </div>
           <div className="p-4 bg-gray-50 flex gap-2 text-sm">
-            <span className="px-3 py-1.5 rounded-md font-medium" style={{ backgroundColor: '#F5DEB3', color: primaryColor }}>
+            <span className="px-3 py-1.5 rounded-md font-medium" style={{ backgroundColor: '#ccfbf1', color: primaryColor }}>
               {t('nav.menu')}
             </span>
             <span className="px-3 py-1.5 text-gray-400">{t('nav.cart')}</span>

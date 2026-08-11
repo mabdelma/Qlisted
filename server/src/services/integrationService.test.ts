@@ -27,12 +27,12 @@ import crypto from 'crypto';
 describe('integrationService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(crypto.randomBytes).mockReturnValue({ toString: () => 'mock-secret' } as any);
+    vi.mocked(crypto.randomBytes).mockReturnValue({ toString: () => 'mock-secret' } as unknown as Buffer);
     vi.mocked(crypto.createHmac).mockReturnValue({
       update: vi.fn().mockReturnValue({
         digest: vi.fn().mockReturnValue('mock-signature'),
       }),
-    } as any);
+    } as unknown as ReturnType<typeof crypto.createHmac>);
     vi.stubGlobal('fetch', vi.fn());
   });
 
@@ -115,7 +115,7 @@ describe('integrationService', () => {
 
     it('dispatches webhook with signature for matching event', async () => {
       db.__setQueryData([baseIntegration]);
-      vi.mocked(global.fetch).mockResolvedValue({ status: 200 } as any);
+      vi.mocked(global.fetch).mockResolvedValue({ status: 200 } as unknown as Response);
 
       await triggerWebhooks('tenant-1', 'order.created', { id: 'order-1' });
 
@@ -164,7 +164,7 @@ describe('integrationService', () => {
       db.__setQueryData([baseIntegration, int2]);
       vi.mocked(global.fetch)
         .mockRejectedValueOnce(new Error('Timeout'))
-        .mockResolvedValueOnce({ status: 200 } as any);
+        .mockResolvedValueOnce({ status: 200 } as unknown as Response);
 
       await triggerWebhooks('tenant-1', 'order.created', { id: 'order-1' });
 
@@ -190,7 +190,7 @@ describe('integrationService', () => {
     it('dispatches without signature when integration has no secret', async () => {
       const integrationNoSecret = { ...baseIntegration, secret: null };
       db.__setQueryData([integrationNoSecret]);
-      vi.mocked(global.fetch).mockResolvedValue({ status: 200 } as any);
+      vi.mocked(global.fetch).mockResolvedValue({ status: 200 } as unknown as Response);
 
       await triggerWebhooks('tenant-1', 'order.created', { id: 'order-1' });
 

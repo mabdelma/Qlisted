@@ -28,11 +28,11 @@ export function KitchenHeader({ onProfileClick, onViewChange, activeView }: Kitc
   };
 
   return (
-    <div className="bg-[#5C4033] shadow-lg">
+    <div className="bg-[#1e3a5f] shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <ChefHat className="h-8 w-8 text-[#F5DEB3]" />
+            <ChefHat className="h-8 w-8 text-[#ccfbf1]" />
             <h1 className="ml-3 text-2xl font-bold text-white">
               {t('staff.kitchenDisplay')}
             </h1>
@@ -43,8 +43,8 @@ export function KitchenHeader({ onProfileClick, onViewChange, activeView }: Kitc
                   onClick={() => onViewChange(tab.id)}
                   className={`px-4 py-2 rounded-lg flex items-center ${
                     activeView === tab.id
-                      ? 'bg-[#8B4513] text-white'
-                      : 'text-[#F5DEB3] hover:bg-[#6A4B35]'
+                      ? 'bg-[#0f766e] text-white'
+                      : 'text-[#ccfbf1] hover:bg-[#115e59]'
                   }`}
                 >
                   <tab.icon className="w-5 h-5 mr-2" />
@@ -61,8 +61,8 @@ export function KitchenHeader({ onProfileClick, onViewChange, activeView }: Kitc
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="flex items-center space-x-3 focus:outline-none"
               >
-                <span className="text-[#F5DEB3]">{state.user?.name}</span>
-                <div className="w-10 h-10 rounded-full bg-[#8B4513] flex items-center justify-center overflow-hidden">
+                <span className="text-[#ccfbf1]">{state.user?.name}</span>
+                <div className="w-10 h-10 rounded-full bg-[#0f766e] flex items-center justify-center overflow-hidden">
                   {state.user?.profileImage ? (
                     <img
                       src={state.user.profileImage}
@@ -73,7 +73,7 @@ export function KitchenHeader({ onProfileClick, onViewChange, activeView }: Kitc
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <User className="w-6 h-6 text-[#F5DEB3]" />
+                    <User className="w-6 h-6 text-[#ccfbf1]" />
                   )}
                 </div>
               </button>

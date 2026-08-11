@@ -71,8 +71,8 @@ export function Menu() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center mb-16">
-        <h1 className="text-4xl font-serif text-[#5C4033] mb-4">{t('nav.menu')}</h1>
-        <p className="text-lg text-[#8B4513] max-w-3xl mx-auto">
+        <h1 className="text-4xl font-serif text-[#1e3a5f] mb-4">{t('nav.menu')}</h1>
+        <p className="text-lg text-[#0f766e] max-w-3xl mx-auto">
           {t('common.notAvailable')}
         </p>
       </div>
@@ -93,8 +93,8 @@ export function Menu() {
             }}
             className={`px-6 py-3 text-lg font-medium rounded-lg transition-colors ${
               selectedMainCategory === category.id
-                ? 'bg-[#8B4513] text-white'
-                : 'text-[#8B4513] hover:bg-[#F5DEB3]'
+                ? 'bg-[#0f766e] text-white'
+                : 'text-[#0f766e] hover:bg-[#ccfbf1]'
             }`}
           >
             {category.name}
@@ -110,8 +110,8 @@ export function Menu() {
             onClick={() => setSelectedSubCategory(category.id)}
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
               selectedSubCategory === category.id
-                ? 'bg-[#F5DEB3] text-[#8B4513]'
-                : 'text-gray-600 hover:text-[#8B4513]'
+                ? 'bg-[#ccfbf1] text-[#0f766e]'
+                : 'text-gray-600 hover:text-[#0f766e]'
             }`}
           >
             {category.name}
@@ -127,7 +127,7 @@ export function Menu() {
             onClick={() => navigate(`/table/${tableId}/menu/${item.id}`)}
             className={`p-4 rounded-lg border text-left transition-all ${
               item.available 
-                ? 'border-gray-200 hover:border-[#8B4513] hover:shadow-md cursor-pointer'
+                ? 'border-gray-200 hover:border-[#0f766e] hover:shadow-md cursor-pointer'
                 : 'border-gray-300 bg-gray-50 opacity-50 cursor-not-allowed'
             }`}
             disabled={!item.available}
@@ -149,7 +149,7 @@ export function Menu() {
               )}
             </div>
             <h3 className="font-medium text-gray-900">{item.name}</h3>
-            <p className="text-[#8B4513] font-medium mt-1">
+            <p className="text-[#0f766e] font-medium mt-1">
               ${item.price.toFixed(2)}
               {!item.available && (
                 <span className="ml-2 text-red-600 text-sm">{t('common.notAvailable')}</span>

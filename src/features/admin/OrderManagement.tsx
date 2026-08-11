@@ -68,7 +68,7 @@ export function OrderManagement() {
             key={f}
             onClick={() => setFilter(f)}
             className={`px-4 py-2 rounded-lg whitespace-nowrap text-sm font-medium ${
-              filter === f ? 'bg-[#8B4513] text-white' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+              filter === f ? 'bg-[#0f766e] text-white' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
             }`}
           >
             {f ? statusLabel(f) : t('menu.categoryAll')}

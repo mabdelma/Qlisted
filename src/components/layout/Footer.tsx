@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { UtensilsCrossed } from 'lucide-react';
+import { Logo } from '../ui/Logo';
 
 export function Footer() {
   return (
@@ -7,9 +7,8 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
           <div className="col-span-2">
-            <div className="flex items-center space-x-2 mb-4">
-              <UtensilsCrossed className="h-6 w-6 text-[#8B4513]" />
-              <span className="text-lg font-bold text-white">Qlisted</span>
+            <div className="flex items-center mb-4">
+              <Logo tone="light" size={30} />
             </div>
             <p className="text-sm text-gray-400 max-w-md">
               The AI-native operating system for hospitality — ordering, payments,

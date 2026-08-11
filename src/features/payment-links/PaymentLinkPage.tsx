@@ -68,8 +68,8 @@ export function PaymentLinkPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-16 h-16 bg-[#F5DEB3] rounded-full flex items-center justify-center mx-auto">
-            <CreditCard className="w-8 h-8 text-[#8B4513]" />
+          <div className="w-16 h-16 bg-[#ccfbf1] rounded-full flex items-center justify-center mx-auto">
+            <CreditCard className="w-8 h-8 text-[#0f766e]" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">{t('payment.pay')}</h1>
           {link.description && <p className="text-gray-500">{link.description}</p>}
@@ -81,9 +81,9 @@ export function PaymentLinkPage() {
           )}
         </div>
 
-        <div className="bg-[#F5DEB3]/30 rounded-lg p-4 text-center">
+        <div className="bg-[#ccfbf1]/30 rounded-lg p-4 text-center">
           <p className="text-sm text-gray-600">{t('payment.amount')}</p>
-          <p className="text-3xl font-bold text-[#8B4513]">${link.amount.toFixed(2)}</p>
+          <p className="text-3xl font-bold text-[#0f766e]">${link.amount.toFixed(2)}</p>
         </div>
 
         {link.expiresAt && (
@@ -115,7 +115,7 @@ export function PaymentLinkPage() {
           <div className="space-y-3">
             {canPayCard && (
               <button onClick={() => setPaying(true)}
-                className="w-full py-3 bg-[#8B4513] text-white rounded-lg font-medium hover:bg-[#5C4033] transition-colors">
+                className="w-full py-3 bg-[#0f766e] text-white rounded-lg font-medium hover:bg-[#1e3a5f] transition-colors">
                 {t('payment.card')}
               </button>
             )}
@@ -134,7 +134,7 @@ function LoadingState({ message }: { message: string }) {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="text-center space-y-4">
-        <div className="w-8 h-8 border-2 border-[#8B4513] border-t-transparent rounded-full animate-spin mx-auto" />
+        <div className="w-8 h-8 border-2 border-[#0f766e] border-t-transparent rounded-full animate-spin mx-auto" />
         <p className="text-gray-500">{message}...</p>
       </div>
     </div>

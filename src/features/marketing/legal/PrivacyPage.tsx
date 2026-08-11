@@ -22,7 +22,7 @@ export function PrivacyPage() {
           <><strong>Guest &amp; customer data</strong> — where a Merchant uses our CRM, loyalty, or ordering tools: guest names, contact details, order history, visits, and points.</>,
           <><strong>Payment data</strong> — payments are processed by Stripe. We receive limited transaction metadata (amounts, status, last four digits); we do not store full card numbers.</>,
           <><strong>Usage &amp; device data</strong> — IP address, browser/device type, pages viewed, and diagnostic logs used to keep the Service secure and reliable.</>,
-          <><strong>Cookies</strong> — see our <a href="/cookies" className="text-[#8B4513] hover:underline">Cookie Policy</a>.</>,
+          <><strong>Cookies</strong> — see our <a href="/cookies" className="text-[#0f766e] hover:underline">Cookie Policy</a>.</>,
         ]} />
       </S>
 
@@ -102,7 +102,7 @@ export function PrivacyPage() {
       <S n={12} title="Contact">
         <p>
           For privacy questions or requests, email{' '}
-          <a href={`mailto:${PRIVACY_CONTACT}`} className="text-[#8B4513] hover:underline">{PRIVACY_CONTACT}</a>.
+          <a href={`mailto:${PRIVACY_CONTACT}`} className="text-[#0f766e] hover:underline">{PRIVACY_CONTACT}</a>.
         </p>
       </S>
     </LegalLayout>

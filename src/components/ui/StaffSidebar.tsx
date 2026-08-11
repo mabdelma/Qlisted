@@ -45,7 +45,7 @@ export function StaffSidebar({ role, activeTab, onTabChange }: SidebarProps) {
 
   return (
     <div 
-      className={`${collapsed ? 'w-20' : 'w-64'} bg-[#5C4033] min-h-screen text-white p-4 transition-[width] duration-300 relative group hover:w-64`}
+      className={`${collapsed ? 'w-20' : 'w-64'} bg-[#1e3a5f] min-h-screen text-white p-4 transition-[width] duration-300 relative group hover:w-64`}
       onMouseEnter={() => setCollapsed(false)}
       onMouseLeave={() => setCollapsed(true)}
       onFocus={() => setCollapsed(false)}
@@ -71,8 +71,8 @@ export function StaffSidebar({ role, activeTab, onTabChange }: SidebarProps) {
               onClick={() => onTabChange(tab.id)}
               className={`w-full flex items-center ${collapsed ? 'justify-center group-hover:justify-start' : ''} px-4 py-3 text-sm rounded-lg transition-colors ${
                 activeTab === tab.id
-                  ? 'bg-[#8B4513] text-white'
-                  : 'text-[#F5DEB3] hover:bg-[#6A4B35]'
+                  ? 'bg-[#0f766e] text-white'
+                  : 'text-[#ccfbf1] hover:bg-[#115e59]'
               }`}
             >
               <Icon className={`w-5 h-5 ${collapsed ? '' : 'mr-3'}`} />

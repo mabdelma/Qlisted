@@ -23,7 +23,7 @@ export function CashierHeader({ activeView, onViewChange, onProfileClick }: Cash
   };
 
   return (
-    <div className="bg-[#5C4033] shadow-lg">
+    <div className="bg-[#1e3a5f] shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-4">
@@ -33,8 +33,8 @@ export function CashierHeader({ activeView, onViewChange, onProfileClick }: Cash
                 onClick={() => onViewChange('pos')}
                 className={`px-4 py-2 rounded-lg flex items-center ${
                   activeView === 'pos'
-                    ? 'bg-[#8B4513] text-white'
-                    : 'text-[#F5DEB3] hover:bg-[#6A4B35]'
+                    ? 'bg-[#0f766e] text-white'
+                    : 'text-[#ccfbf1] hover:bg-[#115e59]'
                 }`}
               >
                 <Store className="w-5 h-5 mr-2" />
@@ -44,8 +44,8 @@ export function CashierHeader({ activeView, onViewChange, onProfileClick }: Cash
                 onClick={() => onViewChange('payments')}
                 className={`px-4 py-2 rounded-lg flex items-center ${
                   activeView === 'payments'
-                    ? 'bg-[#8B4513] text-white'
-                    : 'text-[#F5DEB3] hover:bg-[#6A4B35]'
+                    ? 'bg-[#0f766e] text-white'
+                    : 'text-[#ccfbf1] hover:bg-[#115e59]'
                 }`}
               >
                 <DollarSign className="w-5 h-5 mr-2" />
@@ -55,8 +55,8 @@ export function CashierHeader({ activeView, onViewChange, onProfileClick }: Cash
                 onClick={() => onViewChange('history')}
                 className={`px-4 py-2 rounded-lg flex items-center ${
                   activeView === 'history'
-                    ? 'bg-[#8B4513] text-white'
-                    : 'text-[#F5DEB3] hover:bg-[#6A4B35]'
+                    ? 'bg-[#0f766e] text-white'
+                    : 'text-[#ccfbf1] hover:bg-[#115e59]'
                 }`}
               >
                 <Clock className="w-5 h-5 mr-2" />
@@ -70,10 +70,10 @@ export function CashierHeader({ activeView, onViewChange, onProfileClick }: Cash
             <div className="relative">
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center space-x-3 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F5DEB3] focus-visible:ring-offset-2 focus-visible:ring-offset-[#5C4033]"
+                className="flex items-center space-x-3 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ccfbf1] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1e3a5f]"
               >
-                <span className="text-[#F5DEB3]">{state.user?.name}</span>
-                <div className="w-10 h-10 rounded-full bg-[#8B4513] flex items-center justify-center overflow-hidden">
+                <span className="text-[#ccfbf1]">{state.user?.name}</span>
+                <div className="w-10 h-10 rounded-full bg-[#0f766e] flex items-center justify-center overflow-hidden">
                   {state.user?.profileImage ? (
                     <img
                       src={state.user.profileImage}
@@ -84,7 +84,7 @@ export function CashierHeader({ activeView, onViewChange, onProfileClick }: Cash
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <User className="w-6 h-6 text-[#F5DEB3]" />
+                    <User className="w-6 h-6 text-[#ccfbf1]" />
                   )}
                 </div>
               </button>

@@ -34,7 +34,7 @@ export function TermsPage() {
       <S n={4} title="Free trial">
         <p>
           If a free trial is offered, the Service converts to a paid subscription at the end of the trial
-          unless you cancel beforehand. See our <a href="/refunds" className="text-[#8B4513] hover:underline">Refund &amp; Cancellation Policy</a>.
+          unless you cancel beforehand. See our <a href="/refunds" className="text-[#0f766e] hover:underline">Refund &amp; Cancellation Policy</a>.
         </p>
       </S>
 
@@ -54,7 +54,7 @@ export function TermsPage() {
           a licence to host and process Merchant Data solely to provide the Service. You are the controller of
           your guests' personal data and are responsible for having a lawful basis to collect it and for your
           own privacy notices. Our handling of personal data is described in the{' '}
-          <a href="/privacy" className="text-[#8B4513] hover:underline">Privacy Policy</a>.
+          <a href="/privacy" className="text-[#0f766e] hover:underline">Privacy Policy</a>.
         </p>
       </S>
 
@@ -122,7 +122,7 @@ export function TermsPage() {
       <S n={15} title="Contact">
         <p>
           Questions about these Terms? Email{' '}
-          <a href={`mailto:${SUPPORT_CONTACT}`} className="text-[#8B4513] hover:underline">{SUPPORT_CONTACT}</a>.
+          <a href={`mailto:${SUPPORT_CONTACT}`} className="text-[#0f766e] hover:underline">{SUPPORT_CONTACT}</a>.
         </p>
       </S>
     </LegalLayout>

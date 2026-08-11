@@ -64,7 +64,7 @@ export function TableManagement() {
         <h2 className="text-2xl font-bold text-gray-900">{t('tables.management')}</h2>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]"
+          className="flex items-center px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]"
         >
           <PlusCircle className="w-5 h-5 mr-2" /> {t('tables.addTable')}
         </button>
@@ -79,19 +79,19 @@ export function TableManagement() {
                 <label className="block text-sm font-medium text-gray-700">{t('tables.numberLabel')}</label>
                 <input type="number" min="1" required value={form.number}
                   onChange={(e) => setForm({ ...form, number: parseInt(e.target.value) || 1 })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">{t('tables.capacity')}</label>
                 <input type="number" min="1" required value={form.capacity}
                   onChange={(e) => setForm({ ...form, capacity: parseInt(e.target.value) || 2 })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8B4513] focus:ring-[#8B4513]" />
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
               </div>
               <div className="flex justify-end space-x-3">
                 <button type="button" onClick={() => setShowForm(false)}
                   className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">{t('common.cancel')}</button>
                 <button type="submit"
-                  className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]">{t('common.create')}</button>
+                  className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]">{t('common.create')}</button>
               </div>
             </form>
           </div>

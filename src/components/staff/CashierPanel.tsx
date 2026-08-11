@@ -79,22 +79,22 @@ export function CashierPanel() {
   const PaymentsList = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-[#5C4033]">Pending Cash Payments</h2>
+        <h2 className="text-2xl font-bold text-[#1e3a5f]">Pending Cash Payments</h2>
         <div className="flex items-center space-x-4">
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value as 'time' | 'amount')}
-            className="rounded-md border-gray-300 text-[#5C4033] focus:border-[#8B4513] focus:ring-[#8B4513]">
+            className="rounded-md border-gray-300 text-[#1e3a5f] focus:border-[#0f766e] focus:ring-[#0f766e]">
             <option value="time">Sort by Time</option>
             <option value="amount">Sort by Amount</option>
           </select>
           <button onClick={loadPendingPayments}
-            className="px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033]">Refresh Payments</button>
+            className="px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]">Refresh Payments</button>
         </div>
       </div>
 
       <div className="relative">
         <input type="text" placeholder="Search by order ID..." value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#8B4513]" />
+          className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0f766e]" />
         <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
       </div>
 
@@ -110,7 +110,7 @@ export function CashierPanel() {
 
             return (
               <div key={payment.orderId}
-                className={`bg-white rounded-lg shadow-sm border-l-4 ${isDelayed ? 'border-red-500' : 'border-[#8B4513]'}`}>
+                className={`bg-white rounded-lg shadow-sm border-l-4 ${isDelayed ? 'border-red-500' : 'border-[#0f766e]'}`}>
                 <div className="p-4">
                   <div className="flex justify-between items-start mb-4">
                     <div>

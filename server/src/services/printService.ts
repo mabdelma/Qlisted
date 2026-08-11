@@ -159,7 +159,6 @@ async function executePrintJob(jobId: string) {
     }
 
     if (printer.type === 'browser') {
-      const channel = `print:${job.tenantId}`;
       const { emitOrderEvent } = await import('../lib/events.js');
       emitOrderEvent({
         type: 'order_updated',

@@ -34,10 +34,10 @@ export function CookieConsent() {
     >
       <div className="mx-auto max-w-3xl rounded-2xl border border-gray-200 bg-white shadow-2xl p-5 sm:flex sm:items-center sm:gap-4">
         <div className="flex items-start gap-3 flex-1">
-          <Cookie className="h-6 w-6 text-[#8B4513] shrink-0" aria-hidden />
+          <Cookie className="h-6 w-6 text-[#0f766e] shrink-0" aria-hidden />
           <p className="text-sm text-gray-600 leading-relaxed">
             {t('cookie.message')}{' '}
-            <Link to="/cookies" className="font-medium text-[#8B4513] hover:underline whitespace-nowrap">
+            <Link to="/cookies" className="font-medium text-[#0f766e] hover:underline whitespace-nowrap">
               {t('cookie.learnMore')}
             </Link>
           </p>
@@ -51,7 +51,7 @@ export function CookieConsent() {
           </button>
           <button
             onClick={() => choose('all')}
-            className="flex-1 sm:flex-none px-4 py-2 text-sm rounded-lg bg-[#8B4513] text-white hover:bg-[#5C4033] transition-colors"
+            className="flex-1 sm:flex-none px-4 py-2 text-sm rounded-lg bg-[#0f766e] text-white hover:bg-[#1e3a5f] transition-colors"
           >
             {t('cookie.accept')}
           </button>
