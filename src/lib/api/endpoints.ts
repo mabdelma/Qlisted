@@ -132,7 +132,7 @@ export const menuApi = {
   deleteModifierOption: (slug: string, optionId: string) =>
     api.delete<{ success: boolean }>(`/r/${slug}/modifier-options/${optionId}`),
   getMenuItemModifiers: (slug: string, menuItemId: string) =>
-    api.get<ModifierGroup[]>(`/r/${slug}/menu-items/${menuItemId}/modifiers`),
+    api.get<{ data: ModifierGroup[] }>(`/r/${slug}/menu-items/${menuItemId}/modifiers`),
   linkMenuItemModifier: (slug: string, menuItemId: string, groupId: string) =>
     api.post<{ success: boolean }>(`/r/${slug}/menu-items/${menuItemId}/modifiers/${groupId}`),
   unlinkMenuItemModifier: (slug: string, menuItemId: string, groupId: string) =>

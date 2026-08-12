@@ -122,7 +122,7 @@ export function MenuManagement() {
         const currentLinked = new Set(linkedGroupIds);
         const previouslyLinked = allModifierGroups.filter((g) => currentLinked.has(g.id)).map((g) => g.id);
         try {
-          const existingModifiers = await menuApi.getMenuItemModifiers(slug, editing.id);
+          const existingModifiers = (await menuApi.getMenuItemModifiers(slug, editing.id)).data;
           for (const g of existingModifiers) {
             if (!currentLinked.has(g.id)) {
               await menuApi.unlinkMenuItemModifier(slug, editing.id, g.id);
@@ -154,7 +154,7 @@ export function MenuManagement() {
   function startEditing(item: MenuItem) {
     setEditing(item);
     if (slug) {
-      menuApi.getMenuItemModifiers(slug, item.id).then((groups) => {
+      menuApi.getMenuItemModifiers(slug, item.id).then(({ data: groups }) => {
         setLinkedGroupIds(groups.map((g) => g.id));
       }).catch(() => setLinkedGroupIds([]));
     }

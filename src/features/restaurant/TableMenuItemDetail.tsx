@@ -29,7 +29,7 @@ export function TableMenuItemDetail() {
 
   useEffect(() => {
     if (!item || !slug) return;
-    menuApi.getMenuItemModifiers(slug, item.id).then((groups) => {
+    menuApi.getMenuItemModifiers(slug, item.id).then(({ data: groups }) => {
       setModifierGroups(groups);
       const defaults: Record<string, string[]> = {};
       for (const g of groups) {

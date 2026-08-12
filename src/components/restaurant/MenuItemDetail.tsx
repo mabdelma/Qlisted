@@ -30,9 +30,9 @@ export function MenuItemDetail() {
       if (menuItem) {
         try {
           const groups = await menuApi.getMenuItemModifiers(slug, menuItem.id);
-          setModifierGroups(groups);
+          setModifierGroups(groups.data);
           const defaults: Record<string, string[]> = {};
-          for (const g of groups) {
+          for (const g of groups.data) {
             defaults[g.id] = [];
           }
           setSelections(defaults);

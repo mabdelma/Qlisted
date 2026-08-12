@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PlusCircle, Edit, Trash2, GripVertical } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
 import { menuApi } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useI18n } from '../../contexts/I18nContext';
@@ -67,12 +67,33 @@ export function ModifierManagement() {
   }
 
   async function deleteGroup(id: string) {
-    if (!slug || !window.confirm('Delete this modifier group? This cannot be undone.')) return;
+    if (!slug || !window.confirm(t('modifier.deleteGroupConfirm'))) return;
     try {
       await menuApi.deleteModifierGroup(slug, id);
       setGroups((prev) => prev.filter((g) => g.id !== id));
     } catch {
       setError('Failed to delete modifier group');
+    }
+  }
+
+  async function moveGroup(index: number, dir: -1 | 1) {
+    if (!slug) return;
+    const target = index + dir;
+    if (target < 0 || target >= groups.length) return;
+    const a = groups[index];
+    const b = groups[target];
+    try {
+      await Promise.all([
+        menuApi.updateModifierGroup(slug, a.id, { sortOrder: b.sortOrder }),
+        menuApi.updateModifierGroup(slug, b.id, { sortOrder: a.sortOrder }),
+      ]);
+      setGroups((prev) => {
+        const next = [...prev];
+        [next[index], next[target]] = [next[target], next[index]];
+        return next;
+      });
+    } catch {
+      setError('Failed to reorder modifier groups');
     }
   }
 
@@ -94,7 +115,7 @@ export function ModifierManagement() {
   }
 
   async function deleteOption(groupId: string, optionId: string) {
-    if (!slug) return;
+    if (!slug || !window.confirm(t('modifier.deleteOptionConfirm'))) return;
     try {
       await menuApi.deleteModifierOption(slug, optionId);
       setGroups((prev) => prev.map((g) => g.id === groupId ? {
@@ -102,6 +123,30 @@ export function ModifierManagement() {
       } : g));
     } catch {
       setError('Failed to delete modifier option');
+    }
+  }
+
+  async function moveOption(groupId: string, index: number, dir: -1 | 1) {
+    if (!slug) return;
+    const group = groups.find((g) => g.id === groupId);
+    if (!group) return;
+    const target = index + dir;
+    if (target < 0 || target >= group.options.length) return;
+    const a = group.options[index];
+    const b = group.options[target];
+    try {
+      await Promise.all([
+        menuApi.updateModifierOption(slug, a.id, { sortOrder: b.sortOrder }),
+        menuApi.updateModifierOption(slug, b.id, { sortOrder: a.sortOrder }),
+      ]);
+      setGroups((prev) => prev.map((g) => {
+        if (g.id !== groupId) return g;
+        const opts = [...g.options];
+        [opts[index], opts[target]] = [opts[target], opts[index]];
+        return { ...g, options: opts };
+      }));
+    } catch {
+      setError('Failed to reorder modifier options');
     }
   }
 
@@ -177,6 +222,12 @@ export function ModifierManagement() {
                   onChange={(e) => setEditingOption({ ...editingOption, option: { ...editingOption.option, priceAdjustment: parseFloat(e.target.value) || 0 } })}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">{t('modifier.maxSelectable')}</label>
+                <input type="number" min="1" step="1" value={editingOption.option?.maxSelectable ?? 1}
+                  onChange={(e) => setEditingOption({ ...editingOption, option: { ...editingOption.option, maxSelectable: parseInt(e.target.value, 10) || 1 } })}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
+              </div>
               <div className="flex justify-end space-x-3">
                 <button type="button" onClick={() => setEditingOption(null)}
                   className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">{t('common.cancel')}</button>
@@ -188,7 +239,7 @@ export function ModifierManagement() {
       )}
 
       <div className="space-y-4">
-        {groups.map((group) => (
+        {groups.map((group, index) => (
           <div key={group.id} className="bg-white rounded-lg shadow p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -202,6 +253,14 @@ export function ModifierManagement() {
                 </div>
               </div>
               <div className="flex gap-2">
+                <button onClick={() => moveGroup(index, -1)} disabled={index === 0} aria-label={t('modifier.moveUp')}
+                  className="p-2 text-gray-600 hover:text-[#0f766e] disabled:opacity-30 disabled:cursor-not-allowed">
+                  <ChevronUp className="w-4 h-4" />
+                </button>
+                <button onClick={() => moveGroup(index, 1)} disabled={index === groups.length - 1} aria-label={t('modifier.moveDown')}
+                  className="p-2 text-gray-600 hover:text-[#0f766e] disabled:opacity-30 disabled:cursor-not-allowed">
+                  <ChevronDown className="w-4 h-4" />
+                </button>
                 <button onClick={() => setEditingGroup(group)} aria-label="Edit group"
                   className="p-2 text-gray-600 hover:text-indigo-600">
                   <Edit className="w-4 h-4" />
@@ -214,15 +273,26 @@ export function ModifierManagement() {
             </div>
 
             <div className="ml-6 space-y-2">
-              {group.options.map((opt) => (
+              {group.options.map((opt, optIndex) => (
                 <div key={opt.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-md">
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-medium text-gray-700">{opt.name}</span>
                     {opt.priceAdjustment > 0 && (
                       <span className="text-xs text-green-600">+${opt.priceAdjustment.toFixed(2)}</span>
                     )}
+                    {opt.maxSelectable != null && (
+                      <span className="text-xs px-2 py-0.5 bg-gray-100 rounded-full text-gray-600">{t('modifier.maxSelectable')}: {opt.maxSelectable}</span>
+                    )}
                   </div>
                   <div className="flex gap-1">
+                    <button onClick={() => moveOption(group.id, optIndex, -1)} disabled={optIndex === 0}
+                      aria-label={t('modifier.moveUp')} className="p-1 text-gray-400 hover:text-[#0f766e] disabled:opacity-30 disabled:cursor-not-allowed">
+                      <ChevronUp className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => moveOption(group.id, optIndex, 1)} disabled={optIndex === group.options.length - 1}
+                      aria-label={t('modifier.moveDown')} className="p-1 text-gray-400 hover:text-[#0f766e] disabled:opacity-30 disabled:cursor-not-allowed">
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </button>
                     <button onClick={() => setEditingOption({ groupId: group.id, option: opt })}
                       aria-label="Edit option" className="p-1 text-gray-400 hover:text-indigo-600">
                       <Edit className="w-3.5 h-3.5" />
@@ -234,7 +304,7 @@ export function ModifierManagement() {
                   </div>
                 </div>
               ))}
-              <button onClick={() => setEditingOption({ groupId: group.id, option: { name: '', priceAdjustment: 0 } })}
+              <button onClick={() => setEditingOption({ groupId: group.id, option: { name: '', priceAdjustment: 0, maxSelectable: 1 } })}
                 className="flex items-center text-sm text-[#0f766e] hover:text-[#1e3a5f] mt-2">
                 <PlusCircle className="w-4 h-4 mr-1" /> {t('modifier.addOption')}
               </button>
