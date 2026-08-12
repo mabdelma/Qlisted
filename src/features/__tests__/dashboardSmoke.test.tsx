@@ -13,6 +13,11 @@ import { AdminPortal } from '../../components/admin/AdminPortal';
 import { StaffPortal } from '../../components/staff/StaffPortal';
 import { SuperAdminPortal } from '../admin/SuperAdminPortal';
 import { TableFlowLayout } from '../restaurant/TableFlowLayout';
+import { TableMenuPage } from '../restaurant/TableMenuPage';
+import { CartPage } from '../cart/CartPage';
+import { OrdersPage } from '../orders/OrdersPage';
+import { BillPage } from '../checkout/BillPage';
+import { Routes, Route } from 'react-router';
 
 type Role = 'admin' | 'manager' | 'waiter' | 'kitchen' | 'cashier' | 'super_admin';
 
@@ -103,6 +108,8 @@ function mockFetch(role: Role): typeof fetch {
         body = { daily: [] };
       } else if (url.includes('/analytics/')) {
         body = {};
+      } else if (url.includes('/orders') || url.includes('/payments')) {
+        body = [];
       } else if (url.includes('/table/')) {
         body = { id: 'table-1', number: 1, capacity: 4, status: 'available', qrCode: 'qr-1' };
       }
@@ -278,19 +285,31 @@ describe('Super admin dashboard', () => {
 });
 
 describe('Customer ordering flow', () => {
-  it.each(['/r/test-cafe/table/1/menu', '/r/test-cafe/table/1/cart', '/r/test-cafe/table/1/orders', '/r/test-cafe/table/1/bill'] as string[])(
-    'renders the table flow at %s without crashing',
-    async (path) => {
-      vi.stubGlobal('fetch', mockFetch('admin'));
-      const { container, errors } = await mount(
-        <Providers>
-          <MemoryRouter initialEntries={[path]}>
-            <TableFlowLayout />
-          </MemoryRouter>
-        </Providers>,
-      );
-      expect(errors).toEqual([]);
-      expect(container.textContent?.length ?? 0).toBeGreaterThan(0);
-    },
-  );
+  const CUSTOMER_ROUTES: [string, string][] = [
+    ['menu', '/r/test-cafe/table/1/menu'],
+    ['cart', '/r/test-cafe/table/1/cart'],
+    ['orders', '/r/test-cafe/table/1/orders'],
+    ['bill', '/r/test-cafe/table/1/bill'],
+  ];
+
+  it.each(CUSTOMER_ROUTES)('renders the table flow %s page without crashing', async (page, path) => {
+    vi.stubGlobal('fetch', mockFetch('admin'));
+    const { container, errors } = await mount(
+      <Providers>
+        <MemoryRouter initialEntries={[path]}>
+          <Routes>
+            <Route path="/r/:slug/table/:tableId" element={<TableFlowLayout />}>
+              <Route path="menu" element={<TableMenuPage />} />
+              <Route path="cart" element={<CartPage />} />
+              <Route path="orders" element={<OrdersPage />} />
+              <Route path="bill" element={<BillPage />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </Providers>,
+    );
+    expect(errors).toEqual([]);
+    expect(container.textContent).toContain('Test Cafe');
+    expect(container.textContent?.length ?? 0).toBeGreaterThan(0);
+  });
 });
