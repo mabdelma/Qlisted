@@ -108,6 +108,7 @@ loyalty.post('/:slug/loyalty/earn', authMiddleware, requireRole('admin', 'manage
   await db.insert(schema.loyaltyTransactions).values({
     id: uuid(),
     tenantId,
+    orderId: orderId || null,
     type: 'earn',
     amount,
     description: orderId ? `Order #${orderId.slice(0, 8)}` : 'Points earned',

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Tag, Check, X, Loader2 } from 'lucide-react';
+import { promoApi } from '../../lib/api';
+import { useI18n } from '../../contexts/I18nContext';
 
 interface PromoCodeCheckoutProps {
   slug: string;
@@ -9,6 +11,7 @@ interface PromoCodeCheckoutProps {
 }
 
 export function PromoCodeCheckout({ slug, subtotal, onApply, onRemove }: PromoCodeCheckoutProps) {
+  const { t } = useI18n();
   const [code, setCode] = useState('');
   const [appliedCode, setAppliedCode] = useState<string | null>(null);
   const [discount, setDiscount] = useState(0);
@@ -20,18 +23,18 @@ export function PromoCodeCheckout({ slug, subtotal, onApply, onRemove }: PromoCo
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`/api/r/${slug}/promo/validate?code=${encodeURIComponent(code.trim())}&subtotal=${subtotal}`);
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Invalid promo code');
+      const res = await promoApi.validate(slug, code.trim(), subtotal);
+      const disc = Math.min(res.discount, subtotal);
+      if (disc <= 0) {
+        setError(t('promo.noDiscount'));
         return;
       }
-      const disc = Math.min(data.discount, subtotal);
       setDiscount(disc);
       setAppliedCode(code.trim().toUpperCase());
       onApply(disc);
-    } catch {
-      setError('Failed to validate promo code');
+    } catch (err) {
+      const message = (err as { message?: string })?.message;
+      setError(message || t('promo.invalid'));
     } finally {
       setLoading(false);
     }
@@ -64,7 +67,7 @@ export function PromoCodeCheckout({ slug, subtotal, onApply, onRemove }: PromoCo
 
   return (
     <div className="border-t px-4 py-3">
-      <label className="block text-sm font-medium text-gray-700 mb-2">Promo Code</label>
+      <label className="block text-sm font-medium text-gray-700 mb-2">{t('promo.code')}</label>
       <div className="flex gap-2">
         <div className="relative flex-1">
           <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -73,7 +76,7 @@ export function PromoCodeCheckout({ slug, subtotal, onApply, onRemove }: PromoCo
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
             onKeyDown={(e) => { if (e.key === 'Enter') handleApply(); }}
-            placeholder="Enter promo code"
+            placeholder={t('promo.enterCode')}
             className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0f766e]"
           />
         </div>
@@ -83,7 +86,7 @@ export function PromoCodeCheckout({ slug, subtotal, onApply, onRemove }: PromoCo
           className="px-4 py-2 bg-[#0f766e] text-white text-sm rounded-lg hover:bg-[#1e3a5f] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-          Apply
+          {t('promo.apply')}
         </button>
       </div>
       {error && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><X className="w-3 h-3" />{error}</p>}

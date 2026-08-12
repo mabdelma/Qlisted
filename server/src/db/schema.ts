@@ -346,6 +346,9 @@ export const promoCampaigns = pgTable('promo_campaigns', {
   value: doublePrecision('value').notNull().default(0),
   minOrderAmount: doublePrecision('min_order_amount').default(0),
   maxDiscount: doublePrecision('max_discount'),
+  buyQuantity: integer('buy_quantity'),
+  getQuantity: integer('get_quantity'),
+  getDiscountPercent: doublePrecision('get_discount_percent').default(100),
   startDate: text('start_date'),
   endDate: text('end_date'),
   daysOfWeek: text('days_of_week'),
@@ -403,6 +406,7 @@ export const loyaltySummary = pgTable('loyalty_summary', {
 export const loyaltyTransactions = pgTable('loyalty_transactions', {
   id: text('id').primaryKey(),
   tenantId: text('tenant_id').notNull().references(() => tenants.id),
+  orderId: text('order_id').references(() => orders.id),
   type: text('type', { enum: ['earn', 'redeem'] }).notNull(),
   amount: integer('amount').notNull(),
   description: text('description'),

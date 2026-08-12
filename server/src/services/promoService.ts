@@ -3,7 +3,98 @@ import { eq, and, sql } from 'drizzle-orm';
 import { v4 as uuid } from 'uuid';
 import { logger } from '../lib/logger.js';
 
-export async function applyPromoCode(tenantId: string, orderId: string, code: string) {
+export type PromoCampaignType = 'percentage' | 'fixed' | 'buy_x_get_y' | 'happy_hour';
+
+export interface PromoItems {
+  unitPrice: number;
+  quantity: number;
+}
+
+interface DiscountCampaign {
+  type: string;
+  value: number;
+  maxDiscount?: number | null;
+  buyQuantity?: number | null;
+  getQuantity?: number | null;
+  getDiscountPercent?: number | null;
+}
+
+/**
+ * Real buy-one-get-one math.
+ *
+ * Items are expanded into a list of unit prices. Every bundle of
+ * `buyQuantity + getQuantity` items qualifies: the cheapest `getQuantity`
+ * units within each complete bundle are discounted by `getDiscountPercent`
+ * (100 = free). Without item-level data we fall back to a flat `value`
+ * discount so the legacy "value dollars off" behavior is preserved.
+ */
+export function computeBogoDiscount(
+  items: PromoItems[],
+  buyQuantity: number,
+  getQuantity: number,
+  discountPercent: number,
+  fallbackValue: number,
+): number {
+  if (buyQuantity <= 0 || getQuantity <= 0) return fallbackValue;
+  const prices: number[] = [];
+  for (const item of items) {
+    for (let i = 0; i < Math.floor(item.quantity || 0); i++) {
+      prices.push(item.unitPrice || 0);
+    }
+  }
+  if (prices.length === 0) return fallbackValue;
+
+  const bundleSize = buyQuantity + getQuantity;
+  const freeCount = Math.floor(prices.length / bundleSize) * getQuantity;
+  if (freeCount === 0) return 0;
+
+  prices.sort((a, b) => a - b);
+  const freeAmount = prices.slice(0, freeCount).reduce((sum, p) => sum + p, 0);
+  return Math.round(freeAmount * (discountPercent / 100) * 100) / 100;
+}
+
+/**
+ * Pure discount calculator shared by promo validation and application so the
+ * preview always matches the final applied discount. Returns 0 when no
+ * discount applies (e.g. incomplete BOGO bundle with no free items).
+ */
+export function computePromoDiscount(
+  campaign: DiscountCampaign,
+  subtotal: number,
+  items?: PromoItems[],
+): number {
+  let discount = 0;
+  switch (campaign.type) {
+    case 'percentage':
+    case 'happy_hour':
+      discount = subtotal * (campaign.value / 100);
+      if (campaign.maxDiscount) discount = Math.min(discount, campaign.maxDiscount);
+      break;
+    case 'fixed':
+      discount = campaign.value;
+      break;
+    case 'buy_x_get_y':
+      discount = computeBogoDiscount(
+        items ?? [],
+        campaign.buyQuantity ?? 0,
+        campaign.getQuantity ?? 0,
+        campaign.getDiscountPercent ?? 100,
+        campaign.value,
+      );
+      break;
+    default:
+      return 0;
+  }
+  return Math.min(Math.max(0, discount), subtotal);
+}
+
+export interface ApplyPromoResult {
+  data?: { discountAmount: number; newTotal: number };
+  error?: string;
+  status: 200 | 400 | 404;
+}
+
+export async function applyPromoCode(tenantId: string, orderId: string, code: string): Promise<ApplyPromoResult> {
   const [campaign] = await db
     .select()
     .from(schema.promoCampaigns)
@@ -54,26 +145,25 @@ export async function applyPromoCode(tenantId: string, orderId: string, code: st
     .limit(1);
   if (!order) return { error: 'Order not found', status: 404 as const };
 
+  if (order.paymentStatus === 'paid') {
+    return { error: 'Order already paid', status: 400 as const };
+  }
+
   if (campaign.minOrderAmount && order.subtotal < campaign.minOrderAmount) {
     return { error: `Minimum order amount of ${campaign.minOrderAmount} required`, status: 400 as const };
   }
 
-  let discountAmount = 0;
-  if (campaign.type === 'percentage') {
-    discountAmount = order.subtotal * (campaign.value / 100);
-    if (campaign.maxDiscount) discountAmount = Math.min(discountAmount, campaign.maxDiscount);
-  } else if (campaign.type === 'fixed') {
-    discountAmount = Math.min(campaign.value, order.subtotal);
-  } else if (campaign.type === 'buy_x_get_y') {
-    discountAmount = Math.min(campaign.value, order.subtotal);
-  } else if (campaign.type === 'happy_hour') {
-    discountAmount = order.subtotal * (campaign.value / 100);
-    if (campaign.maxDiscount) discountAmount = Math.min(discountAmount, campaign.maxDiscount);
-  } else {
-    return { error: 'Promo type not supported for manual apply', status: 400 as const };
-  }
+  const orderItems = await db
+    .select()
+    .from(schema.orderItems)
+    .where(eq(schema.orderItems.orderId, orderId));
 
-  discountAmount = Math.round(discountAmount * 100) / 100;
+  const items = (orderItems ?? []).map((item) => ({ unitPrice: item.unitPrice, quantity: item.quantity }));
+  const discountAmount = computePromoDiscount(campaign, order.subtotal, items);
+
+  if (discountAmount <= 0) {
+    return { error: 'Promo code does not apply to this order', status: 400 as const };
+  }
 
   const usageId = uuid();
   await db.insert(schema.promoCodeUsages).values({
@@ -81,28 +171,42 @@ export async function applyPromoCode(tenantId: string, orderId: string, code: st
   });
 
   await db.update(schema.promoCampaigns)
-    .set({ usageCount: campaign.usageCount + 1 })
+    .set({ usageCount: sql`${schema.promoCampaigns.usageCount} + 1` })
     .where(eq(schema.promoCampaigns.id, campaign.id));
 
-  const newTotal = order.total - discountAmount;
+  const newTotal = Math.max(0, order.total - discountAmount);
+  const reason = `Promo: ${code} (-$${discountAmount.toFixed(2)})`;
   await db.update(schema.orders)
     .set({
-      total: Math.max(0, newTotal),
-      notes: order.notes ? `${order.notes} | Promo: ${code} (-${discountAmount})` : `Promo: ${code} (-${discountAmount})`,
+      discountAmount: (order.discountAmount || 0) + discountAmount,
+      discountReason: order.discountReason ? `${order.discountReason} | ${reason}` : reason,
+      total: newTotal,
+      updatedAt: new Date().toISOString(),
     })
     .where(eq(schema.orders.id, orderId));
 
   logger.info({ tenantId, orderId, code, discountAmount }, 'Promo code applied');
-  return { data: { discountAmount, newTotal: Math.max(0, newTotal) }, status: 200 as const };
+  return { data: { discountAmount, newTotal }, status: 200 as const };
 }
 
-export async function createCampaign(tenantId: string, data: {
-  name: string; type: 'percentage' | 'fixed' | 'buy_x_get_y' | 'happy_hour'; value: number;
-  minOrderAmount?: number; maxDiscount?: number;
-  startDate?: string; endDate?: string;
-  daysOfWeek?: string; timeStart?: string; timeEnd?: string;
+export interface CampaignInput {
+  name: string;
+  type: PromoCampaignType;
+  value: number;
+  minOrderAmount?: number;
+  maxDiscount?: number;
+  buyQuantity?: number;
+  getQuantity?: number;
+  getDiscountPercent?: number;
+  startDate?: string;
+  endDate?: string;
+  daysOfWeek?: string;
+  timeStart?: string;
+  timeEnd?: string;
   usageLimit?: number;
-}) {
+}
+
+export async function createCampaign(tenantId: string, data: CampaignInput) {
   const id = uuid();
   await db.insert(schema.promoCampaigns).values({ id, tenantId, ...data });
   return { id };
@@ -116,7 +220,7 @@ export async function getCampaigns(tenantId: string) {
     .orderBy(schema.promoCampaigns.createdAt);
 }
 
-export async function updateCampaign(campaignId: string, tenantId: string, data: Partial<typeof schema.promoCampaigns.$inferInsert>) {
+export async function updateCampaign(campaignId: string, tenantId: string, data: Partial<CampaignInput>) {
   await db.update(schema.promoCampaigns)
     .set(data)
     .where(and(eq(schema.promoCampaigns.id, campaignId), eq(schema.promoCampaigns.tenantId, tenantId)));

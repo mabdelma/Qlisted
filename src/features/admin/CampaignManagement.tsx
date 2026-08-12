@@ -48,6 +48,9 @@ export function CampaignManagement() {
         value: campaign.value,
         minOrderAmount: campaign.minOrderAmount,
         maxDiscount: campaign.maxDiscount,
+        buyQuantity: campaign.buyQuantity,
+        getQuantity: campaign.getQuantity,
+        getDiscountPercent: campaign.getDiscountPercent,
         startDate: campaign.startDate,
         endDate: campaign.endDate,
         daysOfWeek: campaign.daysOfWeek,
@@ -63,6 +66,9 @@ export function CampaignManagement() {
         value: 0,
         minOrderAmount: undefined,
         maxDiscount: undefined,
+        buyQuantity: undefined,
+        getQuantity: undefined,
+        getDiscountPercent: undefined,
         startDate: undefined,
         endDate: undefined,
         daysOfWeek: undefined,
@@ -83,6 +89,9 @@ export function CampaignManagement() {
         value: editing.value || 0,
         minOrderAmount: editing.minOrderAmount,
         maxDiscount: editing.maxDiscount,
+        buyQuantity: editing.type === 'buy_x_get_y' ? editing.buyQuantity : undefined,
+        getQuantity: editing.type === 'buy_x_get_y' ? editing.getQuantity : undefined,
+        getDiscountPercent: editing.type === 'buy_x_get_y' ? editing.getDiscountPercent : undefined,
         startDate: editing.startDate,
         endDate: editing.endDate,
         daysOfWeek: editing.daysOfWeek,
@@ -171,6 +180,28 @@ export function CampaignManagement() {
                   onChange={(e) => setEditing({ ...editing, value: parseFloat(e.target.value) || 0 })}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
               </div>
+              {editing.type === 'buy_x_get_y' && (
+                <div className="grid grid-cols-3 gap-4 rounded-md border border-blue-100 bg-blue-50 p-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">{t('promo.buyQuantity')}</label>
+                    <input type="number" min="1" required value={editing.buyQuantity ?? ''}
+                      onChange={(e) => setEditing({ ...editing, buyQuantity: e.target.value ? parseInt(e.target.value) : undefined })}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">{t('promo.getQuantity')}</label>
+                    <input type="number" min="1" required value={editing.getQuantity ?? ''}
+                      onChange={(e) => setEditing({ ...editing, getQuantity: e.target.value ? parseInt(e.target.value) : undefined })}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">{t('promo.getDiscountPercent')}</label>
+                    <input type="number" min="0" max="100" step="1" value={editing.getDiscountPercent ?? 100}
+                      onChange={(e) => setEditing({ ...editing, getDiscountPercent: e.target.value ? parseFloat(e.target.value) : undefined })}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">{t('promo.minOrder')}</label>

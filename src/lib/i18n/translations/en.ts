@@ -13,7 +13,7 @@ export type TranslationKey =
   | 'auth.invalidToken' | 'auth.tokenExpired' | 'auth.createAccount'
   | 'auth.accountCreated' | 'auth.verificationSent' | 'auth.resendEmail'
   | 'auth.changePassword' | 'auth.currentPassword'
-  | 'common.loading' | 'common.error' | 'common.save' | 'common.cancel'
+  | 'common.loading' | 'common.error' | 'common.save' | 'common.cancel' | 'common.select'
   | 'common.delete' | 'common.edit' | 'common.search' | 'common.back'
   | 'common.submit' | 'common.confirm' | 'common.total' | 'common.quantity'
   | 'common.price' | 'common.notes' | 'common.status' | 'common.date'
@@ -70,12 +70,18 @@ export type TranslationKey =
   | 'promo.value' | 'promo.percentage' | 'promo.fixed' | 'promo.buyXGetY' | 'promo.happyHour'
   | 'promo.minOrder' | 'promo.maxDiscount' | 'promo.startDate' | 'promo.endDate'
   | 'promo.daysOfWeek' | 'promo.timeStart' | 'promo.timeEnd' | 'promo.usageLimit'
+  | 'promo.buyQuantity' | 'promo.getQuantity' | 'promo.getDiscountPercent'
   | 'promo.usageCount' | 'promo.isActive' | 'promo.noCampaigns' | 'promo.enterCode'
   | 'promo.apply' | 'promo.applied' | 'promo.invalid' | 'promo.expired' | 'promo.reachedLimit'
+  | 'promo.code' | 'promo.noDiscount'
   | 'loyalty.title' | 'loyalty.points' | 'loyalty.availablePoints' | 'loyalty.lifetime'
   | 'loyalty.tier' | 'loyalty.bronze' | 'loyalty.silver' | 'loyalty.gold' | 'loyalty.platinum'
   | 'loyalty.rewards' | 'loyalty.redeem' | 'loyalty.transactions' | 'loyalty.earn'
   | 'loyalty.welcome' | 'loyalty.noRewards' | 'loyalty.noTransactions' | 'loyalty.refresh'
+  | 'loyalty.redeemForOrder' | 'loyalty.selectOrder' | 'loyalty.pointsToRedeem'
+  | 'loyalty.manualEarn' | 'loyalty.earnAmount' | 'loyalty.noUnpaidOrders'
+  | 'loyalty.orderTotal' | 'loyalty.orderId' | 'loyalty.discountApplied'
+  | 'loyalty.redeemedSuccess'
   | 'footer.privacy' | 'footer.terms' | 'footer.copyright'
   | 'footer.company' | 'footer.support' | 'footer.legal'
   | 'marketing.trustedBy'
@@ -262,6 +268,7 @@ export const translations: Record<TranslationKey, string> = {
   'common.error': 'Error',
   'common.save': 'Save',
   'common.cancel': 'Cancel',
+  'common.select': 'Select...',
   'common.delete': 'Delete',
   'common.edit': 'Edit',
   'common.search': 'Search',
@@ -317,6 +324,9 @@ export const translations: Record<TranslationKey, string> = {
   'promo.happyHour': 'Happy Hour',
   'promo.minOrder': 'Min. Order Amount',
   'promo.maxDiscount': 'Max Discount',
+  'promo.buyQuantity': 'Buy Quantity',
+  'promo.getQuantity': 'Get Quantity',
+  'promo.getDiscountPercent': 'Discount % on Free Item',
   'promo.startDate': 'Start Date',
   'promo.endDate': 'End Date',
   'promo.daysOfWeek': 'Days of Week (0-6, comma)',
@@ -332,6 +342,8 @@ export const translations: Record<TranslationKey, string> = {
   'promo.invalid': 'Invalid promo code',
   'promo.expired': 'Promo code has expired',
   'promo.reachedLimit': 'Promo code usage limit reached',
+  'promo.code': 'Promo Code',
+  'promo.noDiscount': 'This promo code does not apply to your order',
 
   'loyalty.title': 'Loyalty Program',
   'loyalty.points': 'Points',
@@ -350,6 +362,16 @@ export const translations: Record<TranslationKey, string> = {
   'loyalty.noRewards': 'No rewards available at this time.',
   'loyalty.noTransactions': 'No transactions yet.',
   'loyalty.refresh': 'Refresh',
+  'loyalty.redeemForOrder': 'Redeem Points for Order',
+  'loyalty.selectOrder': 'Select an unpaid order',
+  'loyalty.pointsToRedeem': 'Points to redeem',
+  'loyalty.manualEarn': 'Award Points',
+  'loyalty.earnAmount': 'Points to award',
+  'loyalty.noUnpaidOrders': 'No unpaid orders available for redemption.',
+  'loyalty.orderTotal': 'Order total',
+  'loyalty.orderId': 'Order',
+  'loyalty.discountApplied': 'Discount applied',
+  'loyalty.redeemedSuccess': 'Redeemed {points} pts (-${discount}) on the order',
 
   'order.pending': 'Pending',
   'order.preparing': 'Preparing',

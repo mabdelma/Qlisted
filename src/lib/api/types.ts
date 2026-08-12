@@ -417,6 +417,9 @@ export interface Campaign {
   value: number;
   minOrderAmount?: number;
   maxDiscount?: number;
+  buyQuantity?: number;
+  getQuantity?: number;
+  getDiscountPercent?: number;
   startDate?: string;
   endDate?: string;
   daysOfWeek?: string;
@@ -473,6 +476,9 @@ export interface CampaignInput {
   value: number;
   minOrderAmount?: number;
   maxDiscount?: number;
+  buyQuantity?: number;
+  getQuantity?: number;
+  getDiscountPercent?: number;
   startDate?: string;
   endDate?: string;
   daysOfWeek?: string;

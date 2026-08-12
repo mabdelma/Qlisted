@@ -162,6 +162,13 @@
       "when": 1786470850396,
       "tag": "0022_red_grim_reaper",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1786497304419,
+      "tag": "0023_promo_engine_loyalty",
+      "breakpoints": true
     }
   ]
 }

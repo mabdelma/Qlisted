@@ -244,6 +244,8 @@ export const loyaltyApi = {
     api.post<{ success: boolean; points: number; tier: string }>(`/r/${slug}/loyalty/earn`, data),
   redeem: (slug: string, data: { points: number; rewardId?: string }) =>
     api.post<{ success: boolean; points: number; discount: number }>(`/r/${slug}/loyalty/redeem`, data),
+  redeemForOrder: (slug: string, data: { orderId: string; points: number }) =>
+    api.post<{ success: boolean; pointsRedeemed: number; discountApplied: number; remainingPoints: number; newTotal: number }>(`/r/${slug}/loyalty/redeem-for-order`, data),
 };
 
 export const waitlistApi = {

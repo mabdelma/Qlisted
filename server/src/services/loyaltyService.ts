@@ -98,6 +98,7 @@ export async function redeemPointsForOrder(
   await db.insert(schema.loyaltyTransactions).values({
     id: uuid(),
     tenantId,
+    orderId,
     type: 'redeem',
     amount: pointsRedeemed,
     description: `Redeemed ${pointsRedeemed} pts (-$${discountApplied.toFixed(2)}) on order #${orderId.slice(0, 8)}`,

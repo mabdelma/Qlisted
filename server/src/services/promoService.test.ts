@@ -10,6 +10,8 @@ import {
   getCampaigns,
   updateCampaign,
   deleteCampaign,
+  computePromoDiscount,
+  computeBogoDiscount,
 } from './promoService.js';
 import { db } from '../db/index.js';
 
@@ -20,6 +22,64 @@ describe('promoService', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  describe('computeBogoDiscount', () => {
+    it('gives every getQuantity cheapest item free within complete bundles', () => {
+      const items = [
+        { unitPrice: 12, quantity: 1 },
+        { unitPrice: 8, quantity: 2 },
+      ];
+      // 3 items total, bundle = 2+1: one free item = cheapest ($8)
+      expect(computeBogoDiscount(items, 2, 1, 100, 10)).toBe(8);
+    });
+
+    it('applies a partial discount percent (buy one get one half off)', () => {
+      const items = [{ unitPrice: 20, quantity: 2 }];
+      // 2 items, bundle = 1+1: one free at 50% off
+      expect(computeBogoDiscount(items, 1, 1, 50, 10)).toBe(10);
+    });
+
+    it('returns 0 when no complete bundle exists', () => {
+      const items = [{ unitPrice: 20, quantity: 2 }];
+      expect(computeBogoDiscount(items, 3, 1, 100, 10)).toBe(0);
+    });
+
+    it('falls back to flat value without item-level data', () => {
+      expect(computeBogoDiscount([], 2, 1, 100, 7.5)).toBe(7.5);
+    });
+
+    it('expands quantities across multiple line items before grouping', () => {
+      const items = [
+        { unitPrice: 10, quantity: 1 },
+        { unitPrice: 5, quantity: 3 },
+      ];
+      // 4 units, bundle = 2+1 → one free unit, the cheapest ($5)
+      expect(computeBogoDiscount(items, 2, 1, 100, 10)).toBe(5);
+    });
+  });
+
+  describe('computePromoDiscount', () => {
+    it('computes percentage capped by maxDiscount', () => {
+      expect(computePromoDiscount({ type: 'percentage', value: 10, maxDiscount: 5 }, 100)).toBe(5);
+    });
+
+    it('caps fixed discount at subtotal', () => {
+      expect(computePromoDiscount({ type: 'fixed', value: 15 }, 10)).toBe(10);
+    });
+
+    it('delegates buy_x_get_y to the item engine', () => {
+      const items = [{ unitPrice: 10, quantity: 3 }];
+      expect(computePromoDiscount(
+        { type: 'buy_x_get_y', value: 5, buyQuantity: 2, getQuantity: 1, getDiscountPercent: 100 },
+        30,
+        items,
+      )).toBe(10);
+    });
+
+    it('returns 0 for unknown types', () => {
+      expect(computePromoDiscount({ type: 'unknown', value: 10 }, 100)).toBe(0);
+    });
   });
 
   describe('applyPromoCode', () => {
@@ -39,12 +99,17 @@ describe('promoService', () => {
       timeEnd: null,
       minOrderAmount: null,
       maxDiscount: null,
+      buyQuantity: null,
+      getQuantity: null,
+      getDiscountPercent: null,
       createdAt: '2025-01-01',
     };
 
+    const emptyItems: unknown[] = [];
+
     it('successfully applies a percentage discount', async () => {
-      const order = { id: 'order-1', tenantId: 'tenant-1', subtotal: 100, total: 120, notes: null };
-      db.__setQueryQueue([[baseCampaign], [order]]);
+      const order = { id: 'order-1', tenantId: 'tenant-1', subtotal: 100, total: 120, discountAmount: 0, discountReason: null, paymentStatus: 'unpaid', notes: null };
+      db.__setQueryQueue([[baseCampaign], [order], emptyItems]);
 
       const result = await applyPromoCode('tenant-1', 'order-1', 'SUMMER10');
 
@@ -58,10 +123,23 @@ describe('promoService', () => {
       expect(db.update).toHaveBeenCalledTimes(2);
     });
 
+    it('writes discountAmount/discountReason onto the order', async () => {
+      const order = { id: 'order-1', tenantId: 'tenant-1', subtotal: 100, total: 120, discountAmount: 0, discountReason: null, paymentStatus: 'unpaid', notes: null };
+      db.__setQueryQueue([[baseCampaign], [order], emptyItems]);
+
+      await applyPromoCode('tenant-1', 'order-1', 'SUMMER10');
+
+      const [orderUpdate] = (db.update.mock.calls as unknown[][]).find((call) => call[0] === 'orders') ?? [];
+      expect(orderUpdate).toBe('orders');
+      const [setArgs] = db.set.mock.calls[db.set.mock.calls.length - 1];
+      expect(setArgs.discountAmount).toBe(10);
+      expect(setArgs.discountReason).toContain('SUMMER10');
+    });
+
     it('caps percentage discount at maxDiscount', async () => {
       const campaign = { ...baseCampaign, value: 50, maxDiscount: 20 };
-      const order = { id: 'order-1', tenantId: 'tenant-1', subtotal: 100, total: 120, notes: null };
-      db.__setQueryQueue([[campaign], [order]]);
+      const order = { id: 'order-1', tenantId: 'tenant-1', subtotal: 100, total: 120, discountAmount: 0, discountReason: null, paymentStatus: 'unpaid', notes: null };
+      db.__setQueryQueue([[campaign], [order], emptyItems]);
 
       const result = await applyPromoCode('tenant-1', 'order-1', 'HALFOFF');
 
@@ -74,8 +152,8 @@ describe('promoService', () => {
 
     it('applies fixed discount capped at order subtotal', async () => {
       const campaign = { ...baseCampaign, type: 'fixed' as const, value: 15 };
-      const order = { id: 'order-1', tenantId: 'tenant-1', subtotal: 10, total: 12, notes: null };
-      db.__setQueryQueue([[campaign], [order]]);
+      const order = { id: 'order-1', tenantId: 'tenant-1', subtotal: 10, total: 12, discountAmount: 0, discountReason: null, paymentStatus: 'unpaid', notes: null };
+      db.__setQueryQueue([[campaign], [order], emptyItems]);
 
       const result = await applyPromoCode('tenant-1', 'order-1', 'FIXED15');
 
@@ -83,6 +161,51 @@ describe('promoService', () => {
       if ('data' in result) {
         expect(result.data.discountAmount).toBe(10);
         expect(result.data.newTotal).toBe(2);
+      }
+    });
+
+    it('applies real buy_x_get_y using order items', async () => {
+      const campaign = { ...baseCampaign, type: 'buy_x_get_y' as const, value: 10, buyQuantity: 2, getQuantity: 1, getDiscountPercent: 100 };
+      const order = { id: 'order-1', tenantId: 'tenant-1', subtotal: 30, total: 36, discountAmount: 0, discountReason: null, paymentStatus: 'unpaid', notes: null };
+      const items = [
+        { id: 'oi-1', orderId: 'order-1', unitPrice: 10, quantity: 3 },
+      ];
+      db.__setQueryQueue([[campaign], [order], items]);
+
+      const result = await applyPromoCode('tenant-1', 'order-1', 'BOGO');
+
+      expect('data' in result).toBe(true);
+      if ('data' in result) {
+        expect(result.data.discountAmount).toBe(10);
+        expect(result.data.newTotal).toBe(26);
+      }
+    });
+
+    it('rejects promo that yields no discount (incomplete BOGO bundle)', async () => {
+      const campaign = { ...baseCampaign, type: 'buy_x_get_y' as const, value: 10, buyQuantity: 3, getQuantity: 1, getDiscountPercent: 100 };
+      const order = { id: 'order-1', tenantId: 'tenant-1', subtotal: 30, total: 36, discountAmount: 0, discountReason: null, paymentStatus: 'unpaid', notes: null };
+      const items = [{ id: 'oi-1', orderId: 'order-1', unitPrice: 10, quantity: 2 }];
+      db.__setQueryQueue([[campaign], [order], items]);
+
+      const result = await applyPromoCode('tenant-1', 'order-1', 'BOGO');
+
+      expect('error' in result).toBe(true);
+      if ('error' in result) {
+        expect(result.error).toBe('Promo code does not apply to this order');
+        expect(result.status).toBe(400);
+      }
+    });
+
+    it('rejects promo on an already-paid order', async () => {
+      const order = { id: 'order-1', tenantId: 'tenant-1', subtotal: 100, total: 120, discountAmount: 0, discountReason: null, paymentStatus: 'paid', notes: null };
+      db.__setQueryQueue([[baseCampaign], [order]]);
+
+      const result = await applyPromoCode('tenant-1', 'order-1', 'SUMMER10');
+
+      expect('error' in result).toBe(true);
+      if ('error' in result) {
+        expect(result.error).toBe('Order already paid');
+        expect(result.status).toBe(400);
       }
     });
 
@@ -185,7 +308,7 @@ describe('promoService', () => {
 
     it('returns error when minimum order not met', async () => {
       const campaign = { ...baseCampaign, minOrderAmount: 50 };
-      const order = { id: 'order-1', tenantId: 'tenant-1', subtotal: 30, total: 36, notes: null };
+      const order = { id: 'order-1', tenantId: 'tenant-1', subtotal: 30, total: 36, discountAmount: 0, discountReason: null, paymentStatus: 'unpaid', notes: null };
       db.__setQueryQueue([[campaign], [order]]);
 
       const result = await applyPromoCode('tenant-1', 'order-1', 'MINFAIL');
@@ -197,24 +320,10 @@ describe('promoService', () => {
       }
     });
 
-    it('applies buy_x_get_y discount correctly', async () => {
-      const campaign = { ...baseCampaign, type: 'buy_x_get_y' as const, value: 10 };
-      const order = { id: 'order-1', tenantId: 'tenant-1', subtotal: 100, total: 120, notes: null };
-      db.__setQueryQueue([[campaign], [order]]);
-
-      const result = await applyPromoCode('tenant-1', 'order-1', 'BOGO');
-
-      expect('data' in result).toBe(true);
-      if ('data' in result) {
-        expect(result.data.discountAmount).toBe(10);
-        expect(result.data.newTotal).toBe(110);
-      }
-    });
-
     it('applies happy_hour discount correctly', async () => {
       const campaign = { ...baseCampaign, type: 'happy_hour' as const, value: 15 };
-      const order = { id: 'order-1', tenantId: 'tenant-1', subtotal: 100, total: 120, notes: null };
-      db.__setQueryQueue([[campaign], [order]]);
+      const order = { id: 'order-1', tenantId: 'tenant-1', subtotal: 100, total: 120, discountAmount: 0, discountReason: null, paymentStatus: 'unpaid', notes: null };
+      db.__setQueryQueue([[campaign], [order], emptyItems]);
 
       const result = await applyPromoCode('tenant-1', 'order-1', 'HAPPY');
 
@@ -222,18 +331,6 @@ describe('promoService', () => {
       if ('data' in result) {
         expect(result.data.discountAmount).toBe(15);
         expect(result.data.newTotal).toBe(105);
-      }
-    });
-
-    it('appends promo note to existing order notes', async () => {
-      const order = { id: 'order-1', tenantId: 'tenant-1', subtotal: 100, total: 120, notes: 'Extra napkins' };
-      db.__setQueryQueue([[baseCampaign], [order]]);
-
-      const result = await applyPromoCode('tenant-1', 'order-1', 'SUMMER10');
-
-      expect('data' in result).toBe(true);
-      if ('data' in result) {
-        expect(result.data.discountAmount).toBe(10);
       }
     });
   });
@@ -246,7 +343,7 @@ describe('promoService', () => {
       expect(result.id).toBe('mock-uuid');
     });
 
-    it('accepts optional campaign fields', async () => {
+    it('accepts optional campaign fields including BOGO rules', async () => {
       const result = await createCampaign('tenant-1', {
         name: 'FALL15', type: 'percentage', value: 15,
         minOrderAmount: 30, maxDiscount: 10,
@@ -257,6 +354,18 @@ describe('promoService', () => {
 
       expect(db.insert).toHaveBeenCalledOnce();
       expect(result.id).toBe('mock-uuid');
+    });
+
+    it('passes BOGO fields through to the insert', async () => {
+      await createCampaign('tenant-1', {
+        name: 'BOGO2', type: 'buy_x_get_y', value: 0,
+        buyQuantity: 2, getQuantity: 1, getDiscountPercent: 100,
+      });
+
+      const [values] = db.values.mock.calls[0];
+      expect(values.buyQuantity).toBe(2);
+      expect(values.getQuantity).toBe(1);
+      expect(values.getDiscountPercent).toBe(100);
     });
   });
 
@@ -282,7 +391,7 @@ describe('promoService', () => {
 
   describe('updateCampaign', () => {
     it('updates campaign fields', async () => {
-      await updateCampaign('campaign-1', 'tenant-1', { value: 15, isActive: false });
+      await updateCampaign('campaign-1', 'tenant-1', { value: 15, isActive: false } as never);
 
       expect(db.update).toHaveBeenCalled();
     });

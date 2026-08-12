@@ -5,6 +5,7 @@ import { authMiddleware, requireRole } from '../middleware/auth.js';
 import { resolveTenant } from '../middleware/tenant.js';
 import { db, schema } from '../db/index.js';
 import { eq, and, sql } from 'drizzle-orm';
+import { computePromoDiscount } from '../services/promoService.js';
 
 const promoValidate = new Hono();
 
@@ -60,36 +61,24 @@ promoValidate.get('/:slug/promo/validate', authMiddleware, requireRole('admin', 
     }
   }
 
-  let discountAmount = 0;
   const subtotal = parseFloat(subtotalStr || '0');
 
-  if (campaign.type === 'percentage') {
-    discountAmount = subtotal * (campaign.value / 100);
-    if (campaign.maxDiscount) discountAmount = Math.min(discountAmount, campaign.maxDiscount);
-  } else if (campaign.type === 'fixed') {
-    discountAmount = Math.min(campaign.value, subtotal || Infinity);
-  } else if (campaign.type === 'buy_x_get_y') {
-    discountAmount = Math.min(campaign.value, subtotal || Infinity);
-  } else if (campaign.type === 'happy_hour') {
-    discountAmount = subtotal * (campaign.value / 100);
-    if (campaign.maxDiscount) discountAmount = Math.min(discountAmount, campaign.maxDiscount);
-  } else {
-    return c.json({ error: 'Promo type not supported for this endpoint' }, 400);
+  if (campaign.minOrderAmount && subtotal < campaign.minOrderAmount) {
+    return c.json({ error: `Minimum order amount of ${campaign.minOrderAmount} required` }, 400);
   }
 
-  discountAmount = Math.round(discountAmount * 100) / 100;
+  const discount = computePromoDiscount(campaign, subtotal);
 
-  await db
-    .update(schema.promoCampaigns)
-    .set({ usageCount: sql`${schema.promoCampaigns.usageCount} + 1` })
-    .where(eq(schema.promoCampaigns.id, campaign.id));
+  if (discount <= 0) {
+    return c.json({ error: 'Promo code does not apply to this order' }, 400);
+  }
 
   return c.json({
     valid: true,
     code: campaign.name,
     type: campaign.type,
     value: campaign.value,
-    discount: discountAmount,
+    discount,
     description: campaign.type === 'percentage' ? `${campaign.value}% off` : `$${campaign.value} off`,
   });
 });
