@@ -15,8 +15,8 @@ Live at: [qlisted.com](https://qlisted.com)
                │
 ┌──────────────┴──────────────────────────────────────┐
 │          qcart-frontend (nginx)                      │
-│   /api/* → api:3001                                  │
-│   /uploads/* → api:3001                              │
+│   /api/* → qcart-api:3001                            │
+│   /uploads/* → qcart-api:3001                        │
 │   /* → index.html (SPA)                              │
 └──────────────┬──────────────────────────────────────┘
                │

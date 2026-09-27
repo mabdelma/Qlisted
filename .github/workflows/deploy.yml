@@ -65,11 +65,43 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
+            # Abort on the first failure. Without this a failed `git pull` was
+            # silent and the stack was recreated with stale compose files.
+            set -e
             cd /var/www/qcart
-            git pull origin main
+            # The image-tag seds below dirty this file on every deploy, which makes
+            # `git pull` refuse whenever a commit touches it. It is regenerated
+            # from the committed version each time, so discard the old edits.
+            git checkout -- docker-compose.vps.yml
+            git pull --ff-only origin main
+            # The API is addressed by the unique container name `qcart-api`
+            # (a generic `api` alias collides with other stacks on `edge`).
+            # Refuse to deploy if some other stack already owns that name —
+            # otherwise --force-recreate would remove our API and then fail.
+            if owner=$(docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}/{{index .Config.Labels "com.docker.compose.service"}}' qcart-api 2>/dev/null) && [ "$owner" != "qcart-prod/api" ]; then
+              echo "::error::container name qcart-api is already used by $owner — aborting before touching the running stack"
+              exit 1
+            fi
             sed -i "s|image:.*api:.*|image: ${{ env.REGISTRY }}/${{ github.repository }}/api:${{ github.sha }}|" docker-compose.vps.yml
             sed -i "s|image:.*frontend:.*|image: ${{ env.REGISTRY }}/${{ github.repository }}/frontend:${{ github.sha }}|" docker-compose.vps.yml
             docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.vps.yml pull
             docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.vps.yml up -d --force-recreate migrate
             docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.vps.yml up -d --force-recreate api qcart-frontend
+            # Smoke test through nginx: require 10 consecutive healthy responses
+            # from OUR API. If /api were still split across another stack's
+            # upstream, roughly half would 404 and this would never pass.
+            ok=0
+            for i in $(seq 1 45); do
+              if docker exec qcart-frontend wget -qO- http://127.0.0.1/api/health 2>/dev/null | grep -q '"status":"ok"'; then
+                ok=$((ok + 1)); [ "$ok" -ge 10 ] && break
+              else
+                ok=0
+              fi
+              sleep 2
+            done
+            if [ "$ok" -lt 10 ]; then
+              echo "::error::/api through qcart-frontend is not consistently reaching the QCart API"
+              docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.vps.yml logs --tail=50 api qcart-frontend
+              exit 1
+            fi
             docker image prune -f

@@ -17,7 +17,7 @@ networks:
 services:
   gateway:
     environment:
-      MONOLITH_URL: "http://api:3001"
+      MONOLITH_URL: "http://qcart-api:3001"
     networks: [qlisted-svc, edge, qcart-prod_default]
 
   catalog:

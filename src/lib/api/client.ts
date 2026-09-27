@@ -1,5 +1,18 @@
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
+// Callers render `message` directly, so it must always be a string. Our API
+// sends `{ error: string }`, but other upstreams (gateways, misrouted proxies)
+// send `{ error: { code, message } }` — rendering that object crashes React.
+export function errorMessage(data: unknown, fallback: string): string {
+  const err = (data as { error?: unknown } | null)?.error;
+  if (typeof err === 'string' && err) return err;
+  if (err && typeof err === 'object') {
+    const msg = (err as { message?: unknown }).message;
+    if (typeof msg === 'string' && msg) return msg;
+  }
+  return fallback;
+}
+
 class ApiClient {
   private getToken(): string | null {
     return localStorage.getItem('token');
@@ -89,7 +102,7 @@ class ApiClient {
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({ error: res.statusText }));
-      throw { status: res.status, message: (data as { error: string }).error || res.statusText };
+      throw { status: res.status, message: errorMessage(data, res.statusText) };
     }
 
     if (res.status === 204) return undefined as T;
@@ -146,7 +159,7 @@ class ApiClient {
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({ error: res.statusText }));
-      throw { status: res.status, message: (data as { error: string }).error || res.statusText };
+      throw { status: res.status, message: errorMessage(data, res.statusText) };
     }
 
     return res.json() as Promise<T>;

@@ -39,6 +39,11 @@ services:
     restart: no
 
   api:
+    # nginx in qcart-frontend proxies to this container by name. In production
+    # it also joins the shared `edge` network, where a generic "api" alias
+    # collides with other stacks' APIs and nginx round-robins between them — so
+    # it is addressed by this unique container name, never by "api".
+    container_name: qcart-api
     build:
       context: ./server
       dockerfile: Dockerfile

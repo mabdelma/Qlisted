@@ -43,7 +43,7 @@ server {
     # API + Server-Sent Events. Buffering MUST be off or the SSE stream
     # (/api/r/:slug/events) is held back by nginx and live order updates stall.
     location /api/ {
-        proxy_pass http://api:3001/api/;
+        proxy_pass http://qcart-api:3001/api/;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -58,7 +58,7 @@ server {
     # User-uploaded images (menu items, logos) are stored on and served by the
     # API container at /uploads/*.
     location /uploads/ {
-        proxy_pass http://api:3001/uploads/;
+        proxy_pass http://qcart-api:3001/uploads/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

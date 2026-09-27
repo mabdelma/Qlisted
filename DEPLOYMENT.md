@@ -19,8 +19,8 @@ Internet ──HTTPS──▶ Caddy (qarrito stack, :443)
                  qcart-frontend:80  (nginx: SPA + /api + /uploads proxy)
                       │ (qcart internal network)
                       ▼
-                   api:3001 ──▶ postgres:5432
-                               redis:6379
+                qcart-api:3001 ──▶ postgres:5432
+                                redis:6379
 ```
 
 ## Files

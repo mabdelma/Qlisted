@@ -88,3 +88,22 @@ describe('API client error handling', () => {
     }
   });
 });
+
+describe('errorMessage', async () => {
+  const { errorMessage } = await import('../client');
+
+  it('returns a string error as-is', () => {
+    expect(errorMessage({ error: 'Invalid credentials' }, 'fallback')).toBe('Invalid credentials');
+  });
+
+  it('unwraps an object error ({ code, message, correlationId }) to its message', () => {
+    const data = { error: { code: 'NOT_FOUND', message: 'Cannot GET /api/x', correlationId: 'abc' } };
+    expect(errorMessage(data, 'fallback')).toBe('Cannot GET /api/x');
+  });
+
+  it('falls back when the body has no usable error', () => {
+    expect(errorMessage({}, 'Not Found')).toBe('Not Found');
+    expect(errorMessage(null, 'Not Found')).toBe('Not Found');
+    expect(errorMessage({ error: { code: 'X' } }, 'Not Found')).toBe('Not Found');
+  });
+});
