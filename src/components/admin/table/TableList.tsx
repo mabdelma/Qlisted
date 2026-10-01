@@ -1,4 +1,3 @@
-import React from 'react';
 import { Users, Clock, QrCode, Settings, AlertTriangle, Trash2 } from 'lucide-react';
 import type { TableData, Order } from '../../../lib/api/types';
 
@@ -42,7 +41,7 @@ export function TableList({
                   : 'border-blue-500'
                 : table.status === 'reserved'
                 ? 'border-yellow-500'
-                : table.status === 'out_of_service'
+                : table.status === 'closed'
                 ? 'border-gray-500'
                 : 'border-green-500'
             }`}
@@ -69,7 +68,7 @@ export function TableList({
                       ? 'bg-blue-100 text-blue-800'
                       : table.status === 'reserved'
                       ? 'bg-yellow-100 text-yellow-800'
-                      : table.status === 'out_of_service'
+                      : table.status === 'closed'
                       ? 'bg-gray-100 text-gray-800'
                       : 'bg-green-100 text-green-800'
                   }`}

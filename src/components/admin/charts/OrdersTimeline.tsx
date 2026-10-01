@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { orderApi } from '../../../lib/api';
 import { useAuth } from '../../../contexts/AuthContext';
 import type { Order } from '../../../lib/api/types';
@@ -11,16 +11,9 @@ export function OrdersTimeline() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadOrders = useCallback(async () => {
     if (!slug) return;
-    loadOrders();
-    const interval = setInterval(loadOrders, 60000);
-    return () => clearInterval(interval);
-  }, [slug]);
-
-  async function loadOrders() {
     try {
-      if (!slug) return;
       const allOrders = await orderApi.list(slug);
       
       const today = new Date();
@@ -37,7 +30,14 @@ export function OrdersTimeline() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [slug]);
+
+  useEffect(() => {
+    if (!slug) return;
+    loadOrders();
+    const interval = setInterval(loadOrders, 60000);
+    return () => clearInterval(interval);
+  }, [slug, loadOrders]);
 
   if (loading) return <div className="h-64 p-4 space-y-2">{[1,2,3,4].map(i => <Skeleton key={i} className="h-8 w-full" />)}</div>;
 

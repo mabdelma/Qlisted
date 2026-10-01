@@ -53,7 +53,7 @@ export function SalesDashboard() {
     loadData();
     const interval = setInterval(loadData, 30000);
     return () => clearInterval(interval);
-  }, [slug]);
+  }, [slug, t]);
 
   if (loading) {
     return (

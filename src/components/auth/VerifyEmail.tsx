@@ -16,8 +16,8 @@ export function VerifyEmail() {
       setMessage(t('auth.invalidToken'));
       return;
     }
-    api.post('/auth/verify-email', { token })
-      .then((res: { message?: string }) => {
+    api.post<{ message?: string }>('/auth/verify-email', { token })
+      .then((res) => {
         setStatus('success');
         setMessage(res.message || t('auth.verificationSent'));
       })
@@ -25,7 +25,7 @@ export function VerifyEmail() {
         setStatus('error');
         setMessage(err?.error || err?.message || t('auth.tokenExpired'));
       });
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>

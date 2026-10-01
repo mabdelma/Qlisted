@@ -1,6 +1,9 @@
-import type { User } from '../db/schema';
+import type { User } from '../api/types';
 
-export function calculateSpeedScore(avgTime: number, role: User['role']): number {
+/** The roles these metrics are computed for. Mirrors `User['role']`. */
+export type StaffRole = User['role'];
+
+export function calculateSpeedScore(avgTime: number, role: StaffRole): number {
   if (!avgTime || avgTime <= 0) return 100; // Perfect score for instant service
   
   // Target times based on role:
@@ -14,7 +17,7 @@ export function calculateSpeedScore(avgTime: number, role: User['role']): number
   return Math.min(100, Math.max(0, ratio * 100));
 }
 
-export function calculateEfficiencyScore(ordersCount: number, role: User['role']): number {
+export function calculateEfficiencyScore(ordersCount: number, role: StaffRole): number {
   if (!ordersCount) return 0;
   
   // Different target order counts based on role
@@ -25,7 +28,7 @@ export function calculateEfficiencyScore(ordersCount: number, role: User['role']
   return Math.min(100, ratio * 100);
 }
 
-export function getRoleMetricsLabel(role: User['role']): {
+export function getRoleMetricsLabel(role: StaffRole): {
   ordersLabel: string;
   speedLabel: string;
   efficiencyLabel: string;

@@ -1,16 +1,12 @@
 import React, { useMemo } from 'react';
 import { Star, Clock, ShoppingBag, DollarSign } from 'lucide-react';
+import type { StaffMetrics } from './StaffPerformance';
 import type { User } from '../../../lib/api/types';
 import { calculateSpeedScore, calculateEfficiencyScore } from '../../../lib/utils/performanceMetrics';
 
 interface StaffListProps {
   staff: User[];
-  metrics: Record<string, {
-    ordersHandled: number;
-    avgServiceTime: number;
-    totalSales: number;
-    rating: number;
-  }>;
+  metrics: Record<string, StaffMetrics>;
 }
 
 export const StaffList = React.memo(function StaffList({ staff, metrics }: StaffListProps) {

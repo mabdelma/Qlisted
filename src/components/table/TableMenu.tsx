@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router';
 import { tableApi } from '../../lib/api';
 import { Outlet } from 'react-router';
@@ -14,11 +14,7 @@ export function TableMenu() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadTable();
-  }, [slug, tableId]);
-
-  async function loadTable() {
+  const loadTable = useCallback(async () => {
     if (!slug || !tableId) {
       setError('Invalid table');
       setLoading(false);
@@ -35,7 +31,11 @@ export function TableMenu() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [slug, tableId]);
+
+  useEffect(() => {
+    loadTable();
+  }, [loadTable]);
 
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;

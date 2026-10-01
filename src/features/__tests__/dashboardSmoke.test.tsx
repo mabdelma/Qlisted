@@ -292,7 +292,7 @@ describe('Customer ordering flow', () => {
     ['bill', '/r/test-cafe/table/1/bill'],
   ];
 
-  it.each(CUSTOMER_ROUTES)('renders the table flow %s page without crashing', async (page, path) => {
+  it.each(CUSTOMER_ROUTES)('renders the table flow %s page without crashing', async (_page, path) => {
     vi.stubGlobal('fetch', mockFetch('admin'));
     const { container, errors } = await mount(
       <Providers>

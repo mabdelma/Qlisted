@@ -1,4 +1,3 @@
-import React from 'react';
 import { Clock, Check, AlertCircle } from 'lucide-react';
 import type { Payment, Order } from '../../../lib/api/types';
 

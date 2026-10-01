@@ -17,11 +17,7 @@ export function MenuItemDetail() {
   const [modifierGroups, setModifierGroups] = React.useState<ModifierGroup[]>([]);
   const [selections, setSelections] = React.useState<Record<string, string[]>>({});
 
-  React.useEffect(() => {
-    loadItem();
-  }, [itemId]);
-
-  async function loadItem() {
+  const loadItem = React.useCallback(async () => {
     if (!itemId || !slug) return;
     try {
       const data = await menuApi.getFullMenu(slug);
@@ -45,7 +41,11 @@ export function MenuItemDetail() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [itemId, slug]);
+
+  React.useEffect(() => {
+    loadItem();
+  }, [loadItem]);
 
   function toggleOption(groupId: string, optionId: string, selectionType: string) {
     setSelections((prev) => {

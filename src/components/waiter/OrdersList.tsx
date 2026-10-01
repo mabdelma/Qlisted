@@ -2,42 +2,21 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Clock, AlertTriangle, Check } from 'lucide-react';
 import { orderApi, tableApi } from '../../lib/api';
+import type { OrderWithItems } from '../../lib/api/types';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { ErrorMessage } from '../ui/ErrorMessage';
 import { OrderEditDialog } from '../orders/OrderEditDialog';
 import { OrderDetails } from '../shared/OrderDetails';
 
-interface OrderItem {
-  id: string;
-  menuItemId: string;
-  name: string;
-  quantity: number;
-  unitPrice: number;
-  notes?: string;
-}
-
-interface OrderWithDetails {
-  id: string;
-  tableId?: string;
-  orderType: 'dine_in' | 'takeout' | 'delivery';
-  status: string;
-  paymentStatus: string;
-  total: number;
-  createdAt: string;
-  updatedAt: string;
-  items: OrderItem[];
-  waiterStaffId?: string;
-}
-
 export function OrdersList() {
   const { state: authState } = useAuth();
   const slug = authState.tenant?.slug;
-  const [orders, setOrders] = useState<OrderWithDetails[]>([]);
+  const [orders, setOrders] = useState<OrderWithItems[]>([]);
   const [tables, setTables] = useState<Record<string, { id: string; number: number }>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editingOrder, setEditingOrder] = useState<OrderWithDetails | null>(null);
-  const [selectedOrder, setSelectedOrder] = useState<OrderWithDetails | null>(null);
+  const [editingOrder, setEditingOrder] = useState<OrderWithItems | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderWithItems | null>(null);
 
   const loadOrders = useCallback(async () => {
     if (!slug) return;
@@ -62,7 +41,7 @@ export function OrdersList() {
             })
         )
       )
-        .filter((o): o is OrderWithDetails => o !== null)
+        .filter((o): o is OrderWithItems => o !== null)
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
       setOrders(ordersWithDetails);
@@ -85,7 +64,7 @@ export function OrdersList() {
     if (!window.confirm('Are you sure you want to cancel this order?')) return;
     if (!slug) return;
     try {
-      await orderApi.cancel(slug, orderId);
+      await orderApi.updateStatus(slug, orderId, 'cancelled');
       await loadOrders();
     } catch {
       setError('Failed to cancel order');
@@ -136,7 +115,7 @@ export function OrdersList() {
                       </span>
                       <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${
                         order.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
-                        order.paymentStatus === 'partially' ? 'bg-blue-100 text-blue-800' :
+                        order.paymentStatus === 'partially_paid' ? 'bg-blue-100 text-blue-800' :
                         'bg-yellow-100 text-yellow-800'
                       }`}>
                         {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
@@ -190,7 +169,7 @@ export function OrdersList() {
         })}
       </div>
 
-      {editingOrder && <OrderEditDialog order={editingOrder as OrderWithDetails} onClose={() => setEditingOrder(null)} onUpdate={loadOrders} />}
+      {editingOrder && <OrderEditDialog order={editingOrder as OrderWithItems} onClose={() => setEditingOrder(null)} onUpdate={loadOrders} />}
       {selectedOrder && <OrderDetails order={selectedOrder} onClose={() => setSelectedOrder(null)} />}
 
       {orders.length === 0 && (

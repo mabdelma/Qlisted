@@ -2,34 +2,17 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Clock, Search, Filter } from 'lucide-react';
 import { orderApi } from '../../lib/api';
+import type { OrderWithItems } from '../../lib/api/types';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { ErrorMessage } from '../ui/ErrorMessage';
 
-interface OrderItem {
-  id: string;
-  menuItemId: string;
-  name: string;
-  quantity: number;
-  unitPrice: number;
-  notes?: string;
-}
-
-interface OrderWithDetails {
-  id: string;
-  tableId: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  items: OrderItem[];
-  total: number;
-  kitchenStaffId?: string;
-  preparationTime: number;
-}
+/** An order detail plus the prep time this view derives from its timestamps. */
+type OrderWithPrepTime = OrderWithItems & { preparationTime: number };
 
 export function OrderHistory() {
   const { state: authState } = useAuth();
   const slug = authState.tenant?.slug;
-  const [orders, setOrders] = useState<OrderWithDetails[]>([]);
+  const [orders, setOrders] = useState<OrderWithPrepTime[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [metrics, setMetrics] = useState({
@@ -57,10 +40,9 @@ export function OrderHistory() {
             }
           })
         )
-      ).filter((o): o is OrderWithDetails => o !== null);
+      ).filter((o): o is OrderWithItems => o !== null);
 
       const kitchenOrders = allOrderDetails
-        .filter((order) => order.kitchenStaffId === authState.user?.id || true)
         .map((order) => {
           const startTime = new Date(order.createdAt).getTime();
           const endTime =

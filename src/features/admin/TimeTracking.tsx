@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useI18n } from '../../contexts/I18nContext';
 import { timeApi } from '../../lib/api';
@@ -7,13 +7,14 @@ import type { TimeEntry } from '../../lib/api/types';
 
 export default function TimeTracking() {
   const { t } = useI18n();
-  const { slug } = useAuth();
+  const { state: authState } = useAuth();
+  const slug = authState.tenant?.slug;
   const [active, setActive] = useState<TimeEntry[]>([]);
   const [timesheet, setTimesheet] = useState<TimeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'active' | 'history'>('active');
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!slug) return;
     setLoading(true);
     try {
@@ -25,9 +26,9 @@ export default function TimeTracking() {
       setTimesheet(timesheetData);
     } catch { /* keep the last good data */ }
     setLoading(false);
-  };
+  }, [slug]);
 
-  useEffect(() => { load(); }, [slug]);
+  useEffect(() => { load(); }, [load]);
 
   if (!slug) return <div className="p-4 text-gray-500">{t('common.loading')}</div>;
 

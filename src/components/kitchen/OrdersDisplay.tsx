@@ -3,23 +3,12 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useI18n } from '../../contexts/I18nContext';
 import { Clock, AlertTriangle, ChefHat, Bell, Play, CheckCircle, ListChecks, Flame } from 'lucide-react';
 import { orderApi, tableApi } from '../../lib/api';
-import type { Order, TableData } from '../../lib/api/types';
+import type { OrderWithItems, TableData } from '../../lib/api/types';
 import { OrderListSkeleton } from '../ui/Skeleton';
 import { OrderDetails } from './OrderDetails';
 import { ErrorMessage } from '../ui/ErrorMessage';
 
-interface OrderWithItems extends Order {
-  items: Array<{
-    id: string;
-    menuItemId: string;
-    name: string;
-    quantity: number;
-    unitPrice: number;
-    notes?: string;
-  }>;
-}
-
-type OrderStatus = 'pending' | 'preparing' | 'ready';
+type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered';
 type SortMode = 'time' | 'priority' | 'table';
 type GroupMode = 'status' | 'none';
 
@@ -109,7 +98,7 @@ export function OrdersDisplay() {
             return bAge - aAge;
           }
           if (sortBy === 'table') {
-            return (tablesMap[a.tableId]?.number || 0) - (tablesMap[b.tableId]?.number || 0);
+            return ((a.tableId ? tablesMap[a.tableId]?.number : 0) || 0) - ((b.tableId ? tablesMap[b.tableId]?.number : 0) || 0);
           }
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
@@ -127,7 +116,7 @@ export function OrdersDisplay() {
     } finally {
       setLoading(false);
     }
-  }, [slug, sortBy, soundEnabled]);
+  }, [slug, sortBy, soundEnabled, t]);
 
   useEffect(() => {
     loadOrders();
@@ -170,7 +159,7 @@ export function OrdersDisplay() {
       eventSource.current?.close();
       clearTimeout(reconnectTimer);
     };
-  }, [slug]);
+  }, [slug, loadOrders]);
 
   async function updateOrderStatus(orderId: string, status: OrderStatus) {
     if (!slug) return;
@@ -279,7 +268,7 @@ export function OrdersDisplay() {
                             <span className="text-sm text-gray-500">- {order.customerName}</span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600">{order.orderType === 'dine_in' ? `Table ${tables[order.tableId]?.number || '?'}` : order.orderType === 'takeout' ? 'Takeout' : 'Delivery'} &middot; {order.itemCount} items &middot; ${order.total.toFixed(2)}</p>
+                        <p className="text-sm text-gray-600">{order.orderType === 'dine_in' ? `Table ${(order.tableId ? tables[order.tableId]?.number : undefined) || '?'}` : order.orderType === 'takeout' ? 'Takeout' : 'Delivery'} &middot; {order.itemCount} items &middot; ${order.total.toFixed(2)}</p>
                       </div>
                       <span className={`shrink-0 text-xs px-2.5 py-1 rounded-full font-semibold border ${
                         order.status === 'pending' ? 'bg-yellow-200 text-yellow-900 border-yellow-400' :

@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { Tenant, User, MenuCategory, MenuItem, TableData, Order, OrderWithItems, OrderItem, Payment, PaymentLinkResponse, AnalyticsSummary, RevenueDataPoint, FinancialAnalytics, PlatformAnalytics, TenantSummary, TenantWithStats, TenantUsage, HourlyTrafficPoint, PeakHour, CategoryPerformanceItem, TrendingItem, RecommendationItem, ModifierGroup, ModifierOption, TaxCategory, GiftCard, GiftCardRedemption, ConnectAccountStatus, PayoutInfo, TimeEntry, PnLReport, PlatformUser, Lead, TimePoint, AdminSubscription, AuditLog, Mailbox, MailAlias, StockItem, Supplier, PurchaseOrder, ReorderSuggestion, Shift, Customer, Room, RoomStatus, RoomStats, RoomBooking, Folio, HotelReport } from './types';
+import type { Tenant, User, MenuCategory, MenuItem, TableData, Order, OrderWithItems, OrderItem, Payment, PaymentLinkResponse, AnalyticsSummary, RevenueDataPoint, FinancialAnalytics, PlatformAnalytics, TenantSummary, TenantWithStats, TenantUsage, HourlyTrafficPoint, PeakHour, CategoryPerformanceItem, TrendingItem, RecommendationItem, ModifierGroup, ModifierOption, TaxCategory, GiftCard, GiftCardRedemption, ConnectAccountStatus, PayoutInfo, TimeEntry, PnLReport, PlatformUser, Lead, TimePoint, AdminSubscription, AuditLog, Mailbox, MailAlias, StockItem, Supplier, PurchaseOrder, ReorderSuggestion, Shift, Customer, Room, RoomStatus, RoomStats, RoomBooking, Folio, HotelReport, WaitlistEntry, Reservation, Campaign, CampaignInput } from './types';
 
 // Auth
 export const authApi = {
@@ -239,7 +239,7 @@ export const uploadApi = {
 
 export const loyaltyApi = {
   get: (slug: string) =>
-    api.get<{ points: number; tier: string; lifetimePoints: number; history: { id: string; type: string; amount: number; description: string; createdAt: string }[]; rewards: { id: string; name: string; pointsCost: number; description: string }[] }>(`/r/${slug}/loyalty`),
+    api.get<{ points: number; tier: string; lifetimePoints: number; history: { id: string; type: 'earn' | 'redeem'; amount: number; description: string; createdAt: string }[]; rewards: { id: string; name: string; pointsCost: number; description: string }[] }>(`/r/${slug}/loyalty`),
   earn: (slug: string, data: { amount: number; orderId?: string }) =>
     api.post<{ success: boolean; points: number; tier: string }>(`/r/${slug}/loyalty/earn`, data),
   redeem: (slug: string, data: { points: number; rewardId?: string }) =>
@@ -311,8 +311,18 @@ export const timeApi = {
   clockIn: (slug: string, notes?: string) => api.post<TimeEntry>(`/r/${slug}/time/clock-in`, { notes }),
   clockOut: (slug: string, notes?: string) => api.post<TimeEntry>(`/r/${slug}/time/clock-out`, { notes }),
   active: (slug: string) => api.get<(TimeEntry & { userName: string; userRole: string })[]>(`/r/${slug}/time/active`),
-  timesheet: (slug: string, params?: { userId?: string; startDate?: string; endDate?: string }) =>
-    api.get<(TimeEntry & { userName: string; userRole: string })[]>(`/r/${slug}/time/timesheet`, { params }),
+  timesheet: (slug: string, params?: { userId?: string; startDate?: string; endDate?: string }) => {
+    // The client has no `params` option — these filters were being dropped
+    // silently. Serialise them into the query string like the reports endpoints.
+    const q = new URLSearchParams();
+    if (params?.userId) q.set('userId', params.userId);
+    if (params?.startDate) q.set('startDate', params.startDate);
+    if (params?.endDate) q.set('endDate', params.endDate);
+    const qs = q.toString();
+    return api.get<(TimeEntry & { userName: string; userRole: string })[]>(
+      `/r/${slug}/time/timesheet${qs ? `?${qs}` : ''}`,
+    );
+  },
 };
 
 export const invoiceApi = {

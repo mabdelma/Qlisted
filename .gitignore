@@ -37,3 +37,7 @@ server/maildump/
 *.sw?
 infra/monitoring/.env
 infra/monitoring/dozzle-users.yml
+
+# Playwright run output
+test-results/
+playwright-report/

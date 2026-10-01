@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router';
 import { Package, Clock, DollarSign, CreditCard, Wallet } from 'lucide-react';
 import { orderApi } from '../../lib/api';
@@ -20,13 +20,7 @@ export function TableOrders() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
   const [payingOrder, setPayingOrder] = useState<Order | null>(null);
 
-  useEffect(() => {
-    loadOrders();
-    const interval = setInterval(loadOrders, 30000); // Refresh every 30 seconds
-    return () => clearInterval(interval);
-  }, [slug, tableId]);
-
-  async function loadOrders() {
+  const loadOrders = useCallback(async () => {
     if (!slug || !tableId) return;
 
     try {
@@ -43,7 +37,13 @@ export function TableOrders() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [slug, tableId]);
+
+  useEffect(() => {
+    loadOrders();
+    const interval = setInterval(loadOrders, 30000); // Refresh every 30 seconds
+    return () => clearInterval(interval);
+  }, [loadOrders]);
 
   async function loadOrderDetail(orderId: string) {
     if (!slug || orderDetails[orderId]) return;

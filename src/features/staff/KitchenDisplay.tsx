@@ -2,18 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { orderApi, tableApi } from '../../lib/api';
 import { Clock, AlertTriangle, ChefHat, RefreshCw } from 'lucide-react';
-import type { Order } from '../../lib/api/types';
-
-interface OrderWithItems extends Order {
-  items: Array<{
-    id: string;
-    menuItemId: string;
-    name: string;
-    quantity: number;
-    unitPrice: number;
-    notes?: string;
-  }>;
-}
+import type { OrderWithItems } from '../../lib/api/types';
 
 export function KitchenDisplay() {
   const { state: { tenant } } = useAuth();
@@ -113,7 +102,7 @@ export function KitchenDisplay() {
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <h3 className="text-lg font-bold text-gray-900">
-                      {order.orderType === 'dine_in' ? `Table ${tables[order.tableId]?.number || '?'}` : order.orderType === 'takeout' ? 'Takeout' : 'Delivery'}
+                      {order.orderType === 'dine_in' ? `Table ${(order.tableId ? tables[order.tableId]?.number : undefined) || '?'}` : order.orderType === 'takeout' ? 'Takeout' : 'Delivery'}
                     </h3>
                     <div className="flex items-center gap-1 mt-1">
                       <Clock className="w-4 h-4 text-gray-400" />

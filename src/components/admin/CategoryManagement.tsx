@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { PlusCircle, Edit2, Trash2, MoveUp, MoveDown } from 'lucide-react';
 import { menuApi } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -20,15 +20,15 @@ export function CategoryManagement() {
   const [editingCategory, setEditingCategory] = useState<MenuCategory | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<MenuCategory | null>(null);
 
-  useEffect(() => {
-    if (slug) loadCategories();
-  }, [slug]);
-
-  async function loadCategories() {
+  const loadCategories = useCallback(async () => {
     if (!slug) return;
     const data = await menuApi.getFullMenu(slug);
     setCategories(data.categories.sort((a, b) => a.sortOrder - b.sortOrder));
-  }
+  }, [slug]);
+
+  useEffect(() => {
+    if (slug) loadCategories();
+  }, [slug, loadCategories]);
 
   async function saveCategory(category: MenuCategory) {
     if (!slug) return;

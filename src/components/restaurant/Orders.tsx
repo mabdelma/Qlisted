@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Package, Clock } from 'lucide-react';
 import { orderApi } from '../../lib/api';
 import type { Order } from '../../lib/api/types';
@@ -12,13 +12,7 @@ export function Orders() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadOrders();
-    const interval = setInterval(loadOrders, 30000); // Refresh every 30 seconds
-    return () => clearInterval(interval);
-  }, []);
-
-  async function loadOrders() {
+  const loadOrders = useCallback(async () => {
     try {
       const allOrders = await orderApi.getForTable(slug || '', tableId || '');
 
@@ -32,7 +26,13 @@ export function Orders() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [slug, tableId]);
+
+  useEffect(() => {
+    loadOrders();
+    const interval = setInterval(loadOrders, 30000); // Refresh every 30 seconds
+    return () => clearInterval(interval);
+  }, [loadOrders]);
 
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;

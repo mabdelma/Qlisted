@@ -4,21 +4,10 @@ import { Clock, Search, Filter, DollarSign, Receipt } from 'lucide-react';
 import { paymentApi, orderApi } from '../../lib/api';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { ErrorMessage } from '../ui/ErrorMessage';
-import type { Payment } from '../../lib/api/types';
+import type { Payment, OrderWithItems } from '../../lib/api/types';
 
-interface TransactionWithDetails extends Payment {
-  order: {
-    id: string;
-    total: number;
-    createdAt: string;
-    items: Array<{
-      id: string;
-      name: string;
-      quantity: number;
-      unitPrice: number;
-    }>;
-  };
-}
+/** A payment joined with the order it settled. */
+type TransactionWithDetails = Payment & { order: OrderWithItems };
 
 export function CashierHistory() {
   const { state: authState } = useAuth();
@@ -202,7 +191,7 @@ export function CashierHistory() {
           <div key={transaction.id}
             className={`bg-white rounded-lg shadow-sm border-l-4 ${
               transaction.status === 'paid' ? 'border-green-500' :
-              transaction.status === 'unpaid' ? 'border-yellow-500' : 'border-red-500'
+              transaction.status === 'pending' ? 'border-yellow-500' : 'border-red-500'
             }`}>
             <div className="p-4">
               <div className="flex justify-between items-start mb-4">
@@ -215,7 +204,7 @@ export function CashierHistory() {
                 </div>
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                   transaction.status === 'paid' ? 'bg-green-100 text-green-800' :
-                  transaction.status === 'unpaid' ? 'bg-yellow-100 text-yellow-800' :
+                  transaction.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                   'bg-red-100 text-red-800'
                 }`}>
                   {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}

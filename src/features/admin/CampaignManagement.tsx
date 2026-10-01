@@ -17,11 +17,6 @@ export function CampaignManagement() {
   const [editing, setEditing] = useState<Partial<CampaignInput> | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!slug) return;
-    fetchCampaigns();
-  }, [slug, fetchCampaigns]);
-
   const fetchCampaigns = useCallback(async () => {
     if (!slug) return;
     setLoading(true);
@@ -33,6 +28,11 @@ export function CampaignManagement() {
     }
     setLoading(false);
   }, [slug]);
+
+  useEffect(() => {
+    if (!slug) return;
+    fetchCampaigns();
+  }, [slug, fetchCampaigns]);
 
   function resetForm() {
     setEditing(null);

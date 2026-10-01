@@ -159,11 +159,11 @@ export function CashierPanel() {
     <NotificationsProvider role="cashier">
       <div className="min-h-screen bg-gray-50">
         <div className="flex">
-          <StaffSidebar role="cashier" activeTab={activeView} onTabChange={setActiveView} />
+          <StaffSidebar role="cashier" activeTab={activeView} onTabChange={(tab) => setActiveView(tab as typeof activeView)} />
           <div className="flex-1">
             <Header />
             <main className="p-8">
-              {activeView === 'pos' && <PointOfSale role="cashier" />}
+              {activeView === 'pos' && <PointOfSale />}
               {activeView === 'payments' && <PaymentsList />}
               {activeView === 'history' && <CashierHistory />}
               {activeView === 'profile' && <StaffProfile />}

@@ -1,25 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { PlusCircle, Edit, Trash2, GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
 import { menuApi } from '../../lib/api';
+import type { ModifierGroup, ModifierOption } from '../../lib/api/types';
 import { useAuth } from '../../contexts/AuthContext';
 import { useI18n } from '../../contexts/I18nContext';
-
-interface ModifierGroup {
-  id: string;
-  name: string;
-  selectionType: 'single' | 'multiple';
-  isRequired: boolean;
-  sortOrder: number;
-  options: ModifierOption[];
-}
-
-interface ModifierOption {
-  id: string;
-  name: string;
-  priceAdjustment: number;
-  maxSelectable: number;
-  sortOrder: number;
-}
 
 export function ModifierManagement() {
   const { t } = useI18n();
@@ -31,13 +15,7 @@ export function ModifierManagement() {
   const [editingGroup, setEditingGroup] = useState<Partial<ModifierGroup> | null>(null);
   const [editingOption, setEditingOption] = useState<{ groupId: string; option?: Partial<ModifierOption> } | null>(null);
 
-  useEffect(() => {
-    if (!slug) return;
-    setLoading(true);
-    fetchGroups();
-  }, [slug]);
-
-  async function fetchGroups() {
+  const fetchGroups = useCallback(async () => {
     if (!slug) return;
     try {
       const data = await menuApi.getModifierGroups(slug);
@@ -47,7 +25,13 @@ export function ModifierManagement() {
       setError('Failed to load modifier groups');
     }
     setLoading(false);
-  }
+  }, [slug]);
+
+  useEffect(() => {
+    if (!slug) return;
+    setLoading(true);
+    fetchGroups();
+  }, [fetchGroups, slug]);
 
   async function saveGroup(e: React.FormEvent) {
     e.preventDefault();

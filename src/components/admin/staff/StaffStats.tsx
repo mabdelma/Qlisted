@@ -1,16 +1,11 @@
-import React from 'react';
 import { Users, Clock, DollarSign, Star } from 'lucide-react';
+import type { StaffMetrics } from './StaffPerformance';
 import type { User } from '../../../lib/api/types';
 import { StatsCard } from '../StatsCard';
 
 interface StaffStatsProps {
   staff: User[];
-  metrics: Record<string, {
-    ordersHandled: number;
-    avgServiceTime: number;
-    totalSales: number;
-    rating: number;
-  }>;
+  metrics: Record<string, StaffMetrics>;
 }
 
 export function StaffStats({ metrics }: StaffStatsProps) {

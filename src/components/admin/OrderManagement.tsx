@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { menuApi, orderApi, tableApi } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Order, MenuItem, TableData, OrderWithItems } from '../../lib/api/types';
@@ -26,15 +26,7 @@ export function OrderManagement() {
   const [paymentFilter, setPaymentFilter] = useState('all');
   const [cancelTarget, setCancelTarget] = useState<Order | null>(null);
 
-  useEffect(() => {
-    if (slug) {
-      loadOrders();
-      const interval = setInterval(loadOrders, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [slug]);
-
-  async function loadOrders() {
+  const loadOrders = useCallback(async () => {
     if (!slug) return;
     try {
       const [allOrders, menuData, allTables] = await Promise.all([
@@ -62,7 +54,15 @@ export function OrderManagement() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [slug]);
+
+  useEffect(() => {
+    if (slug) {
+      loadOrders();
+      const interval = setInterval(loadOrders, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [slug, loadOrders]);
 
   async function handleStatusChange(orderId: string, status: Order['status']) {
     if (!slug) return;

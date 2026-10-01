@@ -26,10 +26,11 @@ export function TableMenuItemDetail() {
   const currency = tenant.currency;
 
   const item = items.find((i) => i.id === itemId);
+  const loadedItemId = item?.id;
 
   useEffect(() => {
-    if (!item || !slug) return;
-    menuApi.getMenuItemModifiers(slug, item.id).then(({ data: groups }) => {
+    if (!loadedItemId || !slug) return;
+    menuApi.getMenuItemModifiers(slug, loadedItemId).then(({ data: groups }) => {
       setModifierGroups(groups);
       const defaults: Record<string, string[]> = {};
       for (const g of groups) {
@@ -37,7 +38,7 @@ export function TableMenuItemDetail() {
       }
       setSelections(defaults);
     }).catch(() => {});
-  }, [item?.id, slug]);
+  }, [loadedItemId, slug]);
 
   function toggleOption(groupId: string, optionId: string, selectionType: string) {
     setSelections((prev) => {

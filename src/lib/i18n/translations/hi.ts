@@ -1,6 +1,6 @@
-﻿import type { TranslationKey } from './en';
+import type { TranslationKey } from './en';
 
-export const translations: Record<TranslationKey, string> = {
+export const translations: Partial<Record<TranslationKey, string>> = {
   'app.name': 'Qlisted',
   'nav.home': 'होम',
   'nav.menu': 'मेनू',

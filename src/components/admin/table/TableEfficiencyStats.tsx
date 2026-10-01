@@ -1,4 +1,3 @@
-import React from 'react';
 import { Clock, Users, RotateCcw } from 'lucide-react';
 import type { TableData } from '../../../lib/api/types';
 import { StatsCard } from '../StatsCard';

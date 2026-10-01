@@ -16,7 +16,7 @@ export function KitchenPortal() {
         <StaffSidebar
           role="kitchen"
           activeTab={activeView}
-          onTabChange={setActiveView}
+          onTabChange={(tab) => setActiveView(tab as typeof activeView)}
         />
         <div className="flex-1">
           <Header />

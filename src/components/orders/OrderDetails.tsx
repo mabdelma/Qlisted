@@ -1,4 +1,3 @@
-import React from 'react';
 import { X, MessageCircle, Clock } from 'lucide-react';
 import type { Order, MenuItem } from '../../lib/api/types';
 

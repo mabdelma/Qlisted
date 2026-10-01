@@ -1,5 +1,4 @@
-﻿import React from 'react';
-import { X, Download } from 'lucide-react';
+﻿import { X, Download } from 'lucide-react';
 import type { TableData } from '../../lib/api/types';
 
 interface QRCodeModalProps {

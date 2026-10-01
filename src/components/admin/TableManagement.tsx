@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { PlusCircle } from 'lucide-react';
 import { tableApi, orderApi } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -28,15 +28,7 @@ export function TableManagement() {
     totalTurnovers: 0
   });
 
-  useEffect(() => {
-    if (slug) {
-      loadTables();
-      const interval = setInterval(loadTables, 60000);
-      return () => clearInterval(interval);
-    }
-  }, [slug]);
-
-  async function loadTables() {
+  const loadTables = useCallback(async () => {
     if (!slug) return;
     setLoading(true);
     try {
@@ -46,13 +38,13 @@ export function TableManagement() {
       ]);
 
       const activeOrdersMap = allOrders.reduce((acc, order) => {
-        if (order.status !== 'delivered' && order.status !== 'paid' && order.tableId) {
+        if (order.status !== 'delivered' && order.paymentStatus !== 'paid' && order.tableId) {
           acc[order.tableId] = order;
         }
         return acc;
       }, {} as Record<string, Order>);
 
-      const completedOrders = allOrders.filter(o => o.status === 'paid');
+      const completedOrders = allOrders.filter(o => o.paymentStatus === 'paid');
       const turnoverTimes = completedOrders.map(order => {
         const start = new Date(order.createdAt).getTime();
         const end = new Date(order.updatedAt).getTime();
@@ -80,7 +72,15 @@ export function TableManagement() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [slug]);
+
+  useEffect(() => {
+    if (slug) {
+      loadTables();
+      const interval = setInterval(loadTables, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [slug, loadTables]);
 
   async function saveTable(table: TableData) {
     if (!slug) return;

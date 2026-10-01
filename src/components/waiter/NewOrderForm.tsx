@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Search, Plus, Minus, Trash2 } from 'lucide-react';
 import { menuApi, tableApi, orderApi } from '../../lib/api';
@@ -25,11 +25,7 @@ export function NewOrderForm({ onClose }: { onClose: () => void }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [processing, setProcessing] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     if (!slug) return;
     try {
       const [menuData, allTables] = await Promise.all([
@@ -57,7 +53,11 @@ export function NewOrderForm({ onClose }: { onClose: () => void }) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [slug]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const filteredItems = menuItems.filter((item) => {
     const matchesCategory = !selectedCategory || item.categoryId === selectedCategory;

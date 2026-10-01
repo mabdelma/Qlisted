@@ -1,4 +1,3 @@
-import React from 'react';
 import { X, Bell } from 'lucide-react';
 import { useNotifications } from '../../contexts/NotificationsContext';
 import { useI18n } from '../../contexts/I18nContext';

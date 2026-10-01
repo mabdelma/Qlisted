@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useCart } from '../../contexts/CartContext';
 import { orderApi } from '../../lib/api';

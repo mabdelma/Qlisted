@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { menuApi, orderApi } from '../../lib/api';
 import { Search, Plus, Minus, Trash2, DollarSign, MessageCircle } from 'lucide-react';
@@ -26,11 +26,7 @@ export function PointOfSale() {
   const { state: authState } = useAuth();
   const slug = authState.tenant?.slug;
 
-  useEffect(() => {
-    if (slug) loadData();
-  }, [slug]);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     try {
       const menu = await menuApi.getFullMenu(slug!);
       const items = menu.items;
@@ -47,7 +43,11 @@ export function PointOfSale() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [slug]);
+
+  useEffect(() => {
+    if (slug) loadData();
+  }, [loadData, slug]);
 
   const filteredItems = menuItems.filter((item) => {
     const matchesCategory = !selectedCategory || item.categoryId === selectedCategory;

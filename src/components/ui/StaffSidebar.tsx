@@ -8,7 +8,7 @@ interface SidebarProps {
   onTabChange: (tab: string) => void;
 }
 
-const tabsByRole: Record<string, Array<{ id: string; icon: React.ComponentType }>> = {
+const tabsByRole: Record<string, Array<{ id: string; icon: React.ComponentType<{ className?: string }> }>> = {
   kitchen: [
     { id: 'orders', icon: ClipboardList },
     { id: 'history', icon: Clock },

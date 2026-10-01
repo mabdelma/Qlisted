@@ -2,39 +2,19 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Clock, Search, Filter } from 'lucide-react';
 import { orderApi, tableApi } from '../../lib/api';
+import type { OrderWithItems } from '../../lib/api/types';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { ErrorMessage } from '../ui/ErrorMessage';
 import { OrderDetails } from '../shared/OrderDetails';
 
-interface OrderItem {
-  id: string;
-  menuItemId: string;
-  name: string;
-  quantity: number;
-  unitPrice: number;
-  notes?: string;
-}
-
-interface OrderWithDetails {
-  id: string;
-  tableId?: string;
-  orderType: 'dine_in' | 'takeout' | 'delivery';
-  status: string;
-  paymentStatus: string;
-  total: number;
-  createdAt: string;
-  updatedAt: string;
-  items: OrderItem[];
-  waiterStaffId?: string;
-}
 
 export function OrderHistory() {
   const { state: authState } = useAuth();
   const slug = authState.tenant?.slug;
-  const [orders, setOrders] = useState<OrderWithDetails[]>([]);
+  const [orders, setOrders] = useState<OrderWithItems[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedOrder, setSelectedOrder] = useState<OrderWithDetails | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderWithItems | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [timeFilter, setTimeFilter] = useState<string>('all');
@@ -67,7 +47,7 @@ export function OrderHistory() {
           })
         )
       )
-        .filter((o): o is OrderWithDetails => o !== null)
+        .filter((o): o is OrderWithItems => o !== null)
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
       const completedOrders = ordersWithDetails.filter((o) =>

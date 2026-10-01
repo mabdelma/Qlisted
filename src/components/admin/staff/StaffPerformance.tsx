@@ -7,11 +7,21 @@ import { StaffList } from './StaffList';
 import { LoadingSpinner } from '../../ui/LoadingSpinner';
 import { ErrorMessage } from '../../ui/ErrorMessage';
 
-interface StaffMetrics {
+/**
+ * Per-staff metrics. Exported so the presentational components share one shape
+ * with the component that computes it instead of re-declaring it.
+ */
+export interface StaffMetrics {
   ordersHandled: number;
   avgServiceTime: number;
   totalSales: number;
   rating: number;
+  /**
+   * Cashier payment-method breakdown. Not currently computed — the UI that
+   * renders it is guarded on its presence, so it stays optional until a
+   * producer supplies it again.
+   */
+  paymentMethods?: { cash: number; card: number; wallet: number };
 }
 
 export function StaffPerformance() {

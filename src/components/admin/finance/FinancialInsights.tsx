@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { paymentApi, orderApi } from '../../../lib/api';
 import { useAuth } from '../../../contexts/AuthContext';
 import type { Payment, Order } from '../../../lib/api/types';
@@ -15,16 +15,9 @@ export function FinancialInsights() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [orders, setOrders] = useState<Record<string, Order>>({});
 
-  useEffect(() => {
+  const loadData = useCallback(async () => {
     if (!slug) return;
-    loadData();
-    const interval = setInterval(loadData, 300000);
-    return () => clearInterval(interval);
-  }, [slug]);
-
-  async function loadData() {
     try {
-      if (!slug) return;
       const [allPayments, allOrders] = await Promise.all([
         paymentApi.list(slug),
         orderApi.list(slug)
@@ -45,7 +38,14 @@ export function FinancialInsights() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [slug]);
+
+  useEffect(() => {
+    if (!slug) return;
+    loadData();
+    const interval = setInterval(loadData, 300000);
+    return () => clearInterval(interval);
+  }, [slug, loadData]);
 
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;

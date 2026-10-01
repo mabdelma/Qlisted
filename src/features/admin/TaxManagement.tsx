@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { taxCategoryApi } from '../../lib/api';
 import type { TaxCategory } from '../../lib/api/types';
@@ -18,7 +18,7 @@ export function TaxManagement() {
   const [isDefault, setIsDefault] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function loadCategories() {
+  const loadCategories = useCallback(async () => {
     if (!slug) return;
     try {
       const data = await taxCategoryApi.list(slug);
@@ -28,11 +28,11 @@ export function TaxManagement() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [slug]);
 
   useEffect(() => {
     loadCategories();
-  }, [slug]);
+  }, [loadCategories]);
 
   function openCreate() {
     setEditing(null);

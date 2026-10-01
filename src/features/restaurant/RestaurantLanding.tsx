@@ -47,7 +47,7 @@ export function RestaurantLanding() {
 
   if (loading) return <div className="min-h-screen bg-gray-50"><MenuSkeleton /></div>;
 
-  if (!slug || notFound) {
+  if (!slug || notFound || !tenant) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center p-8 max-w-md">

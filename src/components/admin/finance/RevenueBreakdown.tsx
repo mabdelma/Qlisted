@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { analyticsApi } from '../../../lib/api';
 import { useAuth } from '../../../contexts/AuthContext';
 import type { FinancialAnalytics } from '../../../lib/api/types';
@@ -19,16 +19,9 @@ export function RevenueBreakdown() {
     revenueByCategory: []
   });
 
-  useEffect(() => {
+  const loadData = useCallback(async () => {
     if (!slug) return;
-    loadData();
-    const interval = setInterval(loadData, 300000);
-    return () => clearInterval(interval);
-  }, [slug]);
-
-  async function loadData() {
     try {
-      if (!slug) return;
       const financial = await analyticsApi.financial(slug);
 
       setData({
@@ -42,7 +35,14 @@ export function RevenueBreakdown() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [slug]);
+
+  useEffect(() => {
+    if (!slug) return;
+    loadData();
+    const interval = setInterval(loadData, 300000);
+    return () => clearInterval(interval);
+  }, [slug, loadData]);
 
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;

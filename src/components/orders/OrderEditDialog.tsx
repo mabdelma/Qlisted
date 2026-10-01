@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { X } from 'lucide-react';
 import { orderApi } from '../../lib/api';
 import type { Order, OrderWithItems } from '../../lib/api/types';
@@ -16,11 +16,7 @@ export function OrderEditDialog({ order, onClose, onUpdate }: OrderEditDialogPro
   const [error, setError] = useState<string | null>(null);
   const [detail, setDetail] = useState<OrderWithItems | null>(null);
 
-  React.useEffect(() => {
-    loadDetail();
-  }, []);
-
-  async function loadDetail() {
+  const loadDetail = useCallback(async () => {
     if (!slug) return;
     try {
       const data = await orderApi.getDetail(slug, order.id);
@@ -29,7 +25,11 @@ export function OrderEditDialog({ order, onClose, onUpdate }: OrderEditDialogPro
       console.error('Failed to load order details:', err);
       setError('Failed to load order details');
     }
-  }
+  }, [slug, order.id]);
+
+  React.useEffect(() => {
+    loadDetail();
+  }, [loadDetail]);
 
   const statusOptions = [
     { value: 'pending', label: 'Pending' },

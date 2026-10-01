@@ -2,7 +2,7 @@ import { useState, useEffect, createContext, useReducer } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { menuApi, tableApi, orderApi, paymentApi } from '../../lib/api';
 import { useI18n } from '../../contexts/I18nContext';
-import type { MenuItem, MenuCategory, TableData, OrderWithItems } from '../../lib/api/types';
+import type { MenuItem, MenuCategory, TableData, Order } from '../../lib/api/types';
 import { StripePaymentForm } from './StripePaymentForm';
 import { CustomerAiWidget } from '../../components/ai/CustomerAiWidget';
 import { VoiceOrderWidget } from '../../components/ai/VoiceOrderWidget';
@@ -66,12 +66,13 @@ export function CustomerMenuPage() {
   const [table, setTable] = useState<TableData | null>(null);
   const [slug, setSlug] = useState<string>('');
   const [categories, setCategories] = useState<MenuCategory[]>([]);
+  const [items, setItems] = useState<MenuItem[]>([]);
   const [selectedCat, setSelectedCat] = useState<string>('');
   const [tab, setTab] = useState<'menu' | 'cart' | 'orders' | 'checkout'>('menu');
   const [cartState, dispatch] = useReducer(cartReducer, { items: [], total: 0 });
   const [placing, setPlacing] = useState(false);
   const [orderResult, setOrderResult] = useState<{ id: string; total: number } | null>(null);
-  const [tableOrders, setTableOrders] = useState<OrderWithItems[]>([]);
+  const [tableOrders, setTableOrders] = useState<Order[]>([]);
   const [addingId, setAddingId] = useState<string | null>(null);
   const [payingOrderId, setPayingOrderId] = useState<string | null>(null);
 
@@ -85,6 +86,7 @@ export function CustomerMenuPage() {
       })
       .then((menu) => {
         setCategories(menu.categories.filter((c) => c.type === 'main'));
+        setItems(menu.items);
         if (menu.categories.length > 0) setSelectedCat(menu.categories[0].id);
       })
       .catch(() => {});
@@ -127,6 +129,9 @@ export function CustomerMenuPage() {
       console.error('Payment failed:', err);
     }
   }
+
+  // The menu fetch supplies every item; the list below shows the selected category.
+  const filteredItems = items.filter((i) => !selectedCat || i.categoryId === selectedCat);
 
   const content = (
     <CartCtx.Provider value={{ state: cartState, dispatch }}>

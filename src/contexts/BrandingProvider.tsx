@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 
-export function lightenColor(hex: string, percent: number): string {
+function lightenColor(hex: string, percent: number): string {
   const num = parseInt(hex.replace('#', ''), 16);
   const R = Math.min(255, (num >> 16) + Math.round(2.55 * percent));
   const G = Math.min(255, ((num >> 8) & 0x00ff) + Math.round(2.55 * percent));

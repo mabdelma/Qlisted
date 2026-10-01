@@ -134,7 +134,7 @@ export function UserManagement() {
                 <select
                   id="user-role"
                   value={editingUser.role || 'waiter'}
-                  onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
+                  onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value as User['role'] })}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]"
                 >
                   <option value="waiter">{t('staff.waiter')}</option>

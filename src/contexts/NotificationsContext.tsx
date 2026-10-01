@@ -60,7 +60,7 @@ function notificationsReducer(state: NotificationsState, action: NotificationsAc
   }
 }
 
-function areOrdersEqual(a: { id: string; status: string; tableId: string }[], b: { id: string; status: string; tableId: string }[]) {
+function areOrdersEqual(a: { id: string; status: string; tableId?: string }[], b: { id: string; status: string; tableId?: string }[]) {
   if (a.length !== b.length) return false;
   return a.every((oa, i) => oa.id === b[i].id && oa.status === b[i].status);
 }
@@ -71,7 +71,7 @@ export function NotificationsProvider({
   formatNotification
 }: {
   children: React.ReactNode;
-  role: 'admin' | 'kitchen' | 'waiter';
+  role: 'super_admin' | 'admin' | 'manager' | 'waiter' | 'kitchen' | 'cashier' | 'customer';
   formatNotification?: (type: string, context: Record<string, string | number>) => string;
 }) {
   const { state: { tenant } } = useAuth();
@@ -81,7 +81,7 @@ export function NotificationsProvider({
     unreadCount: 0
   });
 
-  const knownOrders = useRef<{ id: string; status: string; tableId: string }[]>([]);
+  const knownOrders = useRef<{ id: string; status: string; tableId?: string }[]>([]);
 
   const checkForUpdates = useCallback(async () => {
     if (!slug) return;

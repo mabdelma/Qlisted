@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useI18n } from '../../contexts/I18nContext';
 import { giftCardApi } from '../../lib/api';
@@ -7,14 +7,15 @@ import { Plus, Gift, Ban } from 'lucide-react';
 
 export default function GiftCards() {
   const { t } = useI18n();
-  const { slug } = useAuth();
+  const { state: authState } = useAuth();
+  const slug = authState.tenant?.slug;
   const [cards, setCards] = useState<GiftCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ code: '', initialBalance: 0, expiresAt: '' });
   const [error, setError] = useState('');
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!slug) return;
     try {
       setLoading(true);
@@ -25,9 +26,9 @@ export default function GiftCards() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug]);
 
-  useEffect(() => { load(); }, [slug]);
+  useEffect(() => { load(); }, [load]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

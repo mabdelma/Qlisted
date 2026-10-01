@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { analyticsApi } from '../../../lib/api';
 import { useAuth } from '../../../contexts/AuthContext';
 import type { RevenueDataPoint } from '../../../lib/api/types';
@@ -10,14 +10,9 @@ export function RevenueChart() {
   const [data, setData] = useState<RevenueDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadData = useCallback(async () => {
     if (!slug) return;
-    loadData();
-  }, [slug]);
-
-  async function loadData() {
     try {
-      if (!slug) return;
       const result = await analyticsApi.revenue(slug);
       const chartData = result.daily
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
@@ -29,7 +24,12 @@ export function RevenueChart() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [slug]);
+
+  useEffect(() => {
+    if (!slug) return;
+    loadData();
+  }, [slug, loadData]);
 
   if (loading) return <div className="h-64 p-4 space-y-3"><Skeleton className="h-8 w-full" /><Skeleton className="h-32 w-full" /><Skeleton className="h-8 w-2/3" /></div>;
   

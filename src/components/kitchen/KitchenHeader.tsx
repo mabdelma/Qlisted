@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ChefHat, LogOut, Settings, User, ClipboardList, Clock } from 'lucide-react';
 import { NotificationsBell } from '../ui/NotificationsBell';
 import { useAuth } from '../../contexts/AuthContext';
@@ -63,9 +63,9 @@ export function KitchenHeader({ onProfileClick, onViewChange, activeView }: Kitc
               >
                 <span className="text-[#ccfbf1]">{state.user?.name}</span>
                 <div className="w-10 h-10 rounded-full bg-[#0f766e] flex items-center justify-center overflow-hidden">
-                  {state.user?.profileImage ? (
+                  {state.user?.avatar ? (
                     <img
-                      src={state.user.profileImage}
+                      src={state.user.avatar}
                       alt={state.user.name}
                       width="40"
                       height="40"

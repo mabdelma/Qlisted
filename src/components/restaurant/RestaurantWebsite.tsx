@@ -1,4 +1,3 @@
-import React from 'react';
 import { Routes, Route, Navigate } from 'react-router';
 import { RestaurantHeader } from './RestaurantHeader';
 import { Menu } from './Menu';

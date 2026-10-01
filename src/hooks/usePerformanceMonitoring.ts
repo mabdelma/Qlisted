@@ -25,8 +25,8 @@ export function usePerformanceMonitoring() {
       let clsValue = 0;
       const clsObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          if (!(entry as Record<string, unknown>).hadRecentInput) {
-            clsValue += (entry as Record<string, unknown>).value as number;
+          if (!(entry as unknown as Record<string, unknown>).hadRecentInput) {
+            clsValue += (entry as unknown as Record<string, unknown>).value as number;
           }
         }
         const rating = clsValue <= 0.1 ? 'good' : clsValue <= 0.25 ? 'needs-improvement' : 'poor';
@@ -36,13 +36,13 @@ export function usePerformanceMonitoring() {
 
       const interactionObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          const value = (entry as Record<string, unknown>).duration as number;
+          const value = (entry as unknown as Record<string, unknown>).duration as number;
           const rating = value <= 200 ? 'good' : value <= 500 ? 'needs-improvement' : 'poor';
-          reportMetric({ name: (entry as Record<string, unknown>).entryType === 'first-input' ? 'FID' : 'INP', value: Math.round(value), rating });
+          reportMetric({ name: (entry as unknown as Record<string, unknown>).entryType === 'first-input' ? 'FID' : 'INP', value: Math.round(value), rating });
         }
       });
       interactionObserver.observe({ type: 'first-input', buffered: true });
-      interactionObserver.observe({ type: 'event', durationThreshold: 100, buffered: true });
+      interactionObserver.observe({ type: 'event', durationThreshold: 100, buffered: true } as PerformanceObserverInit);
 
       return () => {
         lcpObserver.disconnect();
@@ -56,7 +56,7 @@ export function usePerformanceMonitoring() {
 }
 
 function reportMetric(metric: WebVitalMetric) {
-  if (process.env.NODE_ENV === 'development') {
+  if (import.meta.env.DEV) {
     console.debug(`[Web Vital] ${metric.name}: ${metric.value} (${metric.rating})`);
   }
 }

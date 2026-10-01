@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { menuApi } from '../../lib/api';
 import { useI18n } from '../../contexts/I18nContext';
@@ -18,11 +18,7 @@ export function Menu() {
   const [selectedMainCategory, setSelectedMainCategory] = useState<string>('');
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>('');
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     try {
       const data = await menuApi.getFullMenu(slug || '');
 
@@ -52,7 +48,11 @@ export function Menu() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [slug, t]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router';
 import { useI18n } from '../../contexts/I18nContext';
 import { orderApi } from '../../lib/api';
@@ -21,7 +21,7 @@ export function OrderTracking() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  async function fetchOrder() {
+  const fetchOrder = useCallback(async () => {
     if (!slug || !orderId) return;
     try {
       const data = await orderApi.trackOrder(slug, orderId);
@@ -32,13 +32,13 @@ export function OrderTracking() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [slug, orderId, t]);
 
   useEffect(() => {
     fetchOrder();
     const interval = setInterval(fetchOrder, 10000);
     return () => clearInterval(interval);
-  }, [slug, orderId]);
+  }, [fetchOrder]);
 
   if (loading) {
     return (

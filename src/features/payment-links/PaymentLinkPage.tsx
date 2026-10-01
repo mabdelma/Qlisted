@@ -103,6 +103,7 @@ export function PaymentLinkPage() {
           <div className="bg-gray-50 rounded-lg p-4">
             <Elements stripe={getStripe()!}>
               <StripePaymentForm
+                stripePromise={getStripe()}
                 slug={link.tenantSlug}
                 orderId={link.orderId}
                 amount={link.amount}
