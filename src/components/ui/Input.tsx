@@ -39,6 +39,11 @@ export function Input({
         )}
         <input
           id={inputId}
+          // Default to a real text input. Without an explicit type the element
+          // behaves as text but carries no type attribute, so `input[type=text]`
+          // selectors (and some autofill heuristics) never match it.
+          type="text"
+
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           className={`w-full rounded-lg border bg-white px-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700 ${

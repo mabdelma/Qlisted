@@ -66,13 +66,13 @@ test.describe('Customer ordering flow', () => {
     const increaseBtn = page.locator('button[aria-label="Increase quantity"]').first();
     await expect(increaseBtn).toBeVisible();
 
-    const addToCartBtn = page.locator('button', { hasText: 'Add to Cart' });
+    const addToCartBtn = page.locator('button').filter({ hasText: 'Add to Cart' }).filter({ visible: true });
     await expect(addToCartBtn).toBeVisible();
 
     const textarea = page.locator('textarea');
     await expect(textarea).toBeVisible();
 
-    const backBtn = page.locator('button', { hasText: 'Back' });
+    const backBtn = page.locator('button').filter({ hasText: 'Back' }).filter({ visible: true });
     await expect(backBtn).toBeVisible();
   });
 
@@ -103,7 +103,7 @@ test.describe('Customer ordering flow', () => {
     const textarea = page.locator('textarea');
     await textarea.fill('No onions please');
 
-    const addToCartBtn = page.locator('button', { hasText: 'Add to Cart' });
+    const addToCartBtn = page.locator('button').filter({ hasText: 'Add to Cart' }).filter({ visible: true });
     await addToCartBtn.click();
     await page.waitForTimeout(300);
 
@@ -189,7 +189,7 @@ test.describe('Customer ordering flow', () => {
     await page.goto(`${BASE}/cart`);
     await page.waitForTimeout(500);
 
-    const clearBtn = page.locator('button', { hasText: 'Clear Cart' });
+    const clearBtn = page.locator('button').filter({ hasText: 'Clear Cart' }).filter({ visible: true });
     await clearBtn.click();
     await page.waitForTimeout(300);
 

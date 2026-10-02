@@ -10,7 +10,7 @@ test.describe('Checkout flow', () => {
     const emptyMsg = page.locator('text=Cart is empty');
     await expect(emptyMsg).toBeVisible({ timeout: 10000 });
 
-    const browseBtn = page.locator('button', { hasText: 'Menu' });
+    const browseBtn = page.locator('button').filter({ hasText: 'Menu' }).filter({ visible: true });
     await expect(browseBtn).toBeVisible();
   });
 
@@ -62,7 +62,7 @@ test.describe('Checkout flow', () => {
     await page.goto(`${BASE}/checkout`);
     await page.waitForTimeout(500);
 
-    const orderBtn = page.locator('button', { hasText: 'Process Order' });
+    const orderBtn = page.locator('button').filter({ hasText: 'Process Order' }).filter({ visible: true });
     await expect(orderBtn).toBeVisible({ timeout: 5000 });
     await expect(orderBtn).toContainText('$');
   });
@@ -116,7 +116,7 @@ test.describe('Checkout flow', () => {
     await page.waitForTimeout(500);
     expect(page.url()).toContain('/checkout');
 
-    const backBtn = page.locator('button', { hasText: 'Back' }).first();
+    const backBtn = page.locator('button').filter({ hasText: 'Back' }).filter({ visible: true }).first();
     await backBtn.click();
     await page.waitForTimeout(500);
     expect(page.url()).toContain('/cart');
