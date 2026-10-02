@@ -14,9 +14,14 @@ function keyGenerator(c: Context): string {
 
 // Each limiter gets its own default MemoryStore (omit `store`), so the different
 // windows/limits don't share counters.
+//
+// RATE_LIMIT_FACTOR scales every limit. It exists for the E2E suite, which drives
+// ~90 tests from a single IP and otherwise starts collecting 429s that masquerade
+// as product failures. Leave it unset in production, where the factor is 1.
+const FACTOR = Math.max(1, Number(process.env.RATE_LIMIT_FACTOR) || 1);
 export const generalLimiter = rateLimiter({
   windowMs: 60 * 1000,
-  limit: 100,
+  limit: 100 * FACTOR,
   standardHeaders: 'draft-7',
   keyGenerator,
   message: { error: 'Too many requests, please try again later' },
@@ -25,7 +30,7 @@ export const generalLimiter = rateLimiter({
 
 export const authLimiter = rateLimiter({
   windowMs: 60 * 1000,
-  limit: 20,
+  limit: 20 * FACTOR,
   standardHeaders: 'draft-7',
   keyGenerator,
   message: { error: 'Too many login attempts, please try again later' },
@@ -34,7 +39,7 @@ export const authLimiter = rateLimiter({
 
 export const publicLimiter = rateLimiter({
   windowMs: 60 * 1000,
-  limit: 60,
+  limit: 60 * FACTOR,
   standardHeaders: 'draft-7',
   keyGenerator,
   message: { error: 'Too many requests, please try again later' },
@@ -43,7 +48,7 @@ export const publicLimiter = rateLimiter({
 
 export const paymentLimiter = rateLimiter({
   windowMs: 60 * 1000,
-  limit: 10,
+  limit: 10 * FACTOR,
   standardHeaders: 'draft-7',
   keyGenerator,
   message: { error: 'Too many payment requests, please try again later' },
@@ -52,7 +57,7 @@ export const paymentLimiter = rateLimiter({
 
 export const pointsLimiter = rateLimiter({
   windowMs: 60 * 1000,
-  limit: 10,
+  limit: 10 * FACTOR,
   standardHeaders: 'draft-7',
   keyGenerator,
   message: { error: 'Too many requests, please try again later' },
@@ -63,7 +68,7 @@ export const pointsLimiter = rateLimiter({
 // so a scripted client can't burn the operator's API budget.
 export const aiLimiter = rateLimiter({
   windowMs: 60 * 1000,
-  limit: 20,
+  limit: 20 * FACTOR,
   standardHeaders: 'draft-7',
   keyGenerator,
   message: { error: 'Too many requests, please try again later' },
@@ -73,7 +78,7 @@ export const aiLimiter = rateLimiter({
 // Voice sessions mint an expensive OpenAI Realtime token — keep it very tight.
 export const voiceLimiter = rateLimiter({
   windowMs: 60 * 1000,
-  limit: 5,
+  limit: 5 * FACTOR,
   standardHeaders: 'draft-7',
   keyGenerator,
   message: { error: 'Too many voice requests, please try again later' },

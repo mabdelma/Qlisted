@@ -159,6 +159,9 @@ jobs:
           JWT_SECRET: test-secret
           PORT: 3001
           CORS_ORIGIN: http://localhost:4173
+          # The whole suite hits the API from one IP; at production limits the
+          # later specs collect 429s that look like product failures.
+          RATE_LIMIT_FACTOR: "100"
       # `vite preview` serves dist/, which this job never produced — the frontend
       # job already built it, so reuse that artifact instead of rebuilding.
       # Without this the preview served nothing and every page-level test failed.
