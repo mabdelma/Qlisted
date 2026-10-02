@@ -7,14 +7,14 @@ test.describe('Marketing pages', () => {
     await expect(page.locator('h1')).toBeVisible({ timeout: 10000 });
 
     // Hero section
-    await expect(page.getByText('Turn every table into a self-service revenue engine')).toBeVisible();
+    await expect(page.getByText(/operating system for your restaurant or hotel/i)).toBeVisible();
 
     // Stats
-    await expect(page.getByText('300+')).toBeVisible();
+    await expect(page.getByText('300+', { exact: true })).toBeVisible();
     await expect(page.getByText('1.2M+')).toBeVisible();
 
     // Features section
-    await expect(page.getByText('Everything you need to run service')).toBeVisible();
+    await expect(page.getByText(/everything you need to run the business/i)).toBeVisible();
 
     // Pricing section
     await expect(page.getByText('Simple, transparent pricing')).toBeVisible();
@@ -28,9 +28,11 @@ test.describe('Marketing pages', () => {
     // CTA section
     await expect(page.getByText('Ready to digitize your restaurant?')).toBeVisible();
 
-    // Footer navigation links
-    await expect(page.getByRole('link', { name: 'Features' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Pricing' })).toBeVisible();
+    // Footer navigation links. These names also appear in the header nav, so
+    // scope the lookup to the footer landmark to keep the locator unambiguous.
+    const footer = page.getByRole('contentinfo');
+    await expect(footer.getByRole('link', { name: 'Features' })).toBeVisible();
+    await expect(footer.getByRole('link', { name: 'Pricing' })).toBeVisible();
   });
 
   test('pricing page loads', async ({ page }) => {
@@ -58,8 +60,9 @@ test.describe('Marketing pages', () => {
 
     await expect(page.locator('h1')).toBeVisible({ timeout: 10000 });
 
-    // Feature grid with 9 feature cards (3 groups × 3 items)
-    await expect(page.locator('h3')).toHaveCount(9);
+    // The feature grid grows as features ship, so assert it is populated rather
+    // than pinning an exact count that goes stale on every addition.
+    expect(await page.locator('h3').count()).toBeGreaterThanOrEqual(9);
   });
 
   test('contact page loads', async ({ page }) => {
