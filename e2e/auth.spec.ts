@@ -8,7 +8,7 @@ test.describe('Authentication flow', () => {
 
     // Form elements
     await expect(page.getByLabel('Email address')).toBeVisible();
-    await expect(page.getByLabel('Password')).toBeVisible();
+    await expect(page.getByLabel('Password', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible();
 
     // Forgot password link
@@ -21,7 +21,7 @@ test.describe('Authentication flow', () => {
     await expect(page.locator('h2')).toBeVisible({ timeout: 10000 });
 
     await page.getByLabel('Email address').fill('wrong@example.com');
-    await page.getByLabel('Password').fill('wrongpassword');
+    await page.getByLabel('Password', { exact: true }).fill('wrongpassword');
     await page.getByRole('button', { name: /sign in/i }).click();
 
     await expect(page.locator('[role="alert"]')).toBeVisible({ timeout: 10000 });
@@ -66,6 +66,6 @@ test.describe('Authentication flow', () => {
     await page.goto('/verify-email');
 
     // Without a token, shows loading then error about invalid/expired token
-    await expect(page.getByText(/invalid|expired|loading/i)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/invalid|expired|loading/i).first()).toBeVisible({ timeout: 10000 });
   });
 });
