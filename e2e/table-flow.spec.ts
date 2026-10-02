@@ -32,7 +32,9 @@ test.describe('Customer ordering flow', () => {
     await secondCat.click();
     await page.waitForTimeout(300);
 
-    const activeCat = catButtons.locator('.bg-\\[\\#8B4513\\]');
+    // The chip exposes its state via aria-pressed; asserting on the brand
+    // colour broke when the palette moved from #8B4513 to the teal identity.
+    const activeCat = page.locator('button[aria-pressed="true"]');
     await expect(activeCat).toHaveCount(1);
   });
 
@@ -58,10 +60,10 @@ test.describe('Customer ordering flow', () => {
 
     expect(page.url()).toContain('/menu/');
 
-    await expect(page.locator('text=$')).toBeVisible({ timeout: 5000 });
-    const decreaseBtn = page.locator('button[aria-label="Decrease quantity"]');
+    await expect(page.locator('text=$').first()).toBeVisible({ timeout: 5000 });
+    const decreaseBtn = page.locator('button[aria-label="Decrease quantity"]').first();
     await expect(decreaseBtn).toBeVisible();
-    const increaseBtn = page.locator('button[aria-label="Increase quantity"]');
+    const increaseBtn = page.locator('button[aria-label="Increase quantity"]').first();
     await expect(increaseBtn).toBeVisible();
 
     const addToCartBtn = page.locator('button', { hasText: 'Add to Cart' });
@@ -94,7 +96,7 @@ test.describe('Customer ordering flow', () => {
     await firstItem.click();
     await page.waitForTimeout(500);
 
-    const increaseBtn = page.locator('button[aria-label="Increase quantity"]');
+    const increaseBtn = page.locator('button[aria-label="Increase quantity"]').first();
     await increaseBtn.click();
     await page.waitForTimeout(200);
 

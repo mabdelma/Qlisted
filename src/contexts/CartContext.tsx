@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer } from 'react';
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import type { MenuItem, ModifierSelection } from '../lib/api/types';
 
 interface CartItem {
@@ -121,8 +121,34 @@ function cartReducer(state: CartState, action: CartAction): CartState {
   }
 }
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(cartReducer, { items: [], total: 0 });
+/**
+ * The cart lives in sessionStorage so a guest who reloads the page — or whose
+ * phone reloads the tab mid-order — does not silently lose what they added.
+ * Scoped by `storageKey` (slug + table) so two tables never share a cart, and
+ * sessionStorage rather than localStorage so it ends with the browsing session.
+ */
+function readStored(key: string): CartState {
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return { items: [], total: 0 };
+    const parsed = JSON.parse(raw) as CartState;
+    if (!parsed || !Array.isArray(parsed.items)) return { items: [], total: 0 };
+    return parsed;
+  } catch {
+    return { items: [], total: 0 };
+  }
+}
+
+export function CartProvider({ children, storageKey = 'cart' }: { children: React.ReactNode; storageKey?: string }) {
+  const [state, dispatch] = useReducer(cartReducer, storageKey, readStored);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(storageKey, JSON.stringify(state));
+    } catch {
+      // Private mode or a full quota: the cart still works for this page view.
+    }
+  }, [state, storageKey]);
 
   return (
     <CartContext.Provider value={{ state, dispatch }}>

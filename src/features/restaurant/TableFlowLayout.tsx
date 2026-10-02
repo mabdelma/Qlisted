@@ -191,8 +191,11 @@ function TableFlowInner() {
 }
 
 export function TableFlowLayout() {
+  // Scope the stored cart to this restaurant + table so two tabs on different
+  // tables never share one.
+  const { slug, tableId } = useParams();
   return (
-    <CartProvider>
+    <CartProvider storageKey={`cart:${slug ?? ''}:${tableId ?? ''}`}>
       <TableFlowInner />
     </CartProvider>
   );
