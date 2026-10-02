@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { signInAsAdmin, apiGet } from './helpers';
 
 test.describe('Loyalty & Promotions', () => {
   test('promo code input renders in checkout', async ({ page }) => {
@@ -23,59 +24,43 @@ test.describe('Loyalty & Promotions', () => {
   });
 
   test('promo campaigns list endpoint returns data for authed user', async ({ page }) => {
-    await page.goto('/signin');
-    await page.fill('input[type="email"]', 'admin@democafe.com');
-    await page.fill('input[type="password"]', 'password123');
-    await page.click('button[type="submit"]');
-    await page.waitForURL(/\/admin/, { timeout: 10000 });
+    await signInAsAdmin(page);
 
-    const response = await page.goto('/api/r/demo-cafe/campaigns');
-    expect(response?.status()).toBe(200);
-    const body = await response?.json();
+    const { status, body } = await apiGet<{ data: unknown[] }>(page, '/api/r/demo-cafe/campaigns');
+    expect(status).toBe(200);
     expect(body.data).toBeDefined();
     expect(Array.isArray(body.data)).toBe(true);
   });
 
   test('loyalty endpoint returns data for authed user', async ({ page }) => {
-    await page.goto('/signin');
-    await page.fill('input[type="email"]', 'admin@democafe.com');
-    await page.fill('input[type="password"]', 'password123');
-    await page.click('button[type="submit"]');
-    await page.waitForURL(/\/admin/, { timeout: 10000 });
+    await signInAsAdmin(page);
 
-    const response = await page.goto('/api/r/demo-cafe/loyalty');
-    expect(response?.status()).toBe(200);
-    const body = await response?.json();
+    const { status, body } = await apiGet<{ points: unknown; tier: unknown }>(page, '/api/r/demo-cafe/loyalty');
+    expect(status).toBe(200);
     expect(body.points).toBeDefined();
     expect(body.tier).toBeDefined();
     expect(body.rewards).toBeDefined();
   });
 
   test('promo code validation endpoint rejects invalid code', async ({ page }) => {
-    const response = await page.goto('/api/r/demo-cafe/promo/validate?code=INVALID');
-    expect(response?.status()).toBe(401);
+    // Unauthenticated: no token in localStorage, so the API must reject it.
+    // Load the app first so evaluate() runs on the real origin.
+    await page.goto('/');
+    const { status } = await apiGet(page, '/api/r/demo-cafe/promo/validate?code=INVALID');
+    expect(status).toBe(401);
   });
 
   test('promo validation with valid code returns discount', async ({ page }) => {
-    await page.goto('/signin');
-    await page.fill('input[type="email"]', 'admin@democafe.com');
-    await page.fill('input[type="password"]', 'password123');
-    await page.click('button[type="submit"]');
-    await page.waitForURL(/\/admin/, { timeout: 10000 });
+    await signInAsAdmin(page);
 
-    const response = await page.goto('/api/r/demo-cafe/promo/validate?code=WELCOME10&subtotal=50');
-    expect(response?.status()).toBe(200);
-    const body = await response?.json();
+    const { status, body } = await apiGet<Record<string, unknown>>(page, '/api/r/demo-cafe/promo/validate?code=WELCOME10&subtotal=50');
+    expect(status).toBe(200);
     expect(body.valid).toBe(true);
-    expect(body.discount).toBeGreaterThan(0);
+    expect(body.discount as number).toBeGreaterThan(0);
   });
 
   test('sidebar has promotions and loyalty tabs', async ({ page }) => {
-    await page.goto('/signin');
-    await page.fill('input[type="email"]', 'admin@democafe.com');
-    await page.fill('input[type="password"]', 'password123');
-    await page.click('button[type="submit"]');
-    await page.waitForURL(/\/admin/, { timeout: 10000 });
+    await signInAsAdmin(page);
 
     const sidebar = page.locator('nav');
     await expect(sidebar).toBeVisible();

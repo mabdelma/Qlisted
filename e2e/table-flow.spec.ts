@@ -1,8 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { logPageErrors } from './helpers';
 
 const BASE = '/r/demo-cafe/table/table-1';
 
 test.describe('Customer ordering flow', () => {
+  test.beforeEach(({ page }) => logPageErrors(page, 'table-flow'));
+
   test('menu page displays categories and items', async ({ page }) => {
     await page.goto(`${BASE}/menu`);
     await page.waitForTimeout(1000);
