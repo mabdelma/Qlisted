@@ -24,8 +24,8 @@ test.describe('Loyalty & Promotions', () => {
 
   test('promo campaigns list endpoint returns data for authed user', async ({ page }) => {
     await page.goto('/signin');
-    await page.fill('input[type="email"]', 'owner@demo.com');
-    await page.fill('input[type="password"]', 'pass123');
+    await page.fill('input[type="email"]', 'admin@democafe.com');
+    await page.fill('input[type="password"]', 'password123');
     await page.click('button[type="submit"]');
     await page.waitForURL(/\/admin/, { timeout: 10000 });
 
@@ -38,8 +38,8 @@ test.describe('Loyalty & Promotions', () => {
 
   test('loyalty endpoint returns data for authed user', async ({ page }) => {
     await page.goto('/signin');
-    await page.fill('input[type="email"]', 'owner@demo.com');
-    await page.fill('input[type="password"]', 'pass123');
+    await page.fill('input[type="email"]', 'admin@democafe.com');
+    await page.fill('input[type="password"]', 'password123');
     await page.click('button[type="submit"]');
     await page.waitForURL(/\/admin/, { timeout: 10000 });
 
@@ -58,8 +58,8 @@ test.describe('Loyalty & Promotions', () => {
 
   test('promo validation with valid code returns discount', async ({ page }) => {
     await page.goto('/signin');
-    await page.fill('input[type="email"]', 'owner@demo.com');
-    await page.fill('input[type="password"]', 'pass123');
+    await page.fill('input[type="email"]', 'admin@democafe.com');
+    await page.fill('input[type="password"]', 'password123');
     await page.click('button[type="submit"]');
     await page.waitForURL(/\/admin/, { timeout: 10000 });
 
@@ -72,8 +72,8 @@ test.describe('Loyalty & Promotions', () => {
 
   test('sidebar has promotions and loyalty tabs', async ({ page }) => {
     await page.goto('/signin');
-    await page.fill('input[type="email"]', 'owner@demo.com');
-    await page.fill('input[type="password"]', 'pass123');
+    await page.fill('input[type="email"]', 'admin@democafe.com');
+    await page.fill('input[type="password"]', 'password123');
     await page.click('button[type="submit"]');
     await page.waitForURL(/\/admin/, { timeout: 10000 });
 

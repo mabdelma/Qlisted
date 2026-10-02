@@ -3,8 +3,8 @@ import { test, expect } from '@playwright/test';
 test.describe('Admin Modifier Management', () => {
   test('modifier groups page renders with create form', async ({ page }) => {
     await page.goto('/signin');
-    await page.fill('input[type="email"]', 'owner@demo.com');
-    await page.fill('input[type="password"]', 'pass123');
+    await page.fill('input[type="email"]', 'admin@democafe.com');
+    await page.fill('input[type="password"]', 'password123');
     await page.click('button[type="submit"]');
     await page.waitForURL(/\/admin/, { timeout: 10000 });
 
@@ -14,8 +14,8 @@ test.describe('Admin Modifier Management', () => {
 
   test('modifier tab exists in sidebar', async ({ page }) => {
     await page.goto('/signin');
-    await page.fill('input[type="email"]', 'owner@demo.com');
-    await page.fill('input[type="password"]', 'pass123');
+    await page.fill('input[type="email"]', 'admin@democafe.com');
+    await page.fill('input[type="password"]', 'password123');
     await page.click('button[type="submit"]');
     await page.waitForURL(/\/admin/, { timeout: 10000 });
 
@@ -25,8 +25,8 @@ test.describe('Admin Modifier Management', () => {
 
   test('modifier groups API endpoint returns data', async ({ page }) => {
     await page.goto('/signin');
-    await page.fill('input[type="email"]', 'owner@demo.com');
-    await page.fill('input[type="password"]', 'pass123');
+    await page.fill('input[type="email"]', 'admin@democafe.com');
+    await page.fill('input[type="password"]', 'password123');
     await page.click('button[type="submit"]');
     await page.waitForURL(/\/admin/, { timeout: 10000 });
 
@@ -38,8 +38,8 @@ test.describe('Admin Modifier Management', () => {
 
   test('menu item modifiers endpoint returns array', async ({ page }) => {
     await page.goto('/signin');
-    await page.fill('input[type="email"]', 'owner@demo.com');
-    await page.fill('input[type="password"]', 'pass123');
+    await page.fill('input[type="email"]', 'admin@democafe.com');
+    await page.fill('input[type="password"]', 'password123');
     await page.click('button[type="submit"]');
     await page.waitForURL(/\/admin/, { timeout: 10000 });
 
