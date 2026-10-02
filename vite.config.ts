@@ -56,8 +56,14 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
-        navigateFallback: '/offline.html',
-        navigateFallbackAllowlist: [/^\/r\//, /^\/$/],
+        // Navigations must fall back to the SPA shell so client-side routes
+        // (/r/:slug/table/:token/...) resolve. This previously pointed at
+        // offline.html with an allowlist that *included* /r/, so once the
+        // service worker was active every guest route was served the offline
+        // page from precache regardless of network state. offline.html stays
+        // precached for genuine offline navigation.
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api\//, /^\/uploads\//],
         importScripts: ['push-handler.js'],
         runtimeCaching: [
           {

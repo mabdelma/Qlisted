@@ -145,9 +145,6 @@ jobs:
         env:
           DATABASE_URL: postgresql://qcart:qcart@localhost:5432/qcart
           REDIS_URL: redis://localhost:6379
-          # The e2e specs address the demo table at /r/demo-cafe/table/table-1,
-          # so the seeded QR token has to be this exact value.
-          SEED_QR_TOKEN: table-1
       - name: Start API server
         run: |
           cd server && node dist/index.js &
