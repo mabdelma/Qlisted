@@ -112,7 +112,10 @@ async function seed() {
     },
   ]);
 
-  const qrToken = crypto.randomBytes(16).toString('hex');
+  // The QR token is what makes a table's ordering link unguessable, so it is
+  // random by default. SEED_QR_TOKEN pins it to a known value so the E2E suite
+  // can address the demo table by a stable URL. Only ever set in CI.
+  const qrToken = process.env.SEED_QR_TOKEN || crypto.randomBytes(16).toString('hex');
   await db.insert(schema.tables).values({
     id: uuid(), tenantId, number: 1, capacity: 4, qrToken,
   });
