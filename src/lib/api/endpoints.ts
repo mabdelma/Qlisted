@@ -39,6 +39,11 @@ export const adminApi = {
     api.put<{ success: boolean }>(`/admin/tenants/${tenantId}/status`, { isActive }),
   getTenantUsage: (tenantId: string) => api.get<TenantUsage>(`/admin/tenants/${tenantId}/usage`),
   listUsers: () => api.get<PlatformUser[]>('/admin/users'),
+  /** Grant or revoke platform super-admin. Revoking needs a tenant to land in. */
+  setSuperAdmin: (
+    userId: string,
+    body: { grant: boolean; tenantId?: string; role?: 'admin' | 'manager' | 'waiter' | 'kitchen' | 'cashier' },
+  ) => api.post<{ success: boolean; role: string }>(`/admin/users/${userId}/super-admin`, body),
   listLeads: () => api.get<Lead[]>('/admin/leads'),
   analyticsTimeseries: () => api.get<{ series: TimePoint[] }>('/admin/analytics/timeseries'),
   listAuditLogs: () => api.get<AuditLog[]>('/admin/audit-logs'),

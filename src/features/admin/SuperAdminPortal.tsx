@@ -33,6 +33,10 @@ export function SuperAdminPortal() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [series, setSeries] = useState<TimePoint[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  // Revoking super admin needs somewhere for the user to land, so the row
+  // expands into a tenant + role picker rather than silently orphaning them.
+  const [revoking, setRevoking] = useState<{ userId: string; tenantId: string; role: string } | null>(null);
+  const [roleError, setRoleError] = useState('');
   const [query, setQuery] = useState('');
   const [userQuery, setUserQuery] = useState('');
   const [selected, setSelected] = useState<Row | null>(null);
@@ -172,6 +176,24 @@ export function SuperAdminPortal() {
     { label: 'Bookings', value: analytics?.bookings ?? 0, icon: CalendarCheck },
     { label: 'Growth', value: analytics ? `${growthIcon} ${Math.abs(analytics.monthlyGrowth)}%` : '—', icon: TrendingUp, valueClass: growthColor },
   ];
+
+  async function setSuperAdmin(userId: string, grant: boolean, tenantId?: string, role?: string) {
+    setRoleError('');
+    setBusyId(userId);
+    try {
+      await adminApi.setSuperAdmin(userId, {
+        grant,
+        ...(tenantId ? { tenantId } : {}),
+        ...(role ? { role: role as 'admin' | 'manager' | 'waiter' | 'kitchen' | 'cashier' } : {}),
+      });
+      setRevoking(null);
+      setUsers(await adminApi.listUsers());
+    } catch (e) {
+      setRoleError((e as { message?: string })?.message || 'Could not change platform role');
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   const nav: { id: Section; label: string; icon: typeof ShieldCheck }[] = [
     { id: 'overview', label: 'Overview', icon: ShieldCheck },
@@ -373,11 +395,12 @@ export function SuperAdminPortal() {
                     className="w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm focus:border-[#0f766e] focus:ring-1 focus:ring-[#0f766e] focus:outline-none" />
                 </div>
               </div>
+              {roleError && <p role="alert" className="px-6 py-2 text-sm text-red-600">{roleError}</p>}
               {users.length === 0 ? <p className="p-6 text-gray-500">Loading…</p> : (
                 <div className="overflow-x-auto"><table className="w-full text-sm">
                   <thead className="bg-gray-50 text-gray-500 text-left"><tr>
                     <th className="px-6 py-3 font-medium">Name</th><th className="px-6 py-3 font-medium">Email</th>
-                    <th className="px-6 py-3 font-medium">Role</th><th className="px-6 py-3 font-medium">Restaurant</th><th className="px-6 py-3 font-medium">Status</th>
+                    <th className="px-6 py-3 font-medium">Role</th><th className="px-6 py-3 font-medium">Venue</th><th className="px-6 py-3 font-medium">Status</th><th className="px-6 py-3 font-medium">Platform role</th>
                   </tr></thead>
                   <tbody className="divide-y divide-gray-100">
                     {filteredUsers.map((u) => (
@@ -387,6 +410,45 @@ export function SuperAdminPortal() {
                         <td className="px-6 py-3"><span className="px-2 py-0.5 rounded-full text-xs bg-[#ccfbf1] text-[#1e3a5f]">{u.role}</span></td>
                         <td className="px-6 py-3 text-gray-500">{u.tenantName || (u.role === 'super_admin' ? '— platform —' : '—')}</td>
                         <td className="px-6 py-3">{statusPill(u.isActive)}</td>
+                        <td className="px-6 py-3">
+                          {u.id === state.user?.id ? (
+                            <span className="text-xs text-gray-400">you</span>
+                          ) : u.role === 'super_admin' ? (
+                            revoking?.userId === u.id ? (
+                              <div className="flex flex-wrap items-center gap-2">
+                                <select aria-label="Target venue" value={revoking.tenantId}
+                                  onChange={(e) => setRevoking({ ...revoking, tenantId: e.target.value })}
+                                  className="rounded border border-gray-300 px-2 py-1 text-xs">
+                                  <option value="">Venue…</option>
+                                  {rows.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                                </select>
+                                <select aria-label="New role" value={revoking.role}
+                                  onChange={(e) => setRevoking({ ...revoking, role: e.target.value })}
+                                  className="rounded border border-gray-300 px-2 py-1 text-xs">
+                                  {['admin', 'manager', 'waiter', 'kitchen', 'cashier'].map((r) => <option key={r} value={r}>{r}</option>)}
+                                </select>
+                                <button type="button" disabled={!revoking.tenantId || busyId === u.id}
+                                  onClick={() => setSuperAdmin(u.id, false, revoking.tenantId, revoking.role)}
+                                  className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50">
+                                  {busyId === u.id ? 'Saving…' : 'Confirm'}
+                                </button>
+                                <button type="button" onClick={() => { setRevoking(null); setRoleError(''); }}
+                                  className="text-xs text-gray-500 hover:text-gray-700">Cancel</button>
+                              </div>
+                            ) : (
+                              <button type="button" onClick={() => setRevoking({ userId: u.id, tenantId: '', role: 'admin' })}
+                                className="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50">
+                                Revoke super admin
+                              </button>
+                            )
+                          ) : (
+                            <button type="button" disabled={busyId === u.id}
+                              onClick={() => setSuperAdmin(u.id, true)}
+                              className="rounded bg-[#0f766e] px-2 py-1 text-xs font-medium text-white hover:bg-[#1e3a5f] disabled:opacity-50">
+                              {busyId === u.id ? 'Saving…' : 'Make super admin'}
+                            </button>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

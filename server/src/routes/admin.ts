@@ -348,6 +348,66 @@ admin.get('/admin/users', authMiddleware, requireRole('super_admin'), async (c) 
   return c.json(rows);
 });
 
+// ── Platform role management (super admin) ──────────────────────────────────
+// Granting super_admin is a privilege escalation, so it is guarded four ways:
+// only an existing super_admin may call it, the action is audit-logged, nobody
+// may change their own platform role (which would let one person lock everyone
+// else out or demote themselves by accident), and the last remaining super
+// admin can never be demoted.
+admin.post(
+  '/admin/users/:userId/super-admin',
+  authMiddleware,
+  requireRole('super_admin'),
+  auditLog('update', 'user_platform_role'),
+  zValidator('json', z.object({
+    grant: z.boolean(),
+    // Required when revoking: a non-super_admin must belong to a tenant, so the
+    // caller has to say where the demoted user lands rather than orphaning them.
+    tenantId: z.string().min(1).optional(),
+    role: z.enum(['admin', 'manager', 'waiter', 'kitchen', 'cashier']).optional(),
+  })),
+  async (c) => {
+    const actorId = c.get('userId') as string;
+    const userId = c.req.param('userId')!;
+    const { grant, tenantId, role } = c.req.valid('json');
+
+    if (userId === actorId) {
+      return c.json({ error: 'You cannot change your own platform role' }, 400);
+    }
+
+    const [target] = await db.select().from(schema.users).where(eq(schema.users.id, userId)).limit(1);
+    if (!target) return c.json({ error: 'User not found' }, 404);
+
+    if (grant) {
+      if (target.role === 'super_admin') return c.json({ error: 'Already a super admin' }, 400);
+      // A super admin belongs to no single tenant — clearing tenantId is what
+      // makes the cross-tenant guard in middleware/tenant.ts treat them as global.
+      await db.update(schema.users)
+        .set({ role: 'super_admin', tenantId: null })
+        .where(eq(schema.users.id, userId));
+      return c.json({ success: true, role: 'super_admin' });
+    }
+
+    if (target.role !== 'super_admin') return c.json({ error: 'User is not a super admin' }, 400);
+
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.users)
+      .where(eq(schema.users.role, 'super_admin'));
+    if (Number(count) <= 1) {
+      return c.json({ error: 'Cannot remove the last super admin' }, 400);
+    }
+    if (!tenantId || !role) {
+      return c.json({ error: 'tenantId and role are required when revoking super admin' }, 400);
+    }
+    const [tenant] = await db.select().from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
+    if (!tenant) return c.json({ error: 'Target tenant not found' }, 404);
+
+    await db.update(schema.users).set({ role, tenantId }).where(eq(schema.users.id, userId));
+    return c.json({ success: true, role });
+  },
+);
+
 // Leads / demo requests (super admin).
 admin.get('/admin/leads', authMiddleware, requireRole('super_admin'), async (c) => {
   const rows = await db.select().from(schema.demoRequests).orderBy(desc(schema.demoRequests.createdAt));
