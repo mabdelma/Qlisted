@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 // Hotel guest-facing flow smoke tests. Deterministic against the seeded demo
 // tenant: these pages render and respond correctly whether or not the tenant has

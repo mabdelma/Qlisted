@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test.describe('Branding & White Label Settings', () => {
   test('branding settings page loads for authenticated admin', async ({ page }) => {
@@ -23,9 +23,11 @@ test.describe('Branding & White Label Settings', () => {
   test('branding settings can show logo preview', async ({ page }) => {
     const BASE = '/r/demo-cafe/table/table-1';
     await page.goto(`${BASE}/bill`);
-    await expect(page.locator('h2')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h2').first()).toBeVisible({ timeout: 10000 });
 
-    // Verify the tenant name renders in the bill header
-    await expect(page.locator('text=QCart').or(page.locator('text=Demo'))).toBeVisible();
+    // The tenant name renders in the branded bill header. "QCart" is the old
+    // pre-rebrand name and a bare text match also hit the body copy, so anchor
+    // on the header banner.
+    await expect(page.getByRole('banner').getByText(/Demo/).first()).toBeVisible();
   });
 });

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test.describe('PWA capabilities', () => {
   test.beforeEach(async ({ page }) => {

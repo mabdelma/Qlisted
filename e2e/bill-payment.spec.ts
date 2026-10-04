@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 import { logPageErrors } from './helpers';
 
 const BASE = '/r/demo-cafe/table/table-1';

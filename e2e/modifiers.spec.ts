@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 import { signInAsAdmin, apiGet } from './helpers';
 
 test.describe('Admin Modifier Management', () => {

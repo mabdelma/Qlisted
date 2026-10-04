@@ -43,5 +43,13 @@ export default tseslint.config(
     rules: {
       'react-refresh/only-export-components': 'off',
     },
+  },
+  {
+    // Playwright specs are not React. The fixture API takes a callback named
+    // `use`, which the rules-of-hooks heuristic mistakes for a React hook.
+    files: ['e2e/**/*.ts'],
+    rules: {
+      'react-hooks/rules-of-hooks': 'off',
+    },
   }
 );
