@@ -15,6 +15,9 @@ export const tenants = pgTable('tenants', {
   email: text('email').notNull(),
   // What this operator runs — drives which features/nav they see.
   venueType: text('venue_type', { enum: ['restaurant', 'hotel', 'both'] }).notNull().default('restaurant'),
+  // The language the kitchen and reception actually work in. Guest notes written
+  // in anything else are translated into this before staff see them.
+  operatingLanguage: text('operating_language').notNull().default('en'),
   phone: text('phone'),
   address: text('address'),
   currency: text('currency').notNull().default('USD'),
@@ -228,6 +231,10 @@ export const orders = pgTable('orders', {
   paymentStatus: text('payment_status', { enum: ['unpaid', 'partially_paid', 'paid', 'refunded'] }).notNull().default('unpaid'),
   paidAmount: doublePrecision('paid_amount').notNull().default(0),
   notes: text('notes'),
+  // The guest's note rendered in the venue's operating language. Null when no
+  // translation was needed or the AI was unavailable — readers fall back to notes.
+  notesTranslated: text('notes_translated'),
+  notesLanguage: text('notes_language'),
   createdAt: text('created_at').notNull().default(sql`now()`),
   updatedAt: text('updated_at').notNull().default(sql`now()`),
   completedAt: text('completed_at'),
@@ -246,6 +253,7 @@ export const orderItems = pgTable('order_items', {
   isComp: boolean('is_comp').notNull().default(false),
   modifiers: text('modifiers'),
   notes: text('notes'),
+  notesTranslated: text('notes_translated'),
 });
 
 export const payments = pgTable('payments', {

@@ -287,7 +287,16 @@ export function OrdersDisplay() {
                             {item.quantity}
                           </span>
                           <span className="text-sm font-medium text-gray-800">{item.name}</span>
-                          {item.notes && <span className="text-xs text-gray-500 italic">({item.notes})</span>}
+                          {item.notes && (
+                            // Show the kitchen's language first, but never hide what the
+                            // guest actually wrote — a mistranslated allergy note is dangerous.
+                            <span className="text-xs text-gray-500 italic">
+                              ({item.notesTranslated || item.notes})
+                              {item.notesTranslated && (
+                                <span className="ms-1 text-gray-400 not-italic">· {item.notes}</span>
+                              )}
+                            </span>
+                          )}
                         </div>
                       ))}
                     </div>

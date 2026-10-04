@@ -6,6 +6,7 @@ interface OrderItemDisplay {
   quantity: number;
   unitPrice: number;
   notes?: string;
+  notesTranslated?: string | null;
 }
 
 interface OrderDetailsProps {
@@ -76,7 +77,13 @@ export function OrderDetails({ order, onClose }: OrderDetailsProps) {
                         </div>
                         {item.notes && (
                           <div className="mt-2 text-sm text-gray-600 bg-gray-50 p-2 rounded-md">
-                            <span className="font-medium">Note: </span>{item.notes}
+                            <span className="font-medium">Note: </span>
+                            {item.notesTranslated || item.notes}
+                            {item.notesTranslated && (
+                              // Reception sees their own language first, with the
+                              // guest's exact words kept underneath.
+                              <div className="mt-1 text-xs text-gray-400">{item.notes}</div>
+                            )}
                           </div>
                         )}
                       </div>

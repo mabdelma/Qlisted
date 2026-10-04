@@ -164,6 +164,10 @@ export interface Order {
   paymentStatus: 'unpaid' | 'partially_paid' | 'paid' | 'refunded';
   paidAmount?: number;
   notes?: string;
+  /** The guest's note in the venue's working language; null if none was needed. */
+  notesTranslated?: string | null;
+  /** Language the note was written in, for the "translated from" hint. */
+  notesLanguage?: string | null;
   createdAt: string;
   updatedAt: string;
   completedAt?: string;
@@ -179,6 +183,7 @@ export interface OrderItem {
   isComp?: boolean;
   modifiers?: string;
   notes?: string;
+  notesTranslated?: string | null;
 }
 
 export interface OrderWithItems extends Order {

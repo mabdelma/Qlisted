@@ -1,4 +1,5 @@
 import { db, schema } from '../db/index.js';
+import { translateNote } from './translationService.js';
 import { eq, and, sql } from 'drizzle-orm';
 import { v4 as uuid } from 'uuid';
 import { logger } from '../lib/logger.js';
@@ -89,7 +90,29 @@ export async function createOrder(tenantId: string, input: CreateOrderInput) {
     notes: input.notes || null,
   });
 
-  const orderItems = input.items.map((item) => ({
+  // Language bridge: render the guest's notes in the venue's working language
+  // before the kitchen or reception sees them. Best-effort by design — every
+  // call degrades to null and staff read the original, so a slow or
+  // unconfigured provider can never stop an order reaching the pass.
+  const [venue] = await db
+    .select({ lang: schema.tenants.operatingLanguage })
+    .from(schema.tenants)
+    .where(eq(schema.tenants.id, tenantId))
+    .limit(1);
+  const target = venue?.lang || 'en';
+
+  const [orderNote, ...itemNotes] = await Promise.all([
+    translateNote(input.notes, target),
+    ...input.items.map((i) => translateNote(i.notes, target)),
+  ]);
+
+  if (orderNote.text) {
+    await db.update(schema.orders)
+      .set({ notesTranslated: orderNote.text, notesLanguage: orderNote.sourceLanguage })
+      .where(eq(schema.orders.id, orderId));
+  }
+
+  const orderItems = input.items.map((item, idx) => ({
     id: uuid(),
     orderId,
     menuItemId: item.menuItemId,
@@ -97,6 +120,7 @@ export async function createOrder(tenantId: string, input: CreateOrderInput) {
     quantity: item.quantity,
     unitPrice: item.unitPrice,
     notes: item.notes,
+    notesTranslated: itemNotes[idx]?.text ?? null,
     modifiers: item.modifiers,
   }));
 
