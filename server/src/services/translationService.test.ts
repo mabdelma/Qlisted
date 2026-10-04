@@ -3,10 +3,21 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 // A single mutable handler the fake OpenAI client defers to, so each test can
 // decide how the provider behaves.
 let completionImpl: () => Promise<unknown>;
+// The per-request options of the most recent call. Mocking the SDK means its
+// real retry machinery never runs, so the only way to pin the latency bound is
+// to assert on what we hand it.
+let lastRequestOptions: Record<string, unknown> | undefined;
 
 vi.mock('openai', () => ({
   default: class {
-    chat = { completions: { create: () => completionImpl() } };
+    chat = {
+      completions: {
+        create: (_body: unknown, options?: Record<string, unknown>) => {
+          lastRequestOptions = options;
+          return completionImpl();
+        },
+      },
+    };
   },
 }));
 
@@ -64,6 +75,20 @@ describe('translationService', () => {
   it('degrades when the reply is JSON without a usable text field', async () => {
     completionImpl = async () => reply(JSON.stringify({ language: 'es' }));
     expect((await translateNote('sin cebolla', 'English')).text).toBeNull();
+  });
+
+  // Regression guard with real teeth: the SDK retries twice by default
+  // (maxRetries ?? 2) and `timeout` is per attempt, so inheriting the default
+  // made the true worst case ~13.5s rather than 4s — on the path a guest's
+  // order waits on, before the kitchen ticket is even queued.
+  //
+  // This asserts the options we pass, not the SDK's behaviour, because mocking
+  // `openai` replaces the retry machinery entirely: none of the other tests in
+  // this file could ever have caught it.
+  it('allows the provider exactly one attempt, hard-bounded', async () => {
+    await translateNote('sin cebolla, por favor', 'English');
+    expect(lastRequestOptions).toMatchObject({ maxRetries: 0 });
+    expect(lastRequestOptions?.timeout).toBe(4000);
   });
 
   it('is disabled, and silent, with no provider configured', async () => {

@@ -72,7 +72,23 @@ export async function translateNote(text: string | null | undefined, targetLangu
         ],
         response_format: { type: 'json_object' },
       },
-      { timeout: TIMEOUT_MS },
+      // maxRetries: 0 is load-bearing, not a default worth inheriting.
+      //
+      // `timeout` is per ATTEMPT, and the OpenAI SDK retries twice by default
+      // (maxRetries ?? 2 in openai/client.js) — connection timeouts included,
+      // with jittered backoff between them. So the real worst case was about
+      // 3 x 4s + 1.5s backoff ~= 13.5s, not the 4s this file claims.
+      //
+      // That lands squarely on the critical path: createOrder awaits these
+      // translations BEFORE inserting order_items, emitting order_created and
+      // queueing the kitchen ticket. A slow provider would hold a guest's food
+      // order back by over ten seconds, which is exactly the "delayed past
+      // usefulness" failure rule 2 above exists to prevent.
+      //
+      // One attempt, hard-bounded. A transient 5xx costs this one translation
+      // and the kitchen reads the guest's original wording, which is the
+      // correct trade: the order is never the thing that waits.
+      { timeout: TIMEOUT_MS, maxRetries: 0 },
     );
 
     const raw = resp.choices[0]?.message?.content;
