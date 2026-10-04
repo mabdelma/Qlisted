@@ -1,6 +1,19 @@
 import { api } from './client';
 import type { Tenant, User, MenuCategory, MenuItem, TableData, Order, OrderWithItems, OrderItem, Payment, PaymentLinkResponse, AnalyticsSummary, RevenueDataPoint, FinancialAnalytics, PlatformAnalytics, TenantSummary, TenantWithStats, TenantUsage, HourlyTrafficPoint, PeakHour, CategoryPerformanceItem, TrendingItem, RecommendationItem, ModifierGroup, ModifierOption, TaxCategory, GiftCard, GiftCardRedemption, ConnectAccountStatus, PayoutInfo, TimeEntry, PnLReport, PlatformUser, Lead, TimePoint, AdminSubscription, AuditLog, Mailbox, MailAlias, StockItem, Supplier, PurchaseOrder, ReorderSuggestion, Shift, Customer, Room, RoomStatus, RoomStats, RoomBooking, Folio, HotelReport, WaitlistEntry, Reservation, Campaign, CampaignInput } from './types';
 
+/**
+ * Some list endpoints answer with a paginated envelope ({ data, page, limit,
+ * total }) while the client types — and every caller — expect a bare array.
+ * Where those disagreed, pages called .map/.filter on an object and crashed:
+ * the bill page went down with "u.filter is not a function" as soon as a table
+ * had any orders. Accept either shape so a server-side pagination change can
+ * never take a page down again.
+ */
+function asList<T>(res: T[] | { data?: T[] } | null | undefined): T[] {
+  if (Array.isArray(res)) return res;
+  return res?.data ?? [];
+}
+
 // Auth
 export const authApi = {
   login: (email: string, password: string, totpToken?: string) =>
@@ -159,10 +172,10 @@ export const tableApi = {
 export const orderApi = {
   create: (slug: string, data: { tableId?: string; customerName?: string; customerPhone?: string; orderType?: string; deliveryAddress?: string; deliveryFee?: number; estimatedPickupTime?: string; estimatedDeliveryTime?: string; items: { menuItemId: string; name: string; quantity: number; unitPrice: number; notes?: string; modifiers?: string }[]; notes?: string }) =>
     api.post<{ id: string; items: OrderItem[]; subtotal: number; tax: number; serviceCharge: number; deliveryFee: number; total: number; orderType: string }>(`/r/${slug}/orders`, data, { skipAuth: true }),
-  getForTable: (slug: string, tableId: string) =>
-    api.get<Order[]>(`/r/${slug}/table/${tableId}/orders`, { skipAuth: true }),
-  list: (slug: string, status?: string, orderType?: string) =>
-    api.get<Order[]>(`/r/${slug}/orders${status ? `?status=${status}` : ''}${orderType ? `${status ? '&' : '?'}orderType=${orderType}` : ''}`),
+  getForTable: async (slug: string, tableId: string): Promise<Order[]> =>
+    asList(await api.get<Order[] | { data: Order[] }>(`/r/${slug}/table/${tableId}/orders`, { skipAuth: true })),
+  list: async (slug: string, status?: string, orderType?: string): Promise<Order[]> =>
+    asList(await api.get<Order[] | { data: Order[] }>(`/r/${slug}/orders${status ? `?status=${status}` : ''}${orderType ? `${status ? '&' : '?'}orderType=${orderType}` : ''}`)),
   getDetail: (slug: string, orderId: string) =>
     api.get<OrderWithItems>(`/r/${slug}/orders/${orderId}`),
   trackOrder: (slug: string, orderId: string) =>
@@ -173,8 +186,8 @@ export const orderApi = {
     api.post<{ discountAmount: number; discountReason?: string; total: number }>(`/r/${slug}/orders/${orderId}/discount`, data),
   compItem: (slug: string, orderId: string, itemId: string, isComp: boolean) =>
     api.post<{ itemId: string; isComp: boolean; subtotal: number; total: number }>(`/r/${slug}/orders/${orderId}/items/${itemId}/comp`, { isComp }),
-  getByServer: (slug: string, serverId: string) =>
-    api.get<Order[]>(`/r/${slug}/orders/server/${serverId}`),
+  getByServer: async (slug: string, serverId: string): Promise<Order[]> =>
+    asList(await api.get<Order[] | { data: Order[] }>(`/r/${slug}/orders/server/${serverId}`)),
   updateItems: (slug: string, orderId: string, data: { addItems?: { menuItemId: string; name: string; quantity: number; unitPrice: number; notes?: string; modifiers?: string }[]; removeItemIds?: string[] }) =>
     api.patch<{ items: OrderItem[]; itemCount: number; subtotal: number; tax: number; serviceCharge: number; total: number }>(`/r/${slug}/orders/${orderId}/items`, data),
 };
@@ -199,8 +212,8 @@ export const paymentApi = {
     api.post<{ clientSecret: string; paymentId: string; amount: number }>(`/r/${slug}/payments/create-intent`, data, { skipAuth: true }),
   recordCash: (slug: string, data: { orderId: string; amount: number; tip?: number }) =>
     api.post<Payment>(`/r/${slug}/payments/cash`, data, { skipAuth: true }),
-  list: (slug: string) =>
-    api.get<Payment[]>(`/r/${slug}/payments`),
+  list: async (slug: string): Promise<Payment[]> =>
+    asList(await api.get<Payment[] | { data: Payment[] }>(`/r/${slug}/payments`)),
   getPaymentLink: (token: string) =>
     api.get<PaymentLinkResponse>(`/r/payment-links/${token}`, { skipAuth: true }),
   createLink: (slug: string, data: { amount: number; description?: string }) =>

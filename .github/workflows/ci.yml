@@ -147,7 +147,7 @@ jobs:
           REDIS_URL: redis://localhost:6379
       - name: Start API server
         run: |
-          cd server && node dist/index.js &
+          cd server && node dist/index.js > "$GITHUB_WORKSPACE/api.log" 2>&1 &
           for i in $(seq 1 60); do
             curl -sf http://localhost:3001/api/health >/dev/null && break
             sleep 1
@@ -187,6 +187,14 @@ jobs:
         with:
           name: playwright-screenshots
           path: test-results/
+          retention-days: 3
+      # The API runs in the background, so anything it logs after its own step
+      # finishes is lost. Capture it so a 500 can be traced to a stack.
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: api-log
+          path: api.log
           retention-days: 3
 
   lint:

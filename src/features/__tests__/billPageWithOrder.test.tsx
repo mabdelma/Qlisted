@@ -42,7 +42,7 @@ function mockFetch(): typeof fetch {
     else if (url.includes('/auth/refresh')) return { ok: false, status: 401, json: async () => ({}), text: async () => '' } as unknown as Response;
     else if (url.includes('/tenants/')) body = TENANT;
     else if (/\/orders\/[^/]+$/.test(url)) body = { ...ORDER, items: ORDER_ITEMS };
-    else if (url.includes('/orders')) body = [ORDER];
+    else if (url.includes('/orders')) body = { data: [ORDER], page: 1, limit: 20, total: 1 };
     else if (url.includes('/payments')) body = [];
     else if (url.includes('/table/')) body = { id: 'table-1', number: 1, capacity: 4, status: 'available', tenantSlug: 'demo-cafe', qrToken: 'table-1' };
     else if (url.includes('/menu')) body = { categories: [], items: [] };
