@@ -66,6 +66,11 @@ function mockFetch(role: Role): typeof fetch {
       body = { user: USERS[role], tenant: role === 'super_admin' ? null : TENANT };
     } else if (url.includes('/auth/refresh')) {
       return { ok: false, status: 401, json: async () => ({}), text: async () => '' } as unknown as Response;
+    } else if (url.includes('/admin/subscriptions')) {
+      body = {
+        plan: { id: 'starter', name: 'Starter', price: 29, usersLimit: 3, ordersLimit: 500, features: [] },
+        renewDate: '2026-12-01', billingHistory: [], usage: { users: 0, orders: 0 },
+      };
     } else if (url.includes('/admin/analytics')) {
       body = {
         activeTenants: 0,
@@ -106,8 +111,34 @@ function mockFetch(role: Role): typeof fetch {
         body = { points: 0, tier: 'bronze', lifetimePoints: 0, history: [], rewards: [] };
       } else if (url.includes('/analytics/revenue')) {
         body = { daily: [] };
+      } else if (url.includes('/analytics/summary')) {
+        body = {
+          todaysSales: 0, totalSales: 0, averagePreparationTime: 0,
+          activeTables: 0, totalTables: 0, delayedOrders: 0, pendingOrders: 0,
+          popularItems: [],
+        };
+      } else if (url.includes('/analytics/financial')) {
+        body = { dailyRevenue: 0, weeklyRevenue: 0, monthlyRevenue: 0, paymentMethods: {} };
+      } else if (url.includes('/reports/pnl')) {
+        body = {
+          start: null, end: null, grossRevenue: 0, tips: 0, refunds: 0, netRevenue: 0,
+          tax: 0, serviceCharge: 0, cogs: 0, grossProfit: 0, orderCount: 0,
+          avgOrderValue: 0, byMethod: [],
+        };
+      } else if (url.includes('/connect/balance')) {
+        body = { available: [], pending: [] };
+      } else if (url.includes('/analytics/insights')) {
+        body = {
+          forecast: [], forecast7Total: 0, lowStock: [], reorderCost: 0,
+          atRisk: [], topCustomers: [], narrative: '',
+        };
       } else if (url.includes('/analytics/')) {
         body = {};
+      } else if (url.includes('/inventory') || url.includes('/customers')) {
+        // These endpoints answer with a paginated envelope, not a bare array.
+        // Mocking them as [] hid a real crash: the pages call .filter/.map on
+        // the result, so a mismatch takes the whole route down.
+        body = { data: [] };
       } else if (url.includes('/orders') || url.includes('/payments')) {
         body = [];
       } else if (url.includes('/table/')) {
@@ -161,6 +192,12 @@ function unmountAll() {
     root!.unmount();
   }
 }
+
+beforeAll(() => {
+  if (!Element.prototype.scrollIntoView) {
+    Element.prototype.scrollIntoView = function scrollIntoView() { /* jsdom has no layout */ };
+  }
+});
 
 beforeAll(() => {
   (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -245,7 +282,13 @@ describe('Admin dashboard', () => {
     const { container, errors } = await mount(
       <Providers>
         <MemoryRouter initialEntries={[path]}>
-          <AdminPortal />
+          {/* AdminPortal declares relative routes ("customers", "inventory", …)
+              that are meant to nest under /admin/*. Mounting it bare made every
+              path resolve against "/" instead, so React Router matched nothing
+              and these tests asserted on an empty shell. */}
+          <Routes>
+            <Route path="/admin/*" element={<AdminPortal />} />
+          </Routes>
         </MemoryRouter>
       </Providers>,
     );

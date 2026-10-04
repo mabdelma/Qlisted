@@ -127,7 +127,7 @@ export function SubscriptionManagement() {
   if (loading) return <div className="text-center py-8 text-gray-500">{t('common.loading')}</div>;
   if (error) return <div className="bg-red-50 border-l-4 border-red-400 p-4 text-sm text-red-700">{error}</div>;
 
-  const currentPlanId = info?.plan.id || 'starter';
+  const currentPlanId = info?.plan?.id || 'starter';
 
   return (
     <div className="space-y-6">

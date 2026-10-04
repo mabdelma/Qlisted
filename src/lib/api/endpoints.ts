@@ -386,7 +386,8 @@ export const taxCategoryApi = {
 };
 
 export const inventoryApi = {
-  list: (slug: string) => api.get<StockItem[]>(`/r/${slug}/inventory`),
+  list: async (slug: string): Promise<StockItem[]> =>
+    asList(await api.get<StockItem[] | { data: StockItem[] }>(`/r/${slug}/inventory`)),
   create: (slug: string, data: { name: string; unit?: string; currentStock?: number; minStock?: number; costPerUnit?: number }) =>
     api.post<{ id: string }>(`/r/${slug}/inventory`, data),
   update: (slug: string, id: string, data: Partial<{ name: string; unit: string; currentStock: number; minStock: number; costPerUnit: number }>) =>
@@ -447,7 +448,8 @@ export const roomServiceApi = {
 };
 
 export const customerApi = {
-  list: (slug: string) => api.get<Customer[]>(`/r/${slug}/customers`),
+  list: async (slug: string): Promise<Customer[]> =>
+    asList(await api.get<Customer[] | { data: Customer[] }>(`/r/${slug}/customers`)),
   create: (slug: string, data: { name: string; email?: string; phone?: string }) =>
     api.post<{ id: string }>(`/r/${slug}/customers`, data),
   update: (slug: string, id: string, data: Partial<{ name: string; email: string; phone: string; notes: string }>) =>
