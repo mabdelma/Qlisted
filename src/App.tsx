@@ -65,6 +65,7 @@ const HOST_LANDING: Record<string, string> = {
   login: '/signin',         // login.qlisted.com
   central: '/super-admin',  // central.qlisted.com — platform console
   app: '/admin',            // app.qlisted.com — restaurant dashboard
+  admin: '/admin',          // admin.qlisted.com — restaurant dashboard (alias of app)
   ai: '/admin/assistant',   // ai.qlisted.com — AI copilot
 };
 
