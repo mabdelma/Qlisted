@@ -1,3 +1,4 @@
+import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures';
 import { logPageErrors } from './helpers';
 
@@ -142,42 +143,39 @@ test.describe('Bill and payment page', () => {
     }
   });
 
-  test('confirmation modal appears', async ({ page }) => {
+  // The seed guarantees an unpaid order on table 1, so the pay button must be
+  // there. These used to wrap their whole body in `if (payExists > 0)`, which
+  // meant that when the seed had no unpaid order the tests passed without
+  // asserting anything at all.
+  async function openPaymentConfirmation(page: Page) {
     await page.goto(`${BASE}/bill`);
-    await page.waitForTimeout(2000);
-
     const payBtn = page.locator('button', { hasText: /Pay full amount|Pay Now/ }).first();
-    const payExists = await payBtn.count();
+    await expect(payBtn).toBeVisible({ timeout: 15000 });
+    await payBtn.click();
 
-    if (payExists > 0) {
-      await payBtn.click();
-      await page.waitForTimeout(500);
+    const modal = page.locator('div[role="dialog"]');
+    await expect(modal).toBeVisible({ timeout: 5000 });
+    return modal;
+  }
 
-      const modal = page.locator('div[role="dialog"]');
-      await expect(modal).toBeVisible({ timeout: 5000 });
-    }
+  test('confirmation modal appears', async ({ page }) => {
+    await openPaymentConfirmation(page);
   });
 
   test('confirmation modal can be closed', async ({ page }) => {
-    await page.goto(`${BASE}/bill`);
-    await page.waitForTimeout(2000);
+    const modal = await openPaymentConfirmation(page);
 
-    const payBtn = page.locator('button', { hasText: /Pay full amount|Pay Now/ }).first();
-    const payExists = await payBtn.count();
+    // The shared Modal labels its close control "Close dialog". The old
+    // selector looked for "Close confirmation", which has never existed
+    // anywhere in the codebase — so this failed on a modal that closes fine.
+    await modal.getByRole('button', { name: 'Close dialog' }).click();
+    await expect(modal).not.toBeVisible();
+  });
 
-    if (payExists > 0) {
-      await payBtn.click();
-      await page.waitForTimeout(500);
-
-      const modal = page.locator('div[role="dialog"]');
-      await expect(modal).toBeVisible({ timeout: 5000 });
-
-      const closeBtn = page.locator('button[aria-label="Close confirmation"]').first();
-      await closeBtn.click();
-      await page.waitForTimeout(300);
-
-      await expect(modal).not.toBeVisible();
-    }
+  test('confirmation modal can be dismissed with Escape', async ({ page }) => {
+    const modal = await openPaymentConfirmation(page);
+    await page.keyboard.press('Escape');
+    await expect(modal).not.toBeVisible();
   });
 
   test('success state renders after payment', async ({ page }) => {

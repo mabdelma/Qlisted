@@ -145,9 +145,11 @@ jobs:
         env:
           DATABASE_URL: postgresql://qcart:qcart@localhost:5432/qcart
           REDIS_URL: redis://localhost:6379
-          # Pin the seeded table QR token and hotel room token so E2E can address
-          # them by stable URL (see server/src/db/seed.ts).
-          SEED_QR_TOKEN: e2e-qr-token-fixed
+          # Pin the hotel room service token so the in-room specs can address it
+          # by a stable URL. `npm run seed` runs server/seed.ts — NOT
+          # server/src/db/seed.ts, which nothing executes.
+          # There is no table equivalent: the specs address table 1 as
+          # /r/demo-cafe/table/table-1, so its token stays predictable.
           SEED_ROOM_TOKEN: e2e-room-token-fixed
       - name: Start API server
         run: |
