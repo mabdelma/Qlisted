@@ -6,6 +6,15 @@ on:
     types: [completed]
     branches: [main]
 
+# Two deploys must never overlap: they share one working tree on the VPS
+# (/var/www/qcart) and both `git checkout --`, sed and recreate the same
+# containers, so a second run can sed a file the first is already deploying.
+# cancel-in-progress is deliberately false — cancelling mid-deploy would leave
+# the stack half-swapped, which is worse than queueing.
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: qcart
@@ -19,7 +28,15 @@ jobs:
       contents: read
       packages: write
     steps:
+      # On a `workflow_run` event GITHUB_SHA is the tip of the default branch at
+      # the moment the event fires — NOT the commit CI actually tested. With a
+      # bare checkout, two merges landing close together mean CI run #1 finishing
+      # deploys merge #2's code, which no CI run has passed yet. Pin everything
+      # (checkout, image tags, the tags the VPS pulls) to workflow_run.head_sha
+      # so what ships is exactly what went green.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       # Required by the `cache-to: type=gha` on both builds below. The default
       # buildx driver is `docker`, which cannot export a cache at all ("Cache
@@ -66,7 +83,7 @@ jobs:
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ steps.repo.outputs.lc }}/api:latest
-            ${{ env.REGISTRY }}/${{ steps.repo.outputs.lc }}/api:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ steps.repo.outputs.lc }}/api:${{ github.event.workflow_run.head_sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -78,7 +95,7 @@ jobs:
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ steps.repo.outputs.lc }}/frontend:latest
-            ${{ env.REGISTRY }}/${{ steps.repo.outputs.lc }}/frontend:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ steps.repo.outputs.lc }}/frontend:${{ github.event.workflow_run.head_sha }}
           build-args: |
             VITE_STRIPE_KEY=${{ secrets.VITE_STRIPE_KEY }}
             VITE_API_URL=
@@ -88,6 +105,31 @@ jobs:
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # The seven microservices. Caddy routes the revenue path to these, not to
+      # the monolith, so a deploy that skipped them shipped nothing that
+      # matters: orders, payments, auth and the Stripe webhook all live here.
+      # Before this existed the running containers were from 2026-06-22 while
+      # `git pull` kept moving their SOURCE forward on the VPS — source and
+      # runtime drifting apart silently, with no way to tell from the outside.
+      #
+      # Build context is microservices/ for every one of them, because the
+      # Dockerfiles need the npm workspace root to link @qlisted/shared.
+      - name: Build and push microservice images
+        run: |
+          set -e
+          for svc in gateway auth catalog orders billing engagement notifications; do
+            echo "::group::$svc"
+            docker buildx build \
+              --file "microservices/services/$svc/Dockerfile" \
+              --tag "${{ env.REGISTRY }}/${{ steps.repo.outputs.lc }}/$svc:latest" \
+              --tag "${{ env.REGISTRY }}/${{ steps.repo.outputs.lc }}/$svc:${{ github.event.workflow_run.head_sha }}" \
+              --cache-from "type=gha,scope=$svc" \
+              --cache-to "type=gha,mode=max,scope=$svc" \
+              --push \
+              microservices
+            echo "::endgroup::"
+          done
 
       - name: Deploy to VPS via SSH
         uses: appleboy/ssh-action@v1
@@ -113,10 +155,23 @@ jobs:
               echo "::error::container name qcart-api is already used by $owner — aborting before touching the running stack"
               exit 1
             fi
-            sed -i "s|image:.*api:.*|image: ${{ env.REGISTRY }}/${{ steps.repo.outputs.lc }}/api:${{ github.sha }}|" docker-compose.vps.yml
-            sed -i "s|image:.*frontend:.*|image: ${{ env.REGISTRY }}/${{ steps.repo.outputs.lc }}/frontend:${{ github.sha }}|" docker-compose.vps.yml
+            sed -i "s|image:.*api:.*|image: ${{ env.REGISTRY }}/${{ steps.repo.outputs.lc }}/api:${{ github.event.workflow_run.head_sha }}|" docker-compose.vps.yml
+            sed -i "s|image:.*frontend:.*|image: ${{ env.REGISTRY }}/${{ steps.repo.outputs.lc }}/frontend:${{ github.event.workflow_run.head_sha }}|" docker-compose.vps.yml
             docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.vps.yml pull
             docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.vps.yml up -d --force-recreate --no-deps migrate
+            # `up -d` on a one-shot service returns as soon as the container has
+            # STARTED, so without this the new API was launched against a schema
+            # drizzle-kit was still rewriting — and a migration that exited
+            # non-zero was invisible, because starting it had succeeded. Block on
+            # the container and read its real exit code. --no-deps means compose
+            # will not wait on depends_on for us.
+            mid=$(docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.vps.yml ps -aq migrate)
+            mcode=$(docker wait "$mid")
+            if [ "$mcode" != "0" ]; then
+              echo "::error::migrate exited $mcode — aborting with the old API still serving"
+              docker logs --tail=80 "$mid"
+              exit 1
+            fi
             docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.vps.yml up -d --force-recreate --no-deps api qcart-frontend
             # Smoke test through nginx: require 10 consecutive healthy responses
             # from OUR API. If /api were still split across another stack's
@@ -135,4 +190,48 @@ jobs:
               docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.vps.yml logs --tail=50 api qcart-frontend
               exit 1
             fi
+
+            # ── The microservices: where the revenue path actually runs ──────
+            # Caddy sends orders, payments, auth and the Stripe webhook to
+            # qlisted-gateway, so until this block existed a "successful"
+            # deploy updated only the monolith fallback and the static bundle.
+            #
+            # Tag is passed as QLISTED_TAG, which the compose file interpolates
+            # — no sed, so nothing can mis-match and the file stays clean.
+            cd /var/www/qcart/microservices
+            export QLISTED_TAG="${{ github.event.workflow_run.head_sha }}"
+            SVC_COMPOSE="-f docker-compose.services.yml -f docker-compose.prod.yml"
+            docker compose --env-file ../.env.prod $SVC_COMPOSE pull
+            docker compose --env-file ../.env.prod $SVC_COMPOSE up -d --force-recreate --no-deps \
+              gateway auth catalog orders billing engagement notifications
+
+            # Each service must answer its own /health. The monolith smoke test
+            # above cannot see these at all — it probes qcart-frontend, which
+            # Caddy does not use for any of these routes.
+            for svc in gateway auth catalog orders billing engagement notifications; do
+              up=0
+              for i in $(seq 1 30); do
+                if docker exec "qlisted-$svc" node -e "fetch('http://127.0.0.1:8080/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" 2>/dev/null; then
+                  up=1; break
+                fi
+                sleep 2
+              done
+              if [ "$up" != "1" ]; then
+                echo "::error::qlisted-$svc never became healthy"
+                docker logs --tail=60 "qlisted-$svc" || true
+                exit 1
+              fi
+              echo "qlisted-$svc healthy"
+            done
+
+            # End to end through Caddy on the real hostname: this path is served
+            # by the gateway + catalog, so it fails if the cutover routes are
+            # broken even when every container reports healthy.
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 https://qlisted.com/api/r/demo-cafe/menu)
+            if [ "$code" != "200" ]; then
+              echo "::error::gateway route GET /api/r/demo-cafe/menu returned $code"
+              docker logs --tail=60 qlisted-gateway || true
+              exit 1
+            fi
+
             docker image prune -f

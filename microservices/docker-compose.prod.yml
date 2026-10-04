@@ -1,8 +1,23 @@
 # ─── Production overlay for the Qlisted services ─────────────────────────────
 # Runs the gateway + services on the VPS ALONGSIDE the monolith. They join the
 # monolith's network (qcart-prod_default) to reach Postgres + the monolith API,
-# and the shared `edge` network so Caddy can route to the gateway at cutover.
-# Nothing is in the live request path until Caddy is pointed at the gateway.
+# and the shared `edge` network so Caddy can route to the gateway.
+#
+# CUTOVER HAS HAPPENED — treat this stack as production. Caddy's qlisted.com
+# block routes the revenue path here, not to the monolith: POST
+# /api/r/:slug/orders, PATCH .../orders/:id/status, POST
+# .../payments/create-intent, POST /api/webhooks/stripe, POST /api/auth/{login,
+# register,forgot-password,reset-password,refresh,verify-email}, GET
+# /api/r/:slug/{menu,campaigns}, and subscription checkout/cancel. Only what
+# matches none of those falls through to qcart-frontend -> qcart-api.
+#
+# The previous version of this comment said nothing here was in the live
+# request path. It stayed long after that stopped being true, and is a large
+# part of why the monolith kept being mistaken for production.
+#
+# Images are pulled from the registry and pinned per commit by the Deploy
+# workflow, which exports QLISTED_TAG=<sha>. `latest` is a local convenience
+# default only — a deploy always pins.
 #
 #   docker compose -f docker-compose.services.yml -f docker-compose.prod.yml \
 #     --env-file .env up -d --build
@@ -16,16 +31,19 @@ networks:
 
 services:
   gateway:
+    image: "ghcr.io/mabdelma/qlisted/gateway:${QLISTED_TAG:-latest}"
     environment:
       MONOLITH_URL: "http://qcart-api:3001"
     networks: [qlisted-svc, edge, qcart-prod_default]
 
   catalog:
+    image: "ghcr.io/mabdelma/qlisted/catalog:${QLISTED_TAG:-latest}"
     environment:
       DATABASE_URL: "${DATABASE_URL:?set DATABASE_URL in .env}"
     networks: [qlisted-svc, qcart-prod_default]
 
   auth:
+    image: "ghcr.io/mabdelma/qlisted/auth:${QLISTED_TAG:-latest}"
     environment:
       DATABASE_URL: "${DATABASE_URL:-}"
       NOTIFICATIONS_URL: "${NOTIFICATIONS_URL:-http://qlisted-notifications:8080}"
@@ -33,6 +51,7 @@ services:
     networks: [qlisted-svc, qcart-prod_default]
 
   orders:
+    image: "ghcr.io/mabdelma/qlisted/orders:${QLISTED_TAG:-latest}"
     environment:
       DATABASE_URL: "${DATABASE_URL:-}"
       REDIS_URL: "${REDIS_URL:-redis://redis:6379}"
@@ -42,6 +61,7 @@ services:
     networks: [qlisted-svc, qcart-prod_default]
 
   billing:
+    image: "ghcr.io/mabdelma/qlisted/billing:${QLISTED_TAG:-latest}"
     environment:
       DATABASE_URL: "${DATABASE_URL:-}"
       STRIPE_SECRET_KEY: "${STRIPE_SECRET_KEY:-}"
@@ -54,11 +74,13 @@ services:
     networks: [qlisted-svc, qcart-prod_default]
 
   engagement:
+    image: "ghcr.io/mabdelma/qlisted/engagement:${QLISTED_TAG:-latest}"
     environment:
       DATABASE_URL: "${DATABASE_URL:-}"
     networks: [qlisted-svc, qcart-prod_default]
 
   notifications:
+    image: "ghcr.io/mabdelma/qlisted/notifications:${QLISTED_TAG:-latest}"
     environment:
       SMTP_HOST: "${SMTP_HOST:-}"
       SMTP_PORT: "${SMTP_PORT:-587}"
