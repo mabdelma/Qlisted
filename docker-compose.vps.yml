@@ -35,6 +35,15 @@ services:
     image: redis:7-alpine
     restart: always
     mem_limit: 256m
+    # Same reason as postgres above, and this one was missed: without !reset the
+    # base file's "6379:6379" merges in and binds 0.0.0.0, publishing an
+    # unauthenticated Redis holding session and rate-limit state straight to the
+    # internet. It was the only datastore on this host bound to 0.0.0.0 — every
+    # other app's was already internal-only.
+    #
+    # A ufw rule is not a substitute: Docker writes its own DNAT rules and
+    # bypasses it. Removing the publish is the fix.
+    ports: !reset []
     networks: [default]
 
   migrate:
