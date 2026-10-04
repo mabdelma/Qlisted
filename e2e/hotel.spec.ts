@@ -25,10 +25,19 @@ test.describe('Hotel guest flow', () => {
     const searchBtn = page.locator('button').filter({ hasText: /search|availability|buscar|rechercher|cerca/i }).first();
     await searchBtn.click();
 
-    // The seeded property has 5 rooms; a far-future window has no bookings, so
-    // every room except the two held for the seed bookings is free.
-    const roomButtons = page.locator('button').filter({ hasText: /\b10[123]\b|\b20[12]\b/ });
-    await expect(roomButtons.first()).toBeVisible({ timeout: 10000 });
+    // Both seeded bookings are near-term, so a 2030 window leaves all five
+    // rooms free and every one of them must be offered.
+    //
+    // Matched on the accessible name rather than text content: the number and
+    // the room type sit in sibling <p> elements with no whitespace between
+    // them, so textContent is "101Double140.00/ night" — a \b right after the
+    // number has a digit on one side and a letter on the other and therefore
+    // never matches. The accessible name keeps the spaces.
+    for (const number of ['101', '102', '103', '201', '202']) {
+      await expect(
+        page.getByRole('button', { name: new RegExp(`^${number}\\s`) }),
+      ).toBeVisible({ timeout: 10000 });
+    }
   });
 
   test('a hotel restaurant-only item is not offered for room service', async ({ page }) => {
