@@ -5,9 +5,21 @@ import {
   QrCode, CreditCard, Clock, Users, ArrowRight, Shield, BarChart3,
   Check, Star, Zap, Utensils, ChevronDown, Sparkles, Bot, Send,
   Boxes, TrendingUp, CalendarClock, Heart, Megaphone, Hotel, ConciergeBell,
+  Languages, ArrowDown, ChefHat, Smartphone,
 } from 'lucide-react';
 import { MarketingHeader } from '../../components/layout/MarketingHeader';
 import { Footer } from '../../components/layout/Footer';
+
+/**
+ * The eleven guest languages, each in its own script.
+ *
+ * Deliberately not localized: the point of the row is that a visitor sees their
+ * own language in the list, whichever locale the page is being served in.
+ */
+const GUEST_LANGUAGES = [
+  'English', 'Español', 'العربية', 'Français', 'Deutsch', 'Português',
+  'Italiano', '中文', '日本語', 'Русский', 'हिन्दी',
+];
 
 export function MarketingLanding() {
   const { t, locale } = useI18n();
@@ -20,6 +32,9 @@ export function MarketingLanding() {
   ];
 
   const features = [
+    // The language bridge leads the grid: it is the reason venues pick Qlisted
+    // over a cheaper ordering app.
+    { icon: Languages, title: t('marketing.featureLanguage'), desc: t('marketing.featureLanguageDesc'), highlight: true },
     { icon: QrCode, title: t('marketing.featureQrCode'), desc: t('marketing.featureQrCodeDesc') },
     { icon: CreditCard, title: t('marketing.featurePayments'), desc: t('marketing.featurePaymentsDesc') },
     { icon: Clock, title: t('marketing.featureKitchen'), desc: t('marketing.featureKitchenDesc') },
@@ -79,15 +94,25 @@ export function MarketingLanding() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 md:pt-24 md:pb-28">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="text-center lg:text-left">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-[#0f766e]/10 text-[#0f766e] mb-6">
-                <Star className="h-3.5 w-3.5 fill-current" /> {t('marketing.trustedBy')}
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-[#0f766e]/10 text-[#0f766e] mb-6 ring-1 ring-[#0f766e]/15">
+                <Languages className="h-3.5 w-3.5" /> {t('marketing.heroKicker')}
               </span>
-              <h1 className="text-4xl md:text-6xl font-bold text-gray-900 tracking-tight mb-6">
+              <h1 className="text-4xl md:text-6xl font-bold text-gray-900 tracking-tight mb-6 text-balance">
                 {t('marketing.heroTitle')}
               </h1>
-              <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-xl mx-auto lg:mx-0">
+              <p className="text-lg md:text-xl text-gray-600 mb-6 max-w-xl mx-auto lg:mx-0">
                 {t('marketing.heroDesc')}
               </p>
+
+              {/* Proof by exhibit: the guest languages, in their own scripts. */}
+              <div className="mb-8 flex flex-wrap gap-1.5 justify-center lg:justify-start">
+                {GUEST_LANGUAGES.map((lang) => (
+                  <span key={lang} className="rounded-full bg-white/70 px-2.5 py-1 text-xs font-medium text-gray-600 ring-1 ring-[#0f766e]/15 backdrop-blur">
+                    {lang}
+                  </span>
+                ))}
+              </div>
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link to="/onboarding" className="inline-flex items-center justify-center px-8 py-3.5 bg-[#0f766e] text-white font-medium rounded-lg hover:bg-[#1e3a5f] transition-colors text-lg shadow-sm">
                   {t('cta.startTrial')} <ArrowRight className="ml-2 h-5 w-5" />
@@ -98,6 +123,7 @@ export function MarketingLanding() {
               </div>
               <p className="mt-5 text-sm text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1 justify-center lg:justify-start">
                 <Check className="h-4 w-4 text-green-600" /> {t('marketing.noCreditCard')}
+                <span className="inline-flex items-center gap-1"><Star className="h-3.5 w-3.5 fill-current text-amber-400" /> {t('marketing.trustedBy')}</span>
                 <Link to="/pricing" className="font-medium text-[#0f766e] hover:underline">· {t('nav.pricing')}</Link>
               </p>
             </div>
@@ -122,6 +148,43 @@ export function MarketingLanding() {
         </div>
       </section>
 
+      {/* ── The Language Bridge ──────────────────────────────────────────── */}
+      {/* Dark section, straight after the hero: the one thing a competitor
+          ordering app cannot do sits above everything operational. */}
+      <section className="relative overflow-hidden bg-gray-900 py-20 md:py-28">
+        <div className="pointer-events-none absolute -top-40 left-1/4 h-[28rem] w-[28rem] rounded-full bg-[#0f766e]/35 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-40 right-1/5 h-96 w-96 rounded-full bg-amber-400/15 blur-3xl" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-14 items-center">
+          <div>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-sm font-medium text-amber-200 ring-1 ring-white/15 mb-6">
+              <Languages className="h-3.5 w-3.5" /> {t('marketing.bridgeBadge')}
+            </span>
+            <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight mb-6 text-balance">
+              {t('marketing.bridgeTitle')}
+            </h2>
+            <p className="text-lg text-gray-300 mb-8 max-w-xl">{t('marketing.bridgeDesc')}</p>
+            <ul className="space-y-4">
+              {[
+                t('marketing.bridgePoint1'),
+                t('marketing.bridgePoint2'),
+                t('marketing.bridgePoint3'),
+                t('marketing.bridgePoint4'),
+              ].map((point) => (
+                <li key={point} className="flex items-start gap-3">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#0f766e]">
+                    <Check className="h-4 w-4 text-white" />
+                  </span>
+                  <span className="text-gray-200">{point}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <TranslationMockup />
+        </div>
+      </section>
+
       {/* ── Features ─────────────────────────────────────────────────────── */}
       <section className="py-20 md:py-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -131,9 +194,18 @@ export function MarketingLanding() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((f) => (
-              <div key={f.title} className="group bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-xl hover:border-[#0f766e]/20 hover:-translate-y-1 transition-all">
-                <div className="w-12 h-12 bg-[#0f766e]/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#0f766e] transition-colors">
-                  <f.icon className="h-6 w-6 text-[#0f766e] group-hover:text-white transition-colors" />
+              <div
+                key={f.title}
+                className={`group bg-white rounded-2xl border p-6 hover:shadow-xl hover:-translate-y-1 transition-all ${
+                  f.highlight
+                    ? 'border-[#0f766e]/40 ring-1 ring-[#0f766e]/15 shadow-lg shadow-[#0f766e]/5'
+                    : 'border-gray-100 hover:border-[#0f766e]/20'
+                }`}
+              >
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors ${
+                  f.highlight ? 'bg-[#0f766e]' : 'bg-[#0f766e]/10 group-hover:bg-[#0f766e]'
+                }`}>
+                  <f.icon className={`h-6 w-6 transition-colors ${f.highlight ? 'text-white' : 'text-[#0f766e] group-hover:text-white'}`} />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{f.title}</h3>
                 <p className="text-sm text-gray-600 leading-relaxed">{f.desc}</p>
@@ -398,6 +470,46 @@ function PhoneMockup() {
           <div><p className="text-base font-bold text-gray-900">6</p><p className="text-[9px] text-gray-500 truncate">{t('hotel.arrivalsToday')}</p></div>
           <div><p className="text-base font-bold text-gray-900">4</p><p className="text-[9px] text-gray-500 truncate">{t('hotel.departuresToday')}</p></div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── CSS-only language bridge mockup ──────────────────────────────────────── */
+/* Mirrors what the kitchen display actually renders: the translation first, the
+   guest's own wording kept after a `·` — see components/kitchen/OrdersDisplay. */
+function TranslationMockup() {
+  const { t } = useI18n();
+  return (
+    <div className="w-full max-w-md lg:justify-self-end">
+      {/* Guest side */}
+      <div className="rounded-2xl bg-white p-5 shadow-2xl">
+        <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+          <Smartphone className="h-3.5 w-3.5" /> {t('marketing.bridgeGuest')}
+        </p>
+        <p className="mt-2 text-lg font-medium text-gray-900" dir="auto">
+          “{t('marketing.bridgeGuestNote')}”
+        </p>
+      </div>
+
+      {/* The bridge itself */}
+      <div className="flex items-center justify-center py-3">
+        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0f766e] text-white shadow-lg ring-4 ring-[#0f766e]/25">
+          <ArrowDown className="h-5 w-5" />
+        </span>
+      </div>
+
+      {/* Kitchen side */}
+      <div className="rounded-2xl bg-white p-5 shadow-2xl ring-1 ring-[#0f766e]/20">
+        <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#0f766e]">
+          <ChefHat className="h-3.5 w-3.5" /> {t('marketing.bridgeKitchen')}
+        </p>
+        <p className="mt-2 text-lg font-medium text-gray-900" dir="auto">
+          “{t('marketing.bridgeKitchenNote')}”
+        </p>
+        <p className="mt-3 flex items-center gap-1.5 text-[11px] text-gray-400" dir="auto">
+          <Languages className="h-3 w-3 shrink-0" /> · {t('marketing.bridgeGuestNote')}
+        </p>
       </div>
     </div>
   );

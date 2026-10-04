@@ -1,7 +1,7 @@
 import { useI18n } from '../../contexts/I18nContext';
 import { Link } from 'react-router';
 import {
-  Utensils, QrCode, CreditCard, Clock, Users, BarChart3, Megaphone,
+  Utensils, QrCode, CreditCard, Clock, Users, BarChart3, Megaphone, Languages,
   ArrowRight, Check, Star,
 } from 'lucide-react';
 import { MarketingHeader } from '../../components/layout/MarketingHeader';
@@ -11,6 +11,7 @@ export function RestaurantsLanding() {
   const { t } = useI18n();
 
   const features = [
+    { icon: Languages, title: t('marketing.featureLanguage'), desc: t('marketing.featureLanguageDesc') },
     { icon: QrCode, title: t('marketing.featureQrCode'), desc: t('marketing.featureQrCodeDesc') },
     { icon: CreditCard, title: t('marketing.featurePayments'), desc: t('marketing.featurePaymentsDesc') },
     { icon: Clock, title: t('marketing.featureKitchen'), desc: t('marketing.featureKitchenDesc') },

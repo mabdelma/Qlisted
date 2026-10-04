@@ -6,7 +6,7 @@ test.describe('Internationalization', () => {
   });
 
   test('default locale is English', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText(/operating system for your restaurant/i);
+    await expect(page.locator('h1')).toContainText(/every guest understood/i);
     const locale = await page.evaluate(() => localStorage.getItem('locale'));
     expect(locale === 'en' || locale === null).toBeTruthy();
   });
@@ -129,4 +129,34 @@ test.describe('Internationalization', () => {
     const switcher = page.locator('button[aria-label="Switch language"]');
     expect(await switcher.count()).toBe(0);
   });
+
+  // Guards translation consistency across locales.
+  //
+  // "h1 is not empty" happily passes when a key is missing, because `t()` falls
+  // back to the English string. Comparing against the English copy is what
+  // actually catches a locale that stopped being translated — which is how the
+  // marketing copy drifted out of sync in the first place.
+  const EN_HERO = /every guest understood/i;
+  const EN_BRIDGE = /the language barrier, gone/i;
+
+  for (const loc of ['ar', 'es', 'fr', 'de', 'pt', 'zh', 'hi', 'ru', 'ja', 'it']) {
+    test(`hero and language bridge are translated in ${loc}`, async ({ page }) => {
+      await page.evaluate((l) => localStorage.setItem('locale', l), loc);
+      await page.reload();
+
+      const hero = page.locator('h1');
+      await expect(hero).not.toBeEmpty();
+      await expect(hero).not.toContainText(EN_HERO);
+
+      // The language bridge sits directly after the hero, so it owns the first
+      // h2 on the page.
+      const bridgeTitle = page.getByRole('heading', { level: 2 }).first();
+      await expect(bridgeTitle).not.toBeEmpty();
+      await expect(bridgeTitle).not.toContainText(EN_BRIDGE);
+
+      // The demo note stays in Spanish in every locale: it is the guest's own
+      // wording, which the product never rewrites.
+      await expect(page.getByText(/sin cebolla, por favor/i).first()).toBeVisible();
+    });
+  }
 });

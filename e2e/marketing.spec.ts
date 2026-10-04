@@ -7,7 +7,11 @@ test.describe('Marketing pages', () => {
     await expect(page.locator('h1')).toBeVisible({ timeout: 10000 });
 
     // Hero section
-    await expect(page.getByText(/operating system for your restaurant or hotel/i)).toBeVisible();
+    await expect(page.locator('h1')).toContainText(/every guest understood/i);
+
+    // The language bridge is the headline differentiator, not a footnote.
+    await expect(page.getByRole('heading', { name: /the language barrier, gone/i })).toBeVisible();
+    await expect(page.getByText(/sin cebolla, por favor/i).first()).toBeVisible();
 
     // Stats
     await expect(page.getByText('300+', { exact: true })).toBeVisible();

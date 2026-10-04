@@ -2,7 +2,7 @@ import { useI18n } from '../../contexts/I18nContext';
 import {
   Smartphone, CreditCard, Users, BarChart3, Bell,
   Globe, Clock, Printer, Sliders,
-  Boxes, CalendarClock, Hotel, TrendingUp, Heart, Megaphone,
+  Boxes, CalendarClock, Hotel, TrendingUp, Heart, Megaphone, Languages,
 } from 'lucide-react';
 import { MarketingHeader } from '../../components/layout/MarketingHeader';
 import { Footer } from '../../components/layout/Footer';
@@ -14,6 +14,9 @@ export function FeaturesPage() {
     {
       title: t('features.groupCustomers'),
       items: [
+        // Same position as on the landing page: the language bridge is the
+        // first thing a guest experiences, and the first thing we lead with.
+        { icon: Languages, title: t('marketing.featureLanguage'), desc: t('marketing.featureLanguageDesc') },
         { icon: Smartphone, title: t('features.itemScanOrder'), desc: t('features.itemScanOrderDesc') },
         { icon: CreditCard, title: t('features.itemPayAtTable'), desc: t('features.itemPayAtTableDesc') },
         { icon: Clock, title: t('features.itemOrderTracking'), desc: t('features.itemOrderTrackingDesc') },

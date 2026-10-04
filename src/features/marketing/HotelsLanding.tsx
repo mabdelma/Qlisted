@@ -1,7 +1,7 @@
 import { useI18n } from '../../contexts/I18nContext';
 import { Link } from 'react-router';
 import {
-  Hotel, BedDouble, CalendarDays, LogIn, ConciergeBell, Receipt, TrendingUp,
+  Hotel, BedDouble, CalendarDays, LogIn, ConciergeBell, Receipt, TrendingUp, Languages,
   ArrowRight, Check, Star, Sparkles, Plus,
 } from 'lucide-react';
 import { MarketingHeader } from '../../components/layout/MarketingHeader';
@@ -11,6 +11,7 @@ export function HotelsLanding() {
   const { t } = useI18n();
 
   const features = [
+    { icon: Languages, title: t('marketing.featureLanguage'), desc: t('marketing.featureLanguageDesc') },
     { icon: BedDouble, title: t('marketing.featureHotel'), desc: t('marketing.featureHotelDesc') },
     { icon: CalendarDays, title: t('reservations.title'), desc: t('hotels.resvDesc') },
     { icon: LogIn, title: t('hotels.checkTitle'), desc: t('hotels.checkDesc') },
