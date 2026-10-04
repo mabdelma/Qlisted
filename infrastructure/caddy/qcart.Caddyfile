@@ -19,3 +19,39 @@ qlisted.com {
 		-Server
 	}
 }
+
+# ── Subdomains ───────────────────────────────────────────────────────────────
+# All of these have A records pointing at the VPS. A host with DNS but no Caddy
+# block gets no certificate, so it fails the TLS handshake entirely — and worse,
+# if a catch-all ever matched it, it would be served by whichever other stack
+# answered first. central.qlisted.com hit exactly that and served another
+# company's API until it was routed here.
+#
+# The SPA reads the subdomain in src/App.tsx (HOST_LANDING) and lands "/" on the
+# right console: central → /super-admin, app|admin → /admin, ai →
+# /admin/assistant, login → /signin. Deep links work on every host.
+central.qlisted.com, app.qlisted.com, admin.qlisted.com, ai.qlisted.com, login.qlisted.com {
+	encode gzip zstd
+	reverse_proxy qcart-frontend:80
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		Alt-Svc "clear"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+}
+
+# Mail UI (Mailcow), mirroring mail.grandmindstechnology.com / mail.escoutly.com.
+# Mailcow terminates TLS itself with its own self-signed cert, hence the skip.
+mail.qlisted.com {
+	encode gzip zstd
+	reverse_proxy https://mailcowdockerized-nginx-mailcow-1 {
+		transport http {
+			tls_insecure_skip_verify
+		}
+		header_up Host {host}
+		header_up X-Forwarded-Proto https
+	}
+}
