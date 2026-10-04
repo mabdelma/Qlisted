@@ -124,7 +124,7 @@ function TableFlowInner() {
                   <span className="ms-2 text-lg font-bold text-gray-900 dark:text-gray-100">{tenant.name}</span>
                 </div>
                 <span className="rounded bg-gray-100 px-2 py-1 text-sm font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-                  {t('table.tableNumber')} {table.number}
+                  {t('table.tableNumber', { number: table.number })}
                 </span>
               </div>
               <nav className="flex items-center gap-1 sm:gap-3" aria-label="Main">

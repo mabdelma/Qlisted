@@ -137,7 +137,7 @@ export function CustomerMenuPage() {
     <CartCtx.Provider value={{ state: cartState, dispatch }}>
       <div className="min-h-screen bg-gray-50 max-w-lg mx-auto">
         <div className="bg-white shadow-sm p-4 sticky top-0 z-10">
-          <h1 className="text-xl font-bold">{t('table.tableNumber')} {table?.number}</h1>
+          <h1 className="text-xl font-bold">{t('table.tableNumber', { number: table?.number ?? '' })}</h1>
           <div className="flex space-x-4 mt-2">
             {(['menu', 'cart', 'orders', 'checkout'] as const).map((tabName) => (
               <button key={tabName} onClick={() => setTab(tabName)}
