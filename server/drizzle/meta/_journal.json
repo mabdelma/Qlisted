@@ -176,6 +176,20 @@
       "when": 1791118099078,
       "tag": "0024_hotel_gaps",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1791118100078,
+      "tag": "0025_guest_self_checkin",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1791118101078,
+      "tag": "0026_language_bridge",
+      "breakpoints": true
     }
   ]
 }
