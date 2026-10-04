@@ -67,6 +67,7 @@ const HOST_LANDING: Record<string, string> = {
   app: '/admin',            // app.qlisted.com — restaurant dashboard
   admin: '/admin',          // admin.qlisted.com — restaurant dashboard (alias of app)
   ai: '/admin/assistant',   // ai.qlisted.com — AI copilot
+  staff: '/staff',          // staff.qlisted.com — waiter / kitchen / cashier portal
 };
 
 function RootRoute() {
