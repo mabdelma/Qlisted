@@ -169,6 +169,27 @@ admin.get('/admin/analytics', authMiddleware, requireRole('super_admin'), async 
     .select({ count: sql<number>`count(*)` })
     .from(schema.menuItems);
 
+  // Hotel-side counters. The platform console was restaurant-only, so a hotel
+  // tenant showed as a venue with zero tables and zero menu items — reading as a
+  // dead account when it may be a busy property.
+  const [roomCount] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.rooms);
+
+  const [occupiedRoomCount] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.rooms)
+    .where(eq(schema.rooms.status, 'occupied'));
+
+  const [bookingCount] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.roomBookings);
+
+  const [hotelTenantCount] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.tenants)
+    .where(sql`venue_type in ('hotel','both')`);
+
   const lastMonth = new Date(Date.now() - 30 * 86400000).toISOString();
   const [thisMonthOrders] = await db
     .select({ count: sql<number>`count(*)` })
@@ -194,6 +215,10 @@ admin.get('/admin/analytics', authMiddleware, requireRole('super_admin'), async 
     customers: Number(customerCount?.count || 0),
     tables: Number(tableCount?.count || 0),
     menuItems: Number(menuItemCount?.count || 0),
+    rooms: Number(roomCount?.count || 0),
+    occupiedRooms: Number(occupiedRoomCount?.count || 0),
+    bookings: Number(bookingCount?.count || 0),
+    hotelTenants: Number(hotelTenantCount?.count || 0),
     monthlyGrowth,
   });
 });

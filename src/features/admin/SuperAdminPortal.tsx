@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
-  ShieldCheck, Store, Users, ShoppingBag, DollarSign, LogOut, TrendingUp, Table, Coffee,
+  ShieldCheck, Store, Users, ShoppingBag, DollarSign, LogOut, TrendingUp, Table, Coffee, BedDouble, CalendarCheck,
   BookOpen, Mail, BarChart3, Plus, Search, Settings, X, ExternalLink, Activity, AtSign, Menu,
 } from 'lucide-react';
 import { adminApi, tenantApi } from '../../lib/api';
@@ -158,7 +158,7 @@ export function SuperAdminPortal() {
   const maxSeriesRev = Math.max(1, ...series.map((p) => p.revenue));
 
   const cards = [
-    { label: 'Restaurants', value: analytics?.tenants ?? 0, icon: Store },
+    { label: 'Venues', value: analytics?.tenants ?? 0, icon: Store },
     { label: 'Active', value: analytics?.activeTenants ?? 0, icon: ShieldCheck },
     { label: 'Users', value: analytics?.users ?? 0, icon: Users },
     { label: 'Orders', value: analytics?.orders ?? 0, icon: ShoppingBag },
@@ -166,13 +166,17 @@ export function SuperAdminPortal() {
     { label: 'Customers', value: analytics?.customers ?? 0, icon: BookOpen },
     { label: 'Tables', value: analytics?.tables ?? 0, icon: Table },
     { label: 'Menu Items', value: analytics?.menuItems ?? 0, icon: Coffee },
+    { label: 'Hotels', value: analytics?.hotelTenants ?? 0, icon: BedDouble },
+    { label: 'Rooms', value: analytics?.rooms ?? 0, icon: BedDouble },
+    { label: 'Occupied', value: analytics ? `${analytics.occupiedRooms}/${analytics.rooms}` : '—', icon: BedDouble },
+    { label: 'Bookings', value: analytics?.bookings ?? 0, icon: CalendarCheck },
     { label: 'Growth', value: analytics ? `${growthIcon} ${Math.abs(analytics.monthlyGrowth)}%` : '—', icon: TrendingUp, valueClass: growthColor },
   ];
 
   const nav: { id: Section; label: string; icon: typeof ShieldCheck }[] = [
     { id: 'overview', label: 'Overview', icon: ShieldCheck },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'restaurants', label: 'Restaurants', icon: Store },
+    { id: 'restaurants', label: 'Venues', icon: Store },
     { id: 'users', label: 'Users', icon: Users },
     { id: 'leads', label: 'Leads', icon: Mail },
     { id: 'billing', label: 'Billing', icon: DollarSign },

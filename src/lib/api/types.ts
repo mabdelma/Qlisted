@@ -275,6 +275,11 @@ export interface PlatformAnalytics {
   customers: number;
   tables: number;
   menuItems: number;
+  /** Hotel-side counters, so the console reflects both venue types. */
+  rooms: number;
+  occupiedRooms: number;
+  bookings: number;
+  hotelTenants: number;
   monthlyGrowth: number;
 }
 
