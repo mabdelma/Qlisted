@@ -3,7 +3,7 @@ import type { FastifyReply } from "fastify";
 import pg from "pg";
 import { Redis } from "ioredis";
 import { randomUUID } from "node:crypto";
-import { createLogger, ok, err, verifyHs256, bearer, initSentry, captureError, getEventBus, translateNote, translationEnabled } from "@qlisted/shared";
+import { createLogger, ok, err, verifyHs256, bearer, initSentry, captureError, getEventBus, setRedisConstructor, translateNote, translationEnabled } from "@qlisted/shared";
 import type { DomainEvent } from "@qlisted/shared";
 
 interface OrderItemInput { menuItemId: string; name: string; quantity: number; unitPrice: number; notes?: string | null; modifiers?: string | null }
@@ -25,6 +25,13 @@ export const app = Fastify({ loggerInstance: log });
 initSentry("orders");
 app.addHook("onError", async (req, _reply, error) => captureError(error, { url: req.url, method: req.method }));
 const PORT = Number(process.env.PORT || 8080);
+
+// Hand the bundled ioredis to @qlisted/shared. The production image is a
+// single server.cjs with no node_modules, so shared's lazy require("ioredis")
+// finds nothing and the event bus would silently degrade to in-process
+// dispatch — notifications would never see order.placed. This service imports
+// Redis statically, so esbuild bundles it and we can pass it over.
+setRedisConstructor(Redis);
 
 export const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 5 });
 

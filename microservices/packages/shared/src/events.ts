@@ -1,7 +1,36 @@
 import { createRequire } from "node:module";
 import type { DomainEvent } from "./types.js";
 
-const _require = createRequire(import.meta.url);
+/**
+ * A `require` that survives being bundled.
+ *
+ * This was `const _require = createRequire(import.meta.url)` at module scope,
+ * which is fatal in production: every service Dockerfile esbuild-bundles to
+ * CJS, and esbuild cannot provide `import.meta` in CJS output — it substitutes
+ * an empty object and emits a warning. So `import.meta.url` was `undefined`,
+ * `createRequire(undefined)` threw ERR_INVALID_ARG_VALUE while the module was
+ * still being evaluated, and the service died on startup before serving
+ * anything. Nothing caught it: the bundle builds fine and the crash is at load.
+ *
+ * Resolved lazily and defensively instead — real ESM uses `import.meta.url`, a
+ * CJS bundle falls back to `__filename`, and if neither exists the caller gets
+ * null and degrades rather than throwing.
+ */
+let _cachedRequire: ((id: string) => unknown) | null = null;
+function bundleSafeRequire(): ((id: string) => unknown) | null {
+  if (_cachedRequire) return _cachedRequire;
+  const metaUrl = typeof import.meta !== "undefined" ? import.meta.url : undefined;
+  for (const from of [metaUrl, typeof __filename === "string" ? __filename : undefined]) {
+    if (!from) continue;
+    try {
+      _cachedRequire = createRequire(from) as (id: string) => unknown;
+      return _cachedRequire;
+    } catch {
+      /* try the next origin */
+    }
+  }
+  return null;
+}
 
 /**
  * Event-bus abstraction for async cross-service communication (mirrors the
@@ -74,12 +103,31 @@ interface RedisLike {
 
 type RedisConstructor = new (url: string, opts?: Record<string, unknown>) => RedisLike;
 
+let _injectedRedis: RedisConstructor | null = null;
+
+/**
+ * Register an ioredis constructor explicitly.
+ *
+ * Required in production. Every service Dockerfile bundles to a single
+ * server.cjs and the final image carries NO node_modules, so the lazy
+ * `require("ioredis")` below cannot resolve anything at runtime — it only works
+ * in dev and in tests. A service that imports ioredis statically (so esbuild
+ * bundles it) calls this to hand the real client over.
+ */
+export function setRedisConstructor(ctor: unknown): void {
+  _injectedRedis = ctor as RedisConstructor;
+}
+
 const CHANNEL = "qlisted:events";
 
 function loadRedis(): RedisConstructor | null {
+  if (_injectedRedis) return _injectedRedis;
   try {
     // Lazy require keeps this module usable in edge runtimes / test runners.
-    const mod = _require("ioredis") as { default?: RedisConstructor; Redis?: RedisConstructor };
+    // It does NOT work inside a bundled service — see setRedisConstructor.
+    const req = bundleSafeRequire();
+    if (!req) return null;
+    const mod = req("ioredis") as { default?: RedisConstructor; Redis?: RedisConstructor };
     return mod.default ?? mod.Redis ?? null;
   } catch {
     return null;
@@ -154,7 +202,21 @@ let _bus: EventBus | null = null;
 export function getEventBus(): EventBus {
   if (!_bus) {
     const url = process.env.REDIS_URL;
-    _bus = url ? new RedisBus(url) : new LogBus();
+    if (url) {
+      try {
+        _bus = new RedisBus(url);
+      } catch (err) {
+        // RedisBus throws when no ioredis is available. This must not escape:
+        // callers use `void getEventBus().publish(e).catch(...)`, where the
+        // .catch only guards the promise — a synchronous throw here propagated
+        // out of the caller and failed the ORDER that triggered the event.
+        // In-process dispatch is a sound degradation; losing orders is not.
+        console.warn(`[events] falling back to in-process bus: ${(err as Error).message}`);
+        _bus = new LogBus();
+      }
+    } else {
+      _bus = new LogBus();
+    }
   }
   return _bus;
 }

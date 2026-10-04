@@ -237,6 +237,11 @@ jobs:
       # covered the moment it has the script — no edit here required.
       - run: cd microservices && npm run typecheck
       - run: cd microservices && npm test
+      # Loads each service exactly as its Dockerfile builds it: one esbuild CJS
+      # bundle, no node_modules. Unit tests run from TS source WITH
+      # node_modules, so they structurally cannot catch a bundle-only failure —
+      # and two such failures were killing services on startup in production.
+      - run: cd microservices && npm run smoke:bundle
 
   lint:
     name: Lint

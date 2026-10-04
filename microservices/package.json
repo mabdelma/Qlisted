@@ -18,6 +18,10 @@
     "dev:billing": "npm -w @qlisted/billing run dev",
     "dev:engagement": "npm -w @qlisted/engagement run dev",
     "dev:notifications": "npm -w @qlisted/notifications run dev",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "smoke:bundle": "node scripts/smoke-bundle.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
   }
 }
