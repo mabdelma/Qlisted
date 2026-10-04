@@ -19,7 +19,7 @@ vi.mock("pg", () => {
   return { Pool: MockPool, default: { Pool: MockPool } };
 });
 
-import { app, pool } from "./server";
+import { app, pool, translateOrderNotes } from "./server";
 
 const TENANT = { id: "T1", name: "Demo Diner", tax_rate: 0.1, service_charge: 0.05, email: null };
 
@@ -270,5 +270,85 @@ describe("discount / items / comp", () => {
     });
     expect(res.statusCode).toBe(200);
     expect(res.json().subtotal).toBe(0);
+  });
+});
+
+/**
+ * The language bridge. These assert the two properties that actually matter:
+ * the guest's own wording survives, and placing an order never waits on the
+ * translation provider.
+ */
+describe("order note translation", () => {
+  it("writes only the translation columns, never the guest's original note", async () => {
+    const seen: string[] = [];
+    queryMock.mockImplementation(async (sql: string) => {
+      seen.push(sql);
+      if (sql.includes("FROM tenants")) return { rows: [{ ...TENANT, operating_language: "en" }], rowCount: 1 };
+      return { rows: [], rowCount: 1 };
+    });
+
+    await translateOrderNotes(
+      { id: "T1", operating_language: "en" },
+      "o1",
+      { items: [], notes: "sin cebolla, por favor" },
+      [{ id: "oi1", notes: "sin hielo" }],
+    );
+
+    const updates = seen.filter((q) => q.includes("UPDATE"));
+    // Every write targets a *_translated / notes_language column only. An UPDATE
+    // that set `notes` itself would destroy what the guest wrote, which staff
+    // rely on when a translation is wrong — and allergy notes make that unsafe.
+    for (const u of updates) {
+      expect(u).toMatch(/notes_translated|notes_language/);
+      expect(u).not.toMatch(/SET notes =/);
+    }
+  });
+
+  it("does nothing at all when no provider is configured", async () => {
+    const prevKey = process.env.OPENAI_API_KEY;
+    const prevBase = process.env.OPENAI_BASE_URL;
+    delete process.env.OPENAI_API_KEY;
+    delete process.env.OPENAI_BASE_URL;
+    try {
+      queryMock.mockReset();
+      await translateOrderNotes({ id: "T1" }, "o1", { items: [], notes: "sin cebolla" }, []);
+      expect(queryMock).not.toHaveBeenCalled();
+    } finally {
+      if (prevKey !== undefined) process.env.OPENAI_API_KEY = prevKey;
+      if (prevBase !== undefined) process.env.OPENAI_BASE_URL = prevBase;
+    }
+  });
+
+  it("skips the provider entirely when the order carries no notes", async () => {
+    process.env.OPENAI_API_KEY = "test-key";
+    try {
+      queryMock.mockReset();
+      await translateOrderNotes({ id: "T1" }, "o1", { items: [] }, [{ id: "oi1", notes: null }]);
+      expect(queryMock).not.toHaveBeenCalled();
+    } finally {
+      delete process.env.OPENAI_API_KEY;
+    }
+  });
+
+  it("returns the placed order without waiting on translation", async () => {
+    // Point the bridge at a dead port: translation is ENABLED (so the path runs)
+    // but the call fails immediately and makes no outbound request from CI.
+    // If placing an order awaited the bridge, that failure would surface here;
+    // it must not. This is the regression being guarded — the monolith's
+    // version awaits the provider and adds its latency to every order placed.
+    process.env.OPENAI_API_KEY = "test-key";
+    process.env.OPENAI_BASE_URL = "http://127.0.0.1:1/v1";
+    try {
+      const res = await app.inject({
+        method: "POST",
+        url: "/v1/tenants/demo/orders",
+        payload: { tableId: "t1", items: [{ menuItemId: "m1", name: "Burger", quantity: 1, unitPrice: 10, notes: "sin cebolla" }] },
+      });
+      expect(res.statusCode).toBe(201);
+      expect(res.json().id).toBeTruthy();
+    } finally {
+      delete process.env.OPENAI_API_KEY;
+      delete process.env.OPENAI_BASE_URL;
+    }
   });
 });

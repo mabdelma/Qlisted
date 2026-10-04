@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import type { FastifyReply } from "fastify";
 import pg from "pg";
 import { randomUUID } from "node:crypto";
 import { createLogger, ok, err, verifyHs256, bearer, initSentry, captureError, getEventBus } from "@qlisted/shared";
@@ -37,7 +38,7 @@ const STAFF_WRITE = ["admin", "manager"];
 const STAFF_DELETE = ["admin"];
 
 /** Returns verified claims or sends an error reply and returns null. */
-function authorize(reply: Fastify.Reply, roles: string[], tenantId: string): MonolithClaims | null {
+function authorize(reply: FastifyReply, roles: string[], tenantId: string): MonolithClaims | null {
   const claims = verifyHs256(bearer(reply.request.headers.authorization));
   if (!claims) { void reply.code(401).send(err("Authentication required")); return null; }
   if (!roles.includes(String(claims.role))) { void reply.code(403).send(err("Insufficient permissions")); return null; }

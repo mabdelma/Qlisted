@@ -1,8 +1,9 @@
 import Fastify from "fastify";
+import type { FastifyReply } from "fastify";
 import pg from "pg";
-import Redis from "ioredis";
+import { Redis } from "ioredis";
 import { randomUUID } from "node:crypto";
-import { createLogger, ok, err, verifyHs256, bearer, initSentry, captureError, getEventBus } from "@qlisted/shared";
+import { createLogger, ok, err, verifyHs256, bearer, initSentry, captureError, getEventBus, translateNote, translationEnabled } from "@qlisted/shared";
 import type { DomainEvent } from "@qlisted/shared";
 
 interface OrderItemInput { menuItemId: string; name: string; quantity: number; unitPrice: number; notes?: string | null; modifiers?: string | null }
@@ -47,14 +48,14 @@ const toCamel = (row: Record<string, unknown>) =>
 // ── helpers ─────────────────────────────────────────────────────────────────
 async function tenantBySlug(slug: string) {
   const r = await pool.query(
-    "SELECT id, name, tax_rate, service_charge, email FROM tenants WHERE slug = $1 AND is_active = true LIMIT 1",
+    "SELECT id, name, tax_rate, service_charge, email, operating_language FROM tenants WHERE slug = $1 AND is_active = true LIMIT 1",
     [slug],
   );
-  return r.rows[0] as { id: string; name: string; tax_rate: number | null; service_charge: number | null; email: string | null } | undefined;
+  return r.rows[0] as { id: string; name: string; tax_rate: number | null; service_charge: number | null; email: string | null; operating_language: string | null } | undefined;
 }
 
 /** Verify staff token + role + tenant scope (mirror authMiddleware + requireRole). */
-function staff(reply: Fastify.Reply, roles: string[], tenantId: string): { sub: string; role: string } | null {
+function staff(reply: FastifyReply, roles: string[], tenantId: string): { sub: string; role: string } | null {
   const claims = verifyHs256(bearer(reply.request.headers.authorization));
   if (!claims) { void reply.code(401).send(err("Authentication required")); return null; }
   if (!roles.includes(String(claims.role))) { void reply.code(403).send(err("Forbidden")); return null; }
@@ -76,6 +77,48 @@ app.get("/ready", async () => {
   try { await pool.query("select 1"); return ok({ ready: true }); }
   catch { return err("db unavailable"); }
 });
+
+/**
+ * Fill in notes_translated / notes_language for an order that has already been
+ * committed and already reached the kitchen.
+ *
+ * Only ever writes the translation columns — never `notes`. The guest's own
+ * wording is what staff fall back to, and a mistranslated allergy note is
+ * dangerous, so the original is not ours to overwrite.
+ *
+ * `operating_language` is the venue's working language, defaulting to English;
+ * a tenant whose staff read Spanish sets it to Spanish and the kitchen sees
+ * Spanish. Translation is skipped entirely when no provider is configured.
+ */
+export async function translateOrderNotes(
+  tenant: { id: string; operating_language?: string | null },
+  orderId: string,
+  input: CreateOrderInput,
+  orderItems: Array<{ id: string; notes?: string | null }>,
+) {
+  if (!translationEnabled()) return;
+  const hasNotes = !!input.notes?.trim() || orderItems.some((i) => i.notes?.trim());
+  if (!hasNotes) return;
+
+  const target = tenant.operating_language || "en";
+
+  const [orderNote, ...itemNotes] = await Promise.all([
+    translateNote(input.notes, target),
+    ...orderItems.map((i) => translateNote(i.notes, target)),
+  ]);
+
+  if (orderNote.text) {
+    await pool.query(
+      "UPDATE orders SET notes_translated = $1, notes_language = $2 WHERE id = $3 AND tenant_id = $4",
+      [orderNote.text, orderNote.sourceLanguage, orderId, tenant.id],
+    );
+  }
+
+  for (const [idx, t] of itemNotes.entries()) {
+    if (!t.text) continue;
+    await pool.query("UPDATE order_items SET notes_translated = $1 WHERE id = $2", [t.text, orderItems[idx].id]);
+  }
+}
 
 // ── Place order (guest, mirrors POST /api/r/:slug/orders) ───────────────────
 async function createOrderFlow(tenant: NonNullable<Awaited<ReturnType<typeof tenantBySlug>>>, input: CreateOrderInput) {
@@ -124,6 +167,20 @@ async function createOrderFlow(tenant: NonNullable<Awaited<ReturnType<typeof ten
   emitOrderEvent("order_created", tenant.id, orderId);
   publishDomain({ type: "order.placed", orderId, tenantId: tenant.id, total });
   log.info({ tenantId: tenant.id, orderId, orderType, items: input.items.length }, "Order created");
+
+  // The language bridge runs AFTER the kitchen has been told about the order,
+  // deliberately. Awaiting a translation provider here would add its latency to
+  // every single order placed, and a ticket that arrives late is worse than a
+  // ticket that arrives in the guest's own words and gains a translation a
+  // moment later. The KDS renders `notesTranslated || notes`, so it shows the
+  // original immediately and picks up the translation on its next read.
+  //
+  // Not awaited, so `.catch` is mandatory: an unhandled rejection here would
+  // take the service down over a failed translation.
+  void translateOrderNotes(tenant, orderId, input, orderItems).catch((err) =>
+    log.warn({ err, orderId }, "order note translation pass failed; originals stand"),
+  );
+
   return { data: { id: orderId, items: orderItems, subtotal, tax, serviceCharge, deliveryFee, total, orderType }, status: 201 as const };
 }
 

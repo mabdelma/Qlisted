@@ -12,10 +12,12 @@
     "./types": "./src/types.ts"
   },
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@sentry/node": "^8.47.0",
+    "openai": "^4.73.0",
     "pino": "^9.5.0"
   },
   "devDependencies": {

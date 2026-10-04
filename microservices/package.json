@@ -10,13 +10,14 @@
   ],
   "scripts": {
     "dev": "echo 'Run a single service: npm -w @qlisted/<svc> run dev'",
-    "test": "npm -w @qlisted/shared run test",
+    "test": "npm test --workspaces --if-present",
     "dev:gateway": "npm -w @qlisted/gateway run dev",
     "dev:auth": "npm -w @qlisted/auth run dev",
     "dev:catalog": "npm -w @qlisted/catalog run dev",
     "dev:orders": "npm -w @qlisted/orders run dev",
     "dev:billing": "npm -w @qlisted/billing run dev",
     "dev:engagement": "npm -w @qlisted/engagement run dev",
-    "dev:notifications": "npm -w @qlisted/notifications run dev"
+    "dev:notifications": "npm -w @qlisted/notifications run dev",
+    "typecheck": "npm run typecheck --workspaces --if-present"
   }
 }

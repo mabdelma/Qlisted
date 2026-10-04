@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import type { FastifyReply } from "fastify";
 import pg from "pg";
 import { randomUUID } from "node:crypto";
 import { createLogger, ok, err, verifyHs256, bearer, initSentry, captureError, getEventBus } from "@qlisted/shared";
@@ -29,7 +30,7 @@ async function tenantBySlug(slug: string) {
 }
 
 /** Verify staff token + role + tenant scope (mirror authMiddleware + requireRole). */
-function staff(reply: Fastify.Reply, roles: string[], tenantId: string): { role: string } | null {
+function staff(reply: FastifyReply, roles: string[], tenantId: string): { role: string } | null {
   const claims = verifyHs256(bearer(reply.request.headers.authorization));
   if (!claims) { void reply.code(401).send(err("Authentication required")); return null; }
   if (!roles.includes(String(claims.role))) { void reply.code(403).send(err("Forbidden")); return null; }

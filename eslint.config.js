@@ -5,7 +5,11 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist', '**/dist/**', 'server/dist'] },
+  // `.claude/worktrees/` holds agent scratch checkouts — whole copies of this
+  // repo. eslint's flat config doesn't read .gitignore, so without this it
+  // lints the copies too and reports the same file twice (or fails on a stale
+  // one). Never source we own; always ignore.
+  { ignores: ['dist', '**/dist/**', 'server/dist', '.claude/**'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],

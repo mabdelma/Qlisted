@@ -45,7 +45,16 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - run: npx tsc --noEmit
+      # Must name the project explicitly. Bare `npx tsc --noEmit` resolves to
+      # ./tsconfig.json, which is solution-style — `"files": []` plus references
+      # — and `-p` does NOT follow references (only `--build` does, and these
+      # projects aren't `composite`, so it can't). It therefore type-checked
+      # exactly ZERO files, and since `vite build` strips types rather than
+      # checking them, nothing in CI was type-checking the frontend at all.
+      # tsconfig.node.json is deliberately not included: it fails on a syntax
+      # error inside @vitejs/plugin-react's own .d.ts (skipLibCheck does not
+      # suppress parse errors), which is a dependency-version problem, not ours.
+      - run: npx tsc --noEmit -p tsconfig.app.json
       - run: npm test
       - run: npm run build
       - name: Upload frontend build
@@ -202,6 +211,32 @@ jobs:
           name: api-log
           path: api.log
           retention-days: 3
+
+  # Seven of the nine containers in production are these microservices, and
+  # until this job existed CI covered none of them: `vitest.config.ts` includes
+  # only `src/**`, and the root tsconfig doesn't reach `microservices/`. They
+  # were lint-only, while serving the entire order/payment/auth path.
+  #
+  # Worth knowing why the per-workspace tsconfig.json files exist: these
+  # packages had `typecheck: tsc --noEmit` with no tsconfig of their own, so tsc
+  # walked up to the repo-root tsconfig.json — which is solution-style
+  # (`"files": []` + references) and checks ZERO files. Every one of those
+  # scripts silently passed without reading a line of code.
+  microservices:
+    name: Microservices
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: microservices/package-lock.json
+      - run: cd microservices && npm ci
+      # Both scripts are `--workspaces --if-present`, so a new service is
+      # covered the moment it has the script — no edit here required.
+      - run: cd microservices && npm run typecheck
+      - run: cd microservices && npm test
 
   lint:
     name: Lint
