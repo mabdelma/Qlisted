@@ -14,6 +14,9 @@ async function seed() {
   await db.delete(schema.menuItems);
   await db.delete(schema.menuCategories);
   await db.delete(schema.tables);
+  // promo_campaigns references tenants, so it has to go before the tenant rows
+  // or a re-seed fails on the foreign key.
+  await db.delete(schema.promoCampaigns);
   await db.delete(schema.users);
   await db.delete(schema.tenants);
 
@@ -155,6 +158,20 @@ async function seed() {
     { id: uuid(), orderId: demoOrderId, menuItemId: itemLemonade, name: 'Fresh Lemonade', quantity: lemonadeQty, unitPrice: 4.99 },
   ]);
   console.log('  ✓ Created demo unpaid order on table 1');
+
+  // A live promo so the promo-validation path has something real to match.
+  // Looked up case-insensitively by name, so the code a guest types is the name.
+  await db.insert(schema.promoCampaigns).values({
+    id: uuid(),
+    tenantId,
+    name: 'WELCOME10',
+    type: 'percentage',
+    value: 10,
+    minOrderAmount: 15,
+    maxDiscount: 5,
+    isActive: true,
+  });
+  console.log('  ✓ Created WELCOME10 promo campaign');
 
   console.log('\n✅ Seed complete!');
   console.log('   Login: admin@democafe.com / password123');
