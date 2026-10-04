@@ -29,6 +29,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # `github.repository` is `mabdelma/Qlisted`, and a Docker repository name
+      # must be lowercase — buildx rejects the tag outright. GitHub expressions
+      # have no lowercase function, so derive it once here and use it for both
+      # the build tags and the image names the VPS pulls, so the two cannot
+      # drift apart.
+      - name: Resolve lowercase image repository
+        id: repo
+        run: echo "lc=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -42,8 +51,8 @@ jobs:
           context: ./server
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ github.repository }}/api:latest
-            ${{ env.REGISTRY }}/${{ github.repository }}/api:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ steps.repo.outputs.lc }}/api:latest
+            ${{ env.REGISTRY }}/${{ steps.repo.outputs.lc }}/api:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -54,8 +63,8 @@ jobs:
           file: ./frontend.Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ github.repository }}/frontend:latest
-            ${{ env.REGISTRY }}/${{ github.repository }}/frontend:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ steps.repo.outputs.lc }}/frontend:latest
+            ${{ env.REGISTRY }}/${{ steps.repo.outputs.lc }}/frontend:${{ github.sha }}
           build-args: |
             VITE_STRIPE_KEY=${{ secrets.VITE_STRIPE_KEY }}
             VITE_API_URL=
@@ -90,8 +99,8 @@ jobs:
               echo "::error::container name qcart-api is already used by $owner — aborting before touching the running stack"
               exit 1
             fi
-            sed -i "s|image:.*api:.*|image: ${{ env.REGISTRY }}/${{ github.repository }}/api:${{ github.sha }}|" docker-compose.vps.yml
-            sed -i "s|image:.*frontend:.*|image: ${{ env.REGISTRY }}/${{ github.repository }}/frontend:${{ github.sha }}|" docker-compose.vps.yml
+            sed -i "s|image:.*api:.*|image: ${{ env.REGISTRY }}/${{ steps.repo.outputs.lc }}/api:${{ github.sha }}|" docker-compose.vps.yml
+            sed -i "s|image:.*frontend:.*|image: ${{ env.REGISTRY }}/${{ steps.repo.outputs.lc }}/frontend:${{ github.sha }}|" docker-compose.vps.yml
             docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.vps.yml pull
             docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.vps.yml up -d --force-recreate migrate
             docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.vps.yml up -d --force-recreate api qcart-frontend
