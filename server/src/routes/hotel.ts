@@ -2,11 +2,16 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { authMiddleware, requireRole } from '../middleware/auth.js';
-import { resolveTenant } from '../middleware/tenant.js';
+import { resolveTenant, requireVenue } from '../middleware/tenant.js';
 import * as svc from '../services/hotelService.js';
 
 const hotel = new Hono();
-const adminMgr = [authMiddleware, requireRole('admin', 'manager'), resolveTenant] as const;
+// Rooms/bookings/folio/room-service are hotel features: reject tenants whose
+// venueType doesn't include 'hotel' so a restaurant can't drive them by API.
+const hotelOnly = [requireVenue('hotel', 'both')] as const;
+const adminMgr = [authMiddleware, requireRole('admin', 'manager'), resolveTenant, ...hotelOnly] as const;
+// Public guest routes: same venue gate, no auth.
+const publicHotel = [resolveTenant, ...hotelOnly] as const;
 
 const roomSchema = z.object({
   number: z.string().min(1),
@@ -15,6 +20,18 @@ const roomSchema = z.object({
   status: z.enum(['available', 'occupied', 'cleaning', 'maintenance', 'reserved']).optional(),
   rate: z.number().nonnegative().optional(),
   notes: z.string().optional(),
+});
+// PATCH-shaped update: every field optional, but nothing unvalidated reaches
+// updateRoom (which spreads this straight into the UPDATE set).
+const roomUpdateSchema = z.object({
+  number: z.string().min(1).optional(),
+  type: z.string().optional(),
+  floor: z.string().optional(),
+  status: z.enum(['available', 'occupied', 'cleaning', 'maintenance', 'reserved']).optional(),
+  rate: z.number().nonnegative().optional(),
+  notes: z.string().optional(),
+  housekeeperId: z.string().min(1).nullable().optional(),
+  guestName: z.string().optional(),
 });
 const statusSchema = z.object({
   status: z.enum(['available', 'occupied', 'cleaning', 'maintenance', 'reserved']),
@@ -31,8 +48,10 @@ hotel.get('/:slug/rooms/available', ...adminMgr, async (c) =>
   c.json(await svc.availableRooms(c.get('tenantId'), c.req.query('checkIn') || '', c.req.query('checkOut') || '')));
 hotel.post('/:slug/rooms', ...adminMgr, zValidator('json', roomSchema), async (c) =>
   c.json(await svc.createRoom(c.get('tenantId'), c.req.valid('json')), 201));
-hotel.put('/:slug/rooms/:id', ...adminMgr, async (c) =>
-  c.json(await svc.updateRoom(c.get('tenantId'), c.req.param('id')!, await c.req.json())));
+hotel.put('/:slug/rooms/:id', ...adminMgr, zValidator('json', roomUpdateSchema), async (c) => {
+  const r = await svc.updateRoom(c.get('tenantId'), c.req.param('id')!, c.req.valid('json'));
+  return 'error' in r ? c.json(r, 400) : c.json(r);
+});
 hotel.post('/:slug/rooms/:id/status', ...adminMgr, zValidator('json', statusSchema), async (c) => {
   const { status, guestName } = c.req.valid('json');
   return c.json(await svc.setRoomStatus(c.get('tenantId'), c.req.param('id')!, status, guestName));
@@ -103,7 +122,7 @@ const publicBookingSchema = z.object({
   checkOut: z.string().min(1),
 });
 
-hotel.get('/:slug/book/availability', resolveTenant, async (c) => {
+hotel.get('/:slug/book/availability', ...publicHotel, async (c) => {
   const checkIn = c.req.query('checkIn') || '';
   const checkOut = c.req.query('checkOut') || '';
   if (!checkIn || !checkOut || checkOut <= checkIn) return c.json([]);
@@ -111,7 +130,7 @@ hotel.get('/:slug/book/availability', resolveTenant, async (c) => {
   // Never expose the service token or internal fields on a public endpoint.
   return c.json(rooms.map((r) => ({ id: r.id, number: r.number, type: r.type, rate: r.rate })));
 });
-hotel.post('/:slug/book', resolveTenant, zValidator('json', publicBookingSchema), async (c) => {
+hotel.post('/:slug/book', ...publicHotel, zValidator('json', publicBookingSchema), async (c) => {
   const b = c.req.valid('json');
   const tenantId = c.get('tenantId');
   const r = await svc.createBooking(tenantId, { ...b, guestEmail: b.guestEmail || undefined });
@@ -131,11 +150,17 @@ const roomServiceSchema = z.object({
   })).min(1),
 });
 
-hotel.get('/:slug/room/:token/stay', resolveTenant, async (c) => {
+hotel.get('/:slug/room/:token/stay', ...publicHotel, async (c) => {
   const stay = await svc.activeStay(c.get('tenantId'), c.req.param('token')!);
   return c.json({ active: !!stay, guestName: stay?.guestName ?? null, roomNumber: stay?.roomNumber ?? null });
 });
-hotel.post('/:slug/room/:token/order', resolveTenant, zValidator('json', roomServiceSchema), async (c) => {
+// Serves ONLY items flagged for in-room delivery, and 400s on a dead token —
+// the guest page no longer has to fetch the whole public menu and filter.
+hotel.get('/:slug/room/:token/menu', ...publicHotel, async (c) => {
+  const r = await svc.roomServiceMenu(c.get('tenantId'), c.req.param('token')!);
+  return 'error' in r ? c.json(r, 400) : c.json(r);
+});
+hotel.post('/:slug/room/:token/order', ...publicHotel, zValidator('json', roomServiceSchema), async (c) => {
   const r = await svc.placeRoomServiceOrder(c.get('tenantId'), c.req.param('token')!, c.req.valid('json').items);
   return 'error' in r ? c.json(r, 400) : c.json(r, 201);
 });

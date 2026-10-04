@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router';
 import { BedDouble, Plus, Minus, Check, ConciergeBell, Loader2 } from 'lucide-react';
-import { menuApi, roomServiceApi } from '../../lib/api';
+import { roomServiceApi } from '../../lib/api';
 import { useI18n } from '../../contexts/I18nContext';
+import { formatMoney } from '../../lib/pricing';
 import type { MenuCategory, MenuItem } from '../../lib/api/types';
 
 export function RoomServicePage() {
@@ -10,26 +11,32 @@ export function RoomServicePage() {
   const { slug, token } = useParams<{ slug: string; token: string }>();
 
   const [loading, setLoading] = useState(true);
-  const [stay, setStay] = useState<{ active: boolean; guestName: string | null; roomNumber: string | null } | null>(null);
+  const [stay, setStay] = useState<{ active: boolean; guestName: string | null; roomNumber: string | null; currency: string } | null>(null);
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [items, setItems] = useState<MenuItem[]>([]);
   const [cart, setCart] = useState<Record<string, number>>({});
   const [placing, setPlacing] = useState(false);
   const [placed, setPlaced] = useState(false);
+  const [orderError, setOrderError] = useState<string | null>(null);
 
   const tr = (m: MenuItem) => m.translations?.[locale]?.name || m.name;
-  const price = (n: number) => n.toFixed(2);
+  // Room service bills to the guest's folio, so always show the tenant currency
+  // rather than a bare 2-dp number.
+  const price = (n: number) => formatMoney(n, stay?.currency);
 
   const load = useCallback(async () => {
     if (!slug || !token) return;
     setLoading(true);
     try {
-      const [s, menu] = await Promise.all([roomServiceApi.stay(slug, token), menuApi.getFullMenu(slug)]);
-      setStay(s);
+      // One scoped call: the server validates the token and returns only the
+      // items this property offers for in-room delivery.
+      const menu = await roomServiceApi.menu(slug, token);
+      setStay({ active: true, guestName: menu.guestName, roomNumber: menu.roomNumber, currency: menu.currency });
       setCategories(menu.categories);
-      setItems(menu.items.filter((i) => i.available));
-    } catch { setStay({ active: false, guestName: null, roomNumber: null }); }
-    finally { setLoading(false); }
+      setItems(menu.items);
+    } catch {
+      setStay({ active: false, guestName: null, roomNumber: null, currency: 'USD' });
+    } finally { setLoading(false); }
   }, [slug, token]);
   useEffect(() => { load(); }, [load]);
 
@@ -43,10 +50,15 @@ export function RoomServicePage() {
   async function placeOrder() {
     if (!slug || !token || count === 0) return;
     setPlacing(true);
+    setOrderError(null);
     try {
       await roomServiceApi.order(slug, token, cartLines.map((i) => ({ menuItemId: i.id, name: i.name, quantity: cart[i.id], unitPrice: i.price })));
       setCart({}); setPlaced(true);
-    } catch { /* ignore */ } finally { setPlacing(false); }
+    } catch (e) {
+      // e.g. the kitchen just 86'd an item — the server re-prices and drops
+      // unavailable lines, so say so rather than appearing to do nothing.
+      setOrderError(e instanceof Error ? e.message : t('error.generic'));
+    } finally { setPlacing(false); }
   }
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-amber-50"><Loader2 className="w-8 h-8 text-[#0f766e] animate-spin" /></div>;
@@ -87,7 +99,7 @@ export function RoomServicePage() {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-8">
-        {categories.filter((c) => items.some((i) => i.categoryId === c.id)).map((cat) => (
+        {categories.map((cat) => (
           <section key={cat.id}>
             <h2 className="text-lg font-semibold text-gray-900 mb-3">{cat.translations?.[locale]?.name || cat.name}</h2>
             <div className="space-y-2">
@@ -117,6 +129,9 @@ export function RoomServicePage() {
       {count > 0 && (
         <div className="fixed inset-x-0 bottom-0 p-4">
           <div className="max-w-2xl mx-auto">
+            {orderError && (
+              <p role="alert" className="mb-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{orderError}</p>
+            )}
             <button onClick={placeOrder} disabled={placing}
               className="w-full flex items-center justify-between px-5 py-3.5 bg-[#0f766e] text-white rounded-xl shadow-lg hover:bg-[#1e3a5f] disabled:opacity-60">
               <span className="font-medium">{placing ? `${t('common.loading')}...` : `${t('roomService.addToRoom')} · ${count}`}</span>

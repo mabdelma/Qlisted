@@ -427,7 +427,7 @@ export function RoomsPage() {
           {report && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: t('hotel.occupancy'), value: `${report.occupancy}%` },
+                { label: t('hotel.occupancy'), value: `${report.occupancyPct}%` },
                 { label: 'ADR', value: money(report.adr) },
                 { label: 'RevPAR', value: money(report.revpar) },
                 { label: t('hotel.bookingRevenue'), value: money(report.roomRevenue) },

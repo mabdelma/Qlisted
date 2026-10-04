@@ -169,6 +169,13 @@
       "when": 1786497304419,
       "tag": "0023_promo_engine_loyalty",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1791118099078,
+      "tag": "0024_hotel_gaps",
+      "breakpoints": true
     }
   ]
 }

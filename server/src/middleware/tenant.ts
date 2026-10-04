@@ -2,6 +2,7 @@ import type { Context, Next } from 'hono';
 import { db, schema } from '../db/index.js';
 import { eq } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
+import type { VenueType } from '../types.js';
 
 export async function resolveTenant(c: Context, next: Next) {
   const slug = c.req.param('slug');
@@ -34,4 +35,24 @@ export async function resolveTenant(c: Context, next: Next) {
   c.set('tenant', tenant);
   c.set('tenantId', tenant.id);
   await next();
+}
+
+/**
+ * Gate a tenant-scoped route on the tenant's venueType. Feature routes (hotel
+ * rooms/bookings, room service) must run AFTER resolveTenant, since it is what
+ * loads the tenant. Without this, any tenant with an admin token could operate
+ * the hotel endpoints and simply see empty tables — the UI sidebar filter is
+ * cosmetic only. super_admin bypasses so platform staff can inspect any tenant.
+ */
+export function requireVenue(...allowed: VenueType[]) {
+  return async (c: Context, next: Next) => {
+    if (c.get('role') === 'super_admin') return next();
+    const venue = (c.get('tenant')?.venueType ?? 'restaurant') as VenueType;
+    if (!allowed.includes(venue)) {
+      throw new HTTPException(403, {
+        message: `Forbidden: not available for ${venue} venues`,
+      });
+    }
+    await next();
+  };
 }

@@ -119,6 +119,8 @@ FLOW 9: Admin / Super-Admin Flow
 /r/:restaurantSlug/table/:tableId/cart    → Table cart
 /r/:restaurantSlug/table/:tableId/checkout → Table checkout
 /r/:restaurantSlug/table/:tableId/bill    → Bill & payment
+/r/:restaurantSlug/book             → Hotel public booking flow (hotel venues only)
+/r/:restaurantSlug/room/:token      → In-room room service (hotel venues only)
 /pay/:paymentLinkId                 → Payment link page
 
 /dashboard                          → Merchant dashboard
@@ -180,7 +182,11 @@ src/
 │   │   ├── staff/
 │   │   └── settings/
 │   ├── staff/              # Waiter, kitchen, cashier panels
-│   └── admin/              # Super admin panel
+|   ├──staff/              # Waiter, kitchen, cashier panels
+|   ├──admin/              # Super admin panel
+|   └──restaurant/         # Shared venue pages
+|       ├──BookRoomPage.tsx       # /r/:slug/book (hotel)
+|       └──RoomServicePage.tsx    # /r/:slug/room/:token (hotel)
 ├── shared/                 # Shared logic (only if used 2+ times)
 │   ├── ui/                 # Button, Input, Modal, etc.
 │   ├── lib/                # API client, format utils
@@ -210,7 +216,8 @@ api/
 │   │   ├── payments/       # POST /api/r/:slug/payments (Stripe)
 │   │   ├── payment-links/  # CRUD /api/r/:slug/payment-links
 │   │   ├── staff/          # Role-specific endpoints
-│   │   └── admin/          # Super admin endpoints
+|│   ├──admin/          # Super admin endpoints
+|│   └──hotel/          # /api/r/:slug/rooms|bookings|folio (requireVenue('hotel','both'))
 │   ├── services/           # Business logic (order, payment, notification)
 │   ├── utils/              # Logger, helpers, validators
 │   └── types/              # Shared types
@@ -253,6 +260,63 @@ payment_links: id, tenant_id, amount, description, status (active|paid|expired|c
 sessions: id, user_id, tenant_id, expires_at, created_at
 ```
 
+### Hotel Vertical
+
+`tenants.venueType` (`restaurant|hotel|both`) decides which surfaces a tenant gets. `requireVenue(...allowed)`
+in `server/src/middleware/tenant.ts` gates every hotel route with `requireVenue('hotel','both')`, so a
+restaurant-only tenant gets 403 even holding a valid token; `super_admin` bypasses it. Restaurant routes
+stay open to all venue types.
+
+```
+server/src/routes/hotel.ts           # rooms, bookings, folio, hotel-report, public book, room service
+server/src/services/hotelService.ts  # overlap checks, check-in/out, folio posting, room-service re-pricing
+server/src/middleware/tenant.ts      # requireVenue
+src/features/admin/RoomsPage.tsx          # front desk / housekeeping
+src/features/restaurant/BookRoomPage.tsx    # guest booking
+src/features/restaurant/RoomServicePage.tsx # in-room ordering
+```
+
+Data model additions:
+
+```sql
+-- menu_items gains room_service_available (default true): what a room may order.
+-- Distinct from `available`, which means the item is in stock at all.
+menu_items: ..., available, room_service_available
+
+rooms: id, tenant_id, number, type, floor, status, rate, notes,
+       service_token (unguessable, backs the in-room link, rotated at check-out),
+       guest_name, housekeeper_id -> users.id (FK, tenant-validated)
+
+room_bookings: id, tenant_id, room_id, guest_name/email/phone, check_in, check_out,
+               status (booked|checked_in|checked_out|cancelled), nightly rate snapshot, ...
+
+-- Room-service orders link back to the stay that incurred them.
+orders: ..., booking_id -> room_bookings.id (nullable)
+
+folio_items: id, booking_id, description, amount, created_at  -- one row per charge,
+               so room-service orders post itemised lines, not a single summary line
+```
+
+Two occupancy numbers exist and must not be conflated:
+
+| Metric | Meaning |
+|--------|---------|
+| `roomStats.occupancy` | Live: rooms currently `occupied` / total rooms |
+| `hotelReport.occupancyPct` | Period: sold nights / available room-nights, with ADR and RevPAR |
+
+Security properties worth preserving when extending this:
+
+- `GET /room/:token/menu` filters on `available AND room_service_available`, so restaurant-only
+  dishes are never offered to a room.
+- `POST /room/:token/order` re-prices every line from the live menu and drops unavailable items
+  rather than trusting client-posted prices, links `orders.booking_id`, and posts one folio line
+  per item.
+- Public availability returns only `id/number/type/rate` -- never `service_token`.
+- `PUT /rooms/:id` rejects a `housekeeperId` from another tenant; the FK backs that up.
+
+Demo data: `seed.ts` provisions a `demo-hotel` tenant with 5 rooms, a checked-in guest, upcoming
+reservations, a folio, and a menu mixing room-service and restaurant-only items. `SEED_QR_TOKEN` /
+`SEED_ROOM_TOKEN` pin the tokens for deterministic E2E.
 ### Integration Boundaries
 
 | Integration | Type | Purpose |

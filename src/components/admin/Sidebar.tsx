@@ -4,7 +4,9 @@ import { useI18n, type TranslationKey } from '../../contexts/I18nContext';
 import { useAuth } from '../../contexts/AuthContext';
 
 // Nav items specific to one venue type; everything else is shared.
-const RESTAURANT_ONLY = new Set(['orders', 'tables', 'layout', 'menu', 'modifiers', 'reservations', 'waitlist']);
+// `menu`/`modifiers` are deliberately NOT restaurant-only: hotels deliver their
+// menu to rooms via room service, so they need to manage it too.
+const RESTAURANT_ONLY = new Set(['orders', 'tables', 'layout', 'reservations', 'waitlist']);
 const HOTEL_ONLY = new Set(['rooms']);
 
 interface SidebarProps {

@@ -125,7 +125,7 @@ export const menuApi = {
     api.put<{ success: boolean }>(`/r/${slug}/menu/categories/${categoryId}`, data),
   deleteCategory: (slug: string, categoryId: string) =>
     api.delete<{ success: boolean }>(`/r/${slug}/menu/categories/${categoryId}`),
-  createItem: (slug: string, data: { categoryId: string; subCategoryId?: string; name: string; price: number; description?: string; imageUrl?: string; available?: boolean; sortOrder?: number; modifiers?: string; taxCategoryId?: string; taxExempt?: boolean }) =>
+  createItem: (slug: string, data: { categoryId: string; subCategoryId?: string; name: string; price: number; description?: string; imageUrl?: string; available?: boolean; roomServiceAvailable?: boolean; sortOrder?: number; modifiers?: string; taxCategoryId?: string; taxExempt?: boolean }) =>
     api.post<MenuItem>(`/r/${slug}/menu/items`, data),
   updateItem: (slug: string, itemId: string, data: Partial<MenuItem>) =>
     api.put<{ success: boolean }>(`/r/${slug}/menu/items/${itemId}`, data),
@@ -443,6 +443,10 @@ export const bookingApi = {
 export const roomServiceApi = {
   stay: (slug: string, roomId: string) =>
     api.get<{ active: boolean; guestName: string | null; roomNumber: string | null }>(`/r/${slug}/room/${roomId}/stay`, { skipAuth: true }),
+  // Only items the property flagged for in-room delivery, for this stay.
+  menu: (slug: string, token: string) =>
+    api.get<{ guestName: string; roomNumber: string; currency: string; categories: MenuCategory[]; items: MenuItem[] }>(
+      `/r/${slug}/room/${token}/menu`, { skipAuth: true }),
   order: (slug: string, roomId: string, items: { menuItemId: string; name: string; quantity: number; unitPrice: number }[]) =>
     api.post<{ orderId: string; total: number }>(`/r/${slug}/room/${roomId}/order`, { items }, { skipAuth: true }),
 };

@@ -36,35 +36,33 @@ export function BookRoomPage() {
     setBooking(true);
     try {
       const res = await bookingApi.book(slug, { roomId: selected.id, guestName: guest.name, guestEmail: guest.email || undefined, guestPhone: guest.phone || undefined, checkIn, checkOut });
-      if (res.deposit) setDeposit(res.deposit); else setDone(true);
+      // The reservation exists as soon as this POST succeeds, so show the
+      // confirmation NOW rather than waiting on a deposit link click — clicking
+      // through to Stripe never meant payment had succeeded.
+      setDeposit(res.deposit ?? null);
+      setDone(true);
     } catch { /* ignore */ } finally { setBooking(false); }
-  }
-
-  if (deposit && !done) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-amber-50 p-6">
-        <div className="text-center max-w-sm">
-          <div className="w-16 h-16 bg-[#0f766e]/10 rounded-full flex items-center justify-center mx-auto mb-4"><BedDouble className="w-8 h-8 text-[#0f766e]" /></div>
-          <h1 className="text-xl font-bold text-gray-900 mb-2">{t('book.secure')}</h1>
-          <p className="text-gray-600 mb-2">{t('book.securePrompt')}</p>
-          <p className="text-2xl font-bold text-gray-900 mb-6">{price(deposit.amount)}</p>
-          <div className="flex flex-col gap-2">
-            <a href={deposit.url} target="_blank" rel="noopener noreferrer" onClick={() => setDone(true)}
-              className="px-5 py-2.5 bg-[#0f766e] text-white rounded-lg hover:bg-[#1e3a5f]">{t('book.payNow')}</a>
-            <button onClick={() => setDone(true)} className="px-5 py-2.5 text-gray-600 hover:text-gray-800 text-sm">{t('book.payLater')}</button>
-          </div>
-        </div>
-      </div>
-    );
   }
 
   if (done) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-amber-50 p-6">
-        <div className="text-center max-w-sm">
+        <div className="text-center max-w-sm w-full">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"><Check className="w-8 h-8 text-green-600" /></div>
           <h1 className="text-xl font-bold text-gray-900 mb-2">{t('book.confirmed')}</h1>
-          <p className="text-gray-600 mb-6">{t('book.confirmedDesc')}</p>
+          <p className="text-gray-600 mb-6">{deposit ? t('book.reservedWithDeposit') : t('book.confirmedDesc')}</p>
+
+          {deposit && (
+            <div className="bg-white rounded-xl shadow-sm p-4 mb-6 text-start">
+              <p className="font-semibold text-gray-900 mb-1">{t('book.secure')}</p>
+              <p className="text-sm text-gray-500 mb-3">{t('book.securePrompt')}</p>
+              <p className="text-xl font-bold text-gray-900 mb-3">{price(deposit.amount)}</p>
+              <a href={deposit.url} target="_blank" rel="noopener noreferrer"
+                className="block text-center px-5 py-2.5 bg-[#0f766e] text-white rounded-lg hover:bg-[#1e3a5f]">{t('book.payNow')}</a>
+              <p className="text-xs text-gray-400 mt-2 text-center">{t('book.payLater')}</p>
+            </div>
+          )}
+
           <button onClick={() => { setDone(false); setDeposit(null); setRooms(null); setSelected(null); setGuest({ name: '', email: '', phone: '' }); }}
             className="px-5 py-2.5 bg-[#0f766e] text-white rounded-lg hover:bg-[#1e3a5f]">{t('book.bookAnother')}</button>
         </div>

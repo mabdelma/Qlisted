@@ -8,6 +8,7 @@ import { Analytics } from './Analytics';
 import { AdminProfile } from './AdminProfile';
 import { UserManagement } from './UserManagement';
 import { NotificationsProvider } from '../../contexts/NotificationsContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { MenuManagement } from '../../features/admin/MenuManagement';
 import { TableManagement } from '../../features/admin/TableManagement';
 import { InventoryManagement } from '../../features/admin/InventoryManagement';
@@ -35,6 +36,18 @@ import { ReportsPage } from '../../features/admin/ReportsPage';
 import { AssistantPage } from '../../features/admin/AssistantPage';
 import { PaymentLinks } from '../../features/admin/PaymentLinks';
 
+/**
+ * Client-side venue guard for hotel-only admin tabs. Mirrors the server's
+ * requireVenue('hotel','both') — the sidebar filter alone only hides the nav
+ * item, it doesn't stop someone typing the URL.
+ */
+function VenueGate({ venue, children }: { venue: 'hotel'; children: React.ReactNode }) {
+  const { state: { tenant } } = useAuth();
+  const type = tenant?.venueType || 'restaurant';
+  if (type !== venue && type !== 'both') return <Navigate to="/admin/analytics" replace />;
+  return <>{children}</>;
+}
+
 const routes = [
   { path: 'orders', element: <OrderManagement /> },
   { path: 'payment-links', element: <PaymentLinks /> },
@@ -58,7 +71,9 @@ const routes = [
   { path: 'inventory', element: <InventoryManagement /> },
   { path: 'schedule', element: <SchedulingPage /> },
   { path: 'customers', element: <CustomersPage /> },
-  { path: 'rooms', element: <RoomsPage /> },
+  // Hotel-only: the sidebar hides it, but a deep link would otherwise render an
+  // empty board (the API rejects it with 403 anyway). Send them somewhere useful.
+  { path: 'rooms', element: <VenueGate venue="hotel"><RoomsPage /></VenueGate> },
   { path: 'gift-cards', element: <GiftCards /> },
   { path: 'time-tracking', element: <TimeTracking /> }
 ];

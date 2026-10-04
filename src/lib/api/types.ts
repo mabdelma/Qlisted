@@ -59,6 +59,8 @@ export interface MenuItem {
   price: number;
   imageUrl?: string;
   available: boolean;
+  /** Hotel room service only: can this item be delivered to a room? */
+  roomServiceAvailable: boolean;
   sortOrder: number;
   modifiers?: string;
   taxCategoryId?: string;
@@ -550,13 +552,17 @@ export interface HotelReport {
   arrivals: number;
   departures: number;
   roomRevenue: number;
-  occupancy: number;
+  soldNights: number;
+  /** Period occupancy: sold nights / available room-nights. NOT the live
+   *  point-in-time count in RoomStats.occupancy — see hotelService.hotelReport. */
+  occupancyPct: number;
   adr: number;
   revpar: number;
 }
 
 export interface RoomStats {
   total: number;
+  /** Live occupancy right now: rooms with status 'occupied' / total rooms. */
   occupancy: number;
   available: number;
   occupied: number;

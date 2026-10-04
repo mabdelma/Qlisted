@@ -154,6 +154,10 @@ After seeding:
 - **Admin login**: owner@demo.com / pass123
 - **Restaurant slug**: demo-cafe
 - **Customer menu**: http://localhost:5173/r/demo-cafe (or scan the QR from the admin Tables tab)
+- **Hotel slug**: demo-hotel (admin owner@demo.com / pass123), guest booking at http://localhost:5173/r/demo-hotel/book
+
+Seed tokens are random per run. Pin them for deterministic E2E with `SEED_QR_TOKEN` and
+`SEED_ROOM_TOKEN`; the in-room room-service link is `<tenantSlug>/room/<SEED_ROOM_TOKEN>`.
 
 ## Running Tests
 
@@ -201,6 +205,43 @@ GitHub Actions runs on push/PR to `main` in parallel:
 
 > **Note:** `VITE_*` vars are inlined at build time. The Stripe publishable key is baked into the Docker image. Changing it requires a rebuild.
 
+## Hotel Vertical
+
+Tenants declare a `venueType` of `restaurant`, `hotel`, or `both`. Hotel endpoints are gated by
+`requireVenue('hotel', 'both')` in `server/src/middleware/tenant.ts`, so a restaurant-only tenant
+gets `403` even with a valid token; `super_admin` bypasses the check. Restaurant endpoints stay
+available to every venue type.
+
+Seeding also provisions a `demo-hotel` tenant (venueType `hotel`) with five rooms, an in-house
+checked-in guest, upcoming reservations, a folio, and a menu that mixes room-service-only items
+with restaurant-only ones.
+
+| Surface | URL |
+|---------|-----|
+| Guest booking flow | http://localhost:5173/r/demo-hotel/book |
+| Room service (in-room QR link) | http://localhost:5173/r/demo-hotel/room/<room's serviceToken> |
+| Front desk / housekeeping | `/admin/rooms` |
+
+How it fits together:
+
+- **Rooms** — `roomServiceToken` is an unguessable per-room token that backs the in-room ordering
+  link. It rotates on check-out, so a departed guest's link dies with their stay. `PUT /rooms/:id`
+  validates that `housekeeperId` belongs to the same tenant, and a DB-level FK backs it up.
+- **Reservations** — `POST /book` and the admin route both reject overlapping active bookings for a
+  room, snapshot the nightly rate, and flip an available room to `reserved`. Check-in sets the room
+  to `occupied`; check-out sets it to `cleaning`, clears the guest, and rotates the token.
+- **Folios** — a folio holds the room charge plus itemised extras, a deposit, and an outstanding
+  balance. Settle in cash, or issue a Stripe pay-link for the balance.
+- **Room service** — `GET /room/:token/menu` returns only items that are both `available` and
+  flagged `roomServiceAvailable`, so restaurant-only dishes are never offered to a room.
+  `POST /room/:token/order` re-prices every line from the live menu instead of trusting posted
+  prices, links the order to the booking (`orders.booking_id`), and posts one folio line per item.
+  Use the `roomServiceAvailable` toggle in `/admin/menu` to control what a room can order.
+- **Reporting** — two occupancy numbers exist and they mean different things:
+  `roomStats.occupancy` is live (rooms currently `occupied` ÷ total rooms), while
+  `hotelReport.occupancyPct` is sold nights ÷ available room-nights for a period, alongside ADR,
+  RevPAR, arrivals, departures and room revenue.
+
 ## API Endpoints
 
 | Method | Path | Auth | Description |
@@ -227,6 +268,34 @@ GitHub Actions runs on push/PR to `main` in parallel:
 | `GET` | `/api/admin/:slug/*` | Admin | Admin dashboard data |
 | `POST` | `/api/upload` | Auth | Upload image |
 | `GET/POST/PUT/DELETE` | `/api/users` | Auth | Staff user CRUD |
+
+### Hotel
+
+All of these require a `hotel` or `both` tenant. See `server/src/openapi.ts` for the full spec.
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET/POST` | `/api/r/:slug/rooms` | JWT | List / create rooms |
+| `PUT/DELETE` | `/api/r/:slug/rooms/:id` | JWT | Update / delete a room |
+| `GET` | `/api/r/:slug/rooms/stats` | JWT | Live room-status counts + occupancy |
+| `GET` | `/api/r/:slug/rooms/available` | JWT | Rooms free in a window |
+| `POST` | `/api/r/:slug/rooms/:id/status` | JWT | Front-desk / housekeeping status change |
+| `POST` | `/api/r/:slug/rooms/:id/regenerate-token` | JWT | Rotate the in-room service token |
+| `GET` | `/api/r/:slug/hotel-report` | JWT | Occupancy %, ADR, RevPAR for a range |
+| `GET/POST` | `/api/r/:slug/bookings` | JWT | List / create reservations |
+| `POST` | `/api/r/:slug/bookings/:id/check-in` | JWT | Check a guest in |
+| `POST` | `/api/r/:slug/bookings/:id/check-out` | JWT | Check out (rotates room token) |
+| `POST` | `/api/r/:slug/bookings/:id/cancel` | JWT | Cancel a reservation |
+| `GET/POST` | `/api/r/:slug/bookings/:id/folio` | JWT | Read folio / post a charge |
+| `DELETE` | `/api/r/:slug/folio/:folioItemId` | JWT | Remove a folio charge |
+| `POST` | `/api/r/:slug/bookings/:id/folio/pay-link` | JWT | Stripe link for the balance |
+| `POST` | `/api/r/:slug/bookings/:id/folio/settle` | JWT | Mark settled (cash / manual) |
+| `POST` | `/api/r/:slug/bookings/:id/folio/deposit` | JWT | Record a deposit |
+| `GET` | `/api/r/:slug/book/availability` | — | Public room availability |
+| `POST` | `/api/r/:slug/book` | — | Public reservation (+ optional deposit link) |
+| `GET` | `/api/r/:slug/room/:token/stay` | — | Resolve the active stay |
+| `GET` | `/api/r/:slug/room/:token/menu` | — | In-room menu (deliverable items only) |
+| `POST` | `/api/r/:slug/room/:token/order` | — | Place a room-service order |
 
 ## Deployment
 

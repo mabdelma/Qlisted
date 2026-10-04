@@ -27,6 +27,8 @@ export interface CreateOrderInput {
   deliveryFee?: number;
   estimatedPickupTime?: string;
   estimatedDeliveryTime?: string;
+  /** Hotel room-service orders: links the order to the guest stay (folio). */
+  bookingId?: string;
   items: OrderItemInput[];
   notes?: string;
 }
@@ -76,6 +78,7 @@ export async function createOrder(tenantId: string, input: CreateOrderInput) {
     deliveryFee,
     estimatedPickupTime: input.estimatedPickupTime || null,
     estimatedDeliveryTime: input.estimatedDeliveryTime || null,
+    bookingId: input.bookingId || null,
     status: 'pending',
     itemCount,
     subtotal,

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { db } from '../db/index.js';
-import { resolveTenant } from './tenant.js';
+import { resolveTenant, requireVenue } from './tenant.js';
 
 const TENANT = { id: 't-demo', slug: 'demo', isActive: true };
 
@@ -57,5 +57,45 @@ describe('resolveTenant — tenant isolation', () => {
     const next = vi.fn();
     await expect(resolveTenant(c, next)).rejects.toBeInstanceOf(HTTPException);
     expect(next).not.toHaveBeenCalled();
+  });
+});
+
+// The admin sidebar hides hotel tabs by venueType, but that filter is cosmetic —
+// requireVenue is what actually stops a restaurant driving the hotel endpoints.
+describe('requireVenue — venue-type feature gating', () => {
+  const gate = requireVenue('hotel', 'both');
+
+  function venueCtx(venueType: string | undefined, role = 'admin') {
+    return makeCtx('demo', { tenant: { ...TENANT, venueType }, role });
+  }
+
+  it('allows a hotel tenant through the hotel gate', async () => {
+    const next = vi.fn();
+    await gate(venueCtx('hotel'), next);
+    expect(next).toHaveBeenCalledOnce();
+  });
+
+  it('allows a "both" tenant through the hotel gate', async () => {
+    const next = vi.fn();
+    await gate(venueCtx('both'), next);
+    expect(next).toHaveBeenCalledOnce();
+  });
+
+  it('BLOCKS a restaurant-only tenant with 403', async () => {
+    const next = vi.fn();
+    await expect(gate(venueCtx('restaurant'), next)).rejects.toMatchObject({ status: 403 });
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('treats a missing venueType as restaurant (fail closed)', async () => {
+    const next = vi.fn();
+    await expect(gate(venueCtx(undefined), next)).rejects.toMatchObject({ status: 403 });
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('lets super_admin inspect any tenant regardless of venueType', async () => {
+    const next = vi.fn();
+    await gate(venueCtx('restaurant', 'super_admin'), next);
+    expect(next).toHaveBeenCalledOnce();
   });
 });

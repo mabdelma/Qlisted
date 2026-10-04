@@ -26,6 +26,7 @@ const itemSchema = z.object({
   price: z.number().positive(),
   imageUrl: z.string().optional(),
   available: z.boolean().optional().default(true),
+  roomServiceAvailable: z.boolean().optional().default(true),
   sortOrder: z.number().int().optional().default(0),
   modifiers: z.string().optional(),
 });
@@ -101,6 +102,7 @@ const updateMenuItemSchema = z.object({
   price: z.number().positive().optional(),
   categoryId: z.string().uuid().optional(),
   available: z.boolean().optional(),
+  roomServiceAvailable: z.boolean().optional(),
   imageUrl: z.string().url().max(500).optional().nullable(),
 });
 

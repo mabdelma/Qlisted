@@ -179,6 +179,84 @@ async function seed() {
   console.log(`Seeded tenant: demo-cafe (ID: ${tenantId})`);
   console.log('Admin login: owner@demo.com / pass123');
   console.log(`Table QR token: ${qrToken}`);
+
+  await seedHotel(passwordHash);
+}
+
+/**
+ * A second tenant running a hotel, so the rooms / bookings / folio / room-service
+ * surfaces have real data behind them. Without this the hotel dashboards are
+ * permanently empty and the E2E hotel spec can only assert "it didn't crash".
+ */
+async function seedHotel(passwordHash: string) {
+  const tenantId = uuid();
+  await db.insert(schema.tenants).values({
+    id: tenantId,
+    name: 'Demo Grand Hotel',
+    slug: 'demo-hotel',
+    email: 'frontdesk@demohotel.com',
+    phone: '+1-555-0200',
+    address: '1 Grand Plaza, Cityville',
+    currency: 'USD',
+    timezone: 'America/New_York',
+    primaryColor: '#0f766e',
+    venueType: 'hotel',
+    taxRate: 0.1,
+    serviceCharge: 0,
+  });
+
+  await db.insert(schema.users).values({
+    id: uuid(), tenantId, name: 'Hotel Manager',
+    email: 'manager@demohotel.com', passwordHash, role: 'admin',
+  });
+
+  const catInRoom = uuid();
+  const catDrinks = uuid();
+  await db.insert(schema.menuCategories).values([
+    { id: catInRoom, tenantId, name: 'In-Room Dining', type: 'main', sortOrder: 0 },
+    { id: catDrinks, tenantId, name: 'Beverages', type: 'main', sortOrder: 1 },
+  ]);
+  await db.insert(schema.menuItems).values([
+    { id: uuid(), tenantId, categoryId: catInRoom, name: 'Club Sandwich', description: 'Grilled chicken, bacon, lettuce, tomato', price: 16, available: true, roomServiceAvailable: true, sortOrder: 0 },
+    { id: uuid(), tenantId, categoryId: catInRoom, name: 'Caesar Salad', description: 'Romaine, parmesan, croutons', price: 12, available: true, roomServiceAvailable: true, sortOrder: 1 },
+    // Kitchen-only: not deliverable to a room, so room service must not offer it.
+    { id: uuid(), tenantId, categoryId: catInRoom, name: 'Chef\'s Tasting Menu', description: 'Served in the restaurant only', price: 65, available: true, roomServiceAvailable: false, sortOrder: 2 },
+    { id: uuid(), tenantId, categoryId: catDrinks, name: 'Room Service Coffee', description: 'Freshly brewed', price: 5, available: true, roomServiceAvailable: true, sortOrder: 0 },
+  ]);
+
+  // The in-room link is keyed on the room's serviceToken, so pin one to a known
+  // value for E2E exactly like SEED_QR_TOKEN does for tables.
+  const roomToken = process.env.SEED_ROOM_TOKEN || crypto.randomBytes(16).toString('hex');
+  const occupiedRoomId = uuid();
+  const vacantRoomId = uuid();
+  const today = new Date().toISOString().split('T')[0];
+  const nights = (n: number) => {
+    const d = new Date(today + 'T00:00:00Z');
+    d.setUTCDate(d.getUTCDate() + n);
+    return d.toISOString().split('T')[0];
+  };
+
+  await db.insert(schema.rooms).values([
+    { id: occupiedRoomId, tenantId, number: '101', type: 'Double', floor: '1', rate: 140, status: 'occupied', guestName: 'Alex Rivera', serviceToken: roomToken },
+    { id: vacantRoomId, tenantId, number: '102', type: 'Double', floor: '1', rate: 140, status: 'available' },
+    { id: uuid(), tenantId, number: '201', type: 'Suite', floor: '2', rate: 260, status: 'cleaning' },
+    { id: uuid(), tenantId, number: '202', type: 'Suite', floor: '2', rate: 260, status: 'maintenance' },
+    { id: uuid(), tenantId, number: '103', type: 'Single', floor: '1', rate: 95, status: 'reserved' },
+  ]);
+
+  // One live checked-in stay (so room service resolves) and one future booking.
+  const activeBookingId = uuid();
+  await db.insert(schema.roomBookings).values([
+    { id: activeBookingId, tenantId, roomId: occupiedRoomId, guestName: 'Alex Rivera', guestEmail: 'alex@example.com', checkIn: today, checkOut: nights(2), status: 'checked_in', ratePerNight: 140, total: 280 },
+    { id: uuid(), tenantId, roomId: vacantRoomId, guestName: 'Sam Chen', guestEmail: 'sam@example.com', checkIn: nights(3), checkOut: nights(5), status: 'booked', ratePerNight: 140, total: 280 },
+  ]);
+  await db.insert(schema.folioItems).values([
+    { id: uuid(), tenantId, bookingId: activeBookingId, description: 'Minibar', amount: 15 },
+  ]);
+
+  console.log(`Seeded tenant: demo-hotel (ID: ${tenantId})`);
+  console.log('Admin login: manager@demohotel.com / pass123');
+  console.log(`Room service token (Room 101): ${roomToken}`);
 }
 
 seed()

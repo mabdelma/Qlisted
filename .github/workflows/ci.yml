@@ -145,6 +145,10 @@ jobs:
         env:
           DATABASE_URL: postgresql://qcart:qcart@localhost:5432/qcart
           REDIS_URL: redis://localhost:6379
+          # Pin the seeded table QR token and hotel room token so E2E can address
+          # them by stable URL (see server/src/db/seed.ts).
+          SEED_QR_TOKEN: e2e-qr-token-fixed
+          SEED_ROOM_TOKEN: e2e-room-token-fixed
       - name: Start API server
         run: |
           cd server && node dist/index.js > "$GITHUB_WORKSPACE/api.log" 2>&1 &

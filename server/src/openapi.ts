@@ -354,6 +354,15 @@ export function paginatedResponse<T extends z.ZodType>(itemSchema: T) {
 // ──────────────────────────────────────────
 // OpenAPI 3.1 document
 // ──────────────────────────────────────────
+// Reused path parameter descriptors (hotel routes lean on these heavily).
+const SLUG_PARAM = { name: 'slug', in: 'path', required: true, schema: { type: 'string' } } as const;
+const ROOM_ID_PARAM = { name: 'roomId', in: 'path', required: true, schema: { type: 'string' } } as const;
+const BOOKING_ID_PARAM = { name: 'bookingId', in: 'path', required: true, schema: { type: 'string' } } as const;
+const ROOM_TOKEN_PARAM = {
+  name: 'token', in: 'path', required: true, schema: { type: 'string' },
+  description: 'A room\'s unguessable in-room service token, rotated at check-out.',
+} as const;
+
 export const openApiSchema = {
   openapi: '3.1.0',
   info: {
@@ -368,7 +377,14 @@ Obtain tokens via \`POST /api/auth/login\`.
 ## Tenant-scoped routes
 All resource routes under \`/api/r/{slug}/...\` require a restaurant slug in the URL path.
 Public endpoints (menu browsing, order creation) don't need auth.
-Admin/management endpoints require auth with appropriate roles.`,
+Admin/management endpoints require auth with appropriate roles.
+
+## Venue types
+Tenants declare a \`venueType\` of \`restaurant\`, \`hotel\`, or \`both\`. Hotel endpoints
+(rooms, reservations, folios, in-room room service, hotel reporting) are gated by
+\`requireVenue('hotel','both')\`, so a restaurant-only tenant receives \`403\` even with a
+valid token. \`super_admin\` bypasses the venue check. Restaurant endpoints are available
+to every venue type.`,
   },
   servers: [
     { url: 'https://api.qcart.app', description: 'Production server' },
@@ -2297,6 +2313,351 @@ Admin/management endpoints require auth with appropriate roles.`,
         },
       },
     },
+
+    // ── Hotel: rooms, reservations, folio, room service ──────────────────────
+    // All hotel routes are gated by requireVenue('hotel','both'): a tenant whose
+    // venueType is 'restaurant' gets 403 regardless of role.
+    '/api/r/{slug}/rooms': {
+      get: {
+        tags: ['Hotel'],
+        summary: 'List all rooms',
+        description: 'Rooms ordered by floor then number. Requires an admin/manager token and a hotel (or "both") venue.',
+        operationId: 'hotelListRooms',
+        security: [{ BearerAuth: [] }],
+        parameters: [SLUG_PARAM],
+        responses: {
+          '200': { description: 'Room list' },
+          '401': { description: 'Authentication required' },
+          '403': { description: 'Not a hotel tenant, or insufficient role' },
+        },
+      },
+      post: {
+        tags: ['Hotel'],
+        summary: 'Create a room',
+        description: 'Mints the room\'s unguessable in-room serviceToken used by the room-service QR link.',
+        operationId: 'hotelCreateRoom',
+        security: [{ BearerAuth: [] }],
+        parameters: [SLUG_PARAM],
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/HotelRoomInput' } } },
+        },
+        responses: {
+          '201': { description: 'Room created' },
+          '403': { description: 'Not a hotel tenant' },
+        },
+      },
+    },
+    '/api/r/{slug}/rooms/stats': {
+      get: {
+        tags: ['Hotel'],
+        summary: 'Live room-status counts',
+        description: 'Point-in-time occupancy: rooms with status "occupied" divided by total rooms. Distinct from hotelReport.occupancyPct, which is sold nights over available room-nights for a period.',
+        operationId: 'hotelRoomStats',
+        security: [{ BearerAuth: [] }],
+        parameters: [SLUG_PARAM],
+        responses: { '200': { description: 'Counts per status plus live occupancy %' } },
+      },
+    },
+    '/api/r/{slug}/rooms/available': {
+      get: {
+        tags: ['Hotel'],
+        summary: 'Rooms free in a date window',
+        operationId: 'hotelAvailableRooms',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          SLUG_PARAM,
+          { name: 'checkIn', in: 'query', required: true, schema: { type: 'string' }, example: '2026-07-10' },
+          { name: 'checkOut', in: 'query', required: true, schema: { type: 'string' }, example: '2026-07-12' },
+        ],
+        responses: { '200': { description: 'Rooms with no overlapping active booking' } },
+      },
+    },
+    '/api/r/{slug}/rooms/{roomId}': {
+      put: {
+        tags: ['Hotel'],
+        summary: 'Update a room',
+        description: 'housekeeperId is validated against this tenant\'s users; a cross-tenant user id is rejected with 400.',
+        operationId: 'hotelUpdateRoom',
+        security: [{ BearerAuth: [] }],
+        parameters: [SLUG_PARAM, ROOM_ID_PARAM],
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/HotelRoomUpdateInput' } } },
+        },
+        responses: {
+          '200': { description: 'Room updated' },
+          '400': { description: 'Validation failed, or housekeeper not in this tenant' },
+          '403': { description: 'Not a hotel tenant' },
+        },
+      },
+      delete: {
+        tags: ['Hotel'],
+        summary: 'Delete a room',
+        operationId: 'hotelDeleteRoom',
+        security: [{ BearerAuth: [] }],
+        parameters: [SLUG_PARAM, ROOM_ID_PARAM],
+        responses: { '200': { description: 'Room deleted' } },
+      },
+    },
+    '/api/r/{slug}/rooms/{roomId}/status': {
+      post: {
+        tags: ['Hotel'],
+        summary: 'Change room status (front desk / housekeeping)',
+        operationId: 'hotelSetRoomStatus',
+        security: [{ BearerAuth: [] }],
+        parameters: [SLUG_PARAM, ROOM_ID_PARAM],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['status'],
+                properties: {
+                  status: { type: 'string', enum: ['available', 'occupied', 'cleaning', 'maintenance', 'reserved'] },
+                  guestName: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
+        responses: { '200': { description: 'Status updated; "available" clears the guest name' } },
+      },
+    },
+    '/api/r/{slug}/rooms/{roomId}/regenerate-token': {
+      post: {
+        tags: ['Hotel'],
+        summary: 'Rotate a room\'s service token',
+        description: 'Invalidates the previous in-room ordering link immediately.',
+        operationId: 'hotelRegenerateRoomToken',
+        security: [{ BearerAuth: [] }],
+        parameters: [SLUG_PARAM, ROOM_ID_PARAM],
+        responses: { '200': { description: 'New serviceToken' } },
+      },
+    },
+    '/api/r/{slug}/hotel-report': {
+      get: {
+        tags: ['Hotel'],
+        summary: 'Hotel performance report for a date range',
+        description: 'Period metrics attributed by check-in date: occupancyPct (sold nights / available room-nights), ADR, RevPAR, room revenue, arrivals and departures.',
+        operationId: 'hotelReport',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          SLUG_PARAM,
+          { name: 'from', in: 'query', required: true, schema: { type: 'string' }, example: '2026-07-01' },
+          { name: 'to', in: 'query', required: true, schema: { type: 'string' }, example: '2026-07-31' },
+        ],
+        responses: {
+          '200': { description: 'Report' },
+          '400': { description: 'Invalid or empty date range' },
+        },
+      },
+    },
+    '/api/r/{slug}/bookings': {
+      get: {
+        tags: ['Hotel'],
+        summary: 'List reservations with room numbers joined',
+        operationId: 'hotelListBookings',
+        security: [{ BearerAuth: [] }],
+        parameters: [SLUG_PARAM],
+        responses: { '200': { description: 'Bookings, newest check-in first' } },
+      },
+      post: {
+        tags: ['Hotel'],
+        summary: 'Create a reservation',
+        description: 'Rejects overlapping active bookings for the same room, snapshots the nightly rate, flips an available room to "reserved", and emails/SMS the guest.',
+        operationId: 'hotelCreateBooking',
+        security: [{ BearerAuth: [] }],
+        parameters: [SLUG_PARAM],
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/HotelBookingInput' } } },
+        },
+        responses: {
+          '201': { description: 'Booking created' },
+          '400': { description: 'Unknown room, bad date range, or overlapping booking' },
+        },
+      },
+    },
+    '/api/r/{slug}/bookings/{bookingId}/check-in': {
+      post: {
+        tags: ['Hotel'],
+        summary: 'Check a guest in',
+        description: 'Booking becomes checked_in, room becomes occupied, and the guest is emailed their room-service link.',
+        operationId: 'hotelCheckIn',
+        security: [{ BearerAuth: [] }],
+        parameters: [SLUG_PARAM, BOOKING_ID_PARAM],
+        responses: { '200': { description: 'Checked in' }, '404': { description: 'Booking not found' } },
+      },
+    },
+    '/api/r/{slug}/bookings/{bookingId}/check-out': {
+      post: {
+        tags: ['Hotel'],
+        summary: 'Check a guest out',
+        description: 'Booking becomes checked_out, room becomes cleaning, guest is cleared, and the service token is rotated so the departing guest\'s link dies.',
+        operationId: 'hotelCheckOut',
+        security: [{ BearerAuth: [] }],
+        parameters: [SLUG_PARAM, BOOKING_ID_PARAM],
+        responses: { '200': { description: 'Checked out' }, '404': { description: 'Booking not found' } },
+      },
+    },
+    '/api/r/{slug}/bookings/{bookingId}/cancel': {
+      post: {
+        tags: ['Hotel'],
+        summary: 'Cancel a reservation',
+        operationId: 'hotelCancelBooking',
+        security: [{ BearerAuth: [] }],
+        parameters: [SLUG_PARAM, BOOKING_ID_PARAM],
+        responses: { '200': { description: 'Cancelled; a merely-reserved room is freed' } },
+      },
+    },
+    '/api/r/{slug}/bookings/{bookingId}/folio': {
+      get: {
+        tags: ['Hotel'],
+        summary: 'Get the guest folio',
+        description: 'Room charge, itemised extras, grand total, deposit, and outstanding balance. Room-service charges are posted here one line per item.',
+        operationId: 'hotelGetFolio',
+        security: [{ BearerAuth: [] }],
+        parameters: [SLUG_PARAM, BOOKING_ID_PARAM],
+        responses: { '200': { description: 'Folio' }, '404': { description: 'Booking not found' } },
+      },
+      post: {
+        tags: ['Hotel'],
+        summary: 'Post a charge to the folio',
+        operationId: 'hotelAddFolioItem',
+        security: [{ BearerAuth: [] }],
+        parameters: [SLUG_PARAM, BOOKING_ID_PARAM],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['description', 'amount'],
+                properties: { description: { type: 'string' }, amount: { type: 'number', minimum: 0 } },
+              },
+            },
+          },
+        },
+        responses: { '201': { description: 'Charge posted' } },
+      },
+    },
+    '/api/r/{slug}/folio/{folioItemId}': {
+      delete: {
+        tags: ['Hotel'],
+        summary: 'Remove a folio charge',
+        operationId: 'hotelDeleteFolioItem',
+        security: [{ BearerAuth: [] }],
+        parameters: [SLUG_PARAM, { name: 'folioItemId', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: { '200': { description: 'Charge removed' } },
+      },
+    },
+    '/api/r/{slug}/bookings/{bookingId}/folio/pay-link': {
+      post: {
+        tags: ['Hotel'],
+        summary: 'Create a Stripe link for the outstanding balance',
+        operationId: 'hotelFolioPayLink',
+        security: [{ BearerAuth: [] }],
+        parameters: [SLUG_PARAM, BOOKING_ID_PARAM],
+        responses: {
+          '201': { description: 'Payment link created' },
+          '400': { description: 'Nothing outstanding' },
+        },
+      },
+    },
+    '/api/r/{slug}/bookings/{bookingId}/folio/settle': {
+      post: {
+        tags: ['Hotel'],
+        summary: 'Mark the folio settled (cash / manual)',
+        operationId: 'hotelSettleFolio',
+        security: [{ BearerAuth: [] }],
+        parameters: [SLUG_PARAM, BOOKING_ID_PARAM],
+        responses: { '200': { description: 'Folio settled' } },
+      },
+    },
+    '/api/r/{slug}/bookings/{bookingId}/folio/deposit': {
+      post: {
+        tags: ['Hotel'],
+        summary: 'Record a deposit and return a pay link',
+        description: 'Defaults to one night\'s rate when no amount is supplied.',
+        operationId: 'hotelTakeDeposit',
+        security: [{ BearerAuth: [] }],
+        parameters: [SLUG_PARAM, BOOKING_ID_PARAM],
+        responses: { '201': { description: 'Deposit recorded with a payment link' } },
+      },
+    },
+    '/api/r/{slug}/book/availability': {
+      get: {
+        tags: ['Hotel'],
+        summary: 'Public room availability',
+        description: 'Guest-facing. Returns only id/number/type/rate — never the service token.',
+        operationId: 'hotelPublicAvailability',
+        parameters: [
+          SLUG_PARAM,
+          { name: 'checkIn', in: 'query', required: false, schema: { type: 'string' } },
+          { name: 'checkOut', in: 'query', required: false, schema: { type: 'string' } },
+        ],
+        responses: { '200': { description: 'Free rooms, or [] for an invalid range' } },
+      },
+    },
+    '/api/r/{slug}/book': {
+      post: {
+        tags: ['Hotel'],
+        summary: 'Public reservation',
+        description: 'Guest-facing. Returns an optional one-night deposit link; depositAmount is only recorded once the payment webhook fires.',
+        operationId: 'hotelPublicBook',
+        parameters: [SLUG_PARAM],
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/HotelBookingInput' } } },
+        },
+        responses: {
+          '201': { description: 'Booking created, plus deposit link when a rate is set' },
+          '400': { description: 'Unknown room, bad date range, or overlapping booking' },
+          '403': { description: 'Not a hotel tenant' },
+        },
+      },
+    },
+    '/api/r/{slug}/room/{token}/stay': {
+      get: {
+        tags: ['Hotel'],
+        summary: 'Resolve the active stay for an in-room token',
+        operationId: 'hotelRoomStay',
+        parameters: [SLUG_PARAM, ROOM_TOKEN_PARAM],
+        responses: { '200': { description: '{ active, guestName, roomNumber }' } },
+      },
+    },
+    '/api/r/{slug}/room/{token}/menu': {
+      get: {
+        tags: ['Hotel'],
+        summary: 'In-room menu for the active stay',
+        description: 'Guest-facing. Validates the token and returns only items that are both available and flagged roomServiceAvailable, so restaurant-only dishes are never offered to a room. 400 on a dead token.',
+        operationId: 'hotelRoomServiceMenu',
+        parameters: [SLUG_PARAM, ROOM_TOKEN_PARAM],
+        responses: {
+          '200': { description: 'Guest, room, currency, categories and deliverable items' },
+          '400': { description: 'No active stay for this room' },
+        },
+      },
+    },
+    '/api/r/{slug}/room/{token}/order': {
+      post: {
+        tags: ['Hotel'],
+        summary: 'Place a room-service order',
+        description: 'Guest-facing. Re-prices every line from the live menu and drops unavailable ones rather than trusting posted prices, links the order to the booking (orders.booking_id), and posts one folio line per item.',
+        operationId: 'hotelRoomServiceOrder',
+        parameters: [SLUG_PARAM, ROOM_TOKEN_PARAM],
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/RoomServiceOrderInput' } } },
+        },
+        responses: {
+          '201': { description: 'Order placed and charged to the folio' },
+          '400': { description: 'No active stay, or no ordered items are still available' },
+        },
+      },
+    },
   },
   components: {
     securitySchemes: {
@@ -2308,6 +2669,68 @@ Admin/management endpoints require auth with appropriate roles.`,
       },
     },
     schemas: {
+      // ── Hotel ──
+      HotelRoomInput: {
+        type: 'object',
+        required: ['number'],
+        properties: {
+          number: { type: 'string', minLength: 1 },
+          type: { type: 'string' },
+          floor: { type: 'string' },
+          status: { type: 'string', enum: ['available', 'occupied', 'cleaning', 'maintenance', 'reserved'] },
+          rate: { type: 'number', minimum: 0, description: 'Price per night' },
+          notes: { type: 'string' },
+        },
+      },
+      HotelRoomUpdateInput: {
+        type: 'object',
+        description: 'All fields optional. housekeeperId must reference a user of this tenant.',
+        properties: {
+          number: { type: 'string', minLength: 1 },
+          type: { type: 'string' },
+          floor: { type: 'string' },
+          status: { type: 'string', enum: ['available', 'occupied', 'cleaning', 'maintenance', 'reserved'] },
+          rate: { type: 'number', minimum: 0 },
+          notes: { type: 'string' },
+          housekeeperId: { type: ['string', 'null'] },
+          guestName: { type: 'string' },
+        },
+      },
+      HotelBookingInput: {
+        type: 'object',
+        required: ['roomId', 'guestName', 'checkIn', 'checkOut'],
+        properties: {
+          roomId: { type: 'string' },
+          guestName: { type: 'string' },
+          guestEmail: { type: 'string', format: 'email' },
+          guestPhone: { type: 'string' },
+          checkIn: { type: 'string', example: '2026-07-10' },
+          checkOut: { type: 'string', example: '2026-07-12' },
+          notes: { type: 'string' },
+        },
+      },
+      RoomServiceOrderInput: {
+        type: 'object',
+        required: ['items'],
+        properties: {
+          items: {
+            type: 'array',
+            minItems: 1,
+            description: 'Names and prices are advisory — the server re-prices from the live menu and drops items no longer deliverable.',
+            items: {
+              type: 'object',
+              required: ['menuItemId', 'name', 'quantity', 'unitPrice'],
+              properties: {
+                menuItemId: { type: 'string' },
+                name: { type: 'string' },
+                quantity: { type: 'integer', minimum: 1 },
+                unitPrice: { type: 'number', minimum: 0 },
+              },
+            },
+          },
+        },
+      },
+
       // ── Error ──
       ErrorResponse: {
         type: 'object',

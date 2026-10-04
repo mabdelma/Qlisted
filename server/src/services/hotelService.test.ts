@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { createBooking, getFolio, availableRooms, settleFolio, folioPayLink, hotelReport, takeDeposit } from './hotelService.js';
+import { createBooking, getFolio, availableRooms, settleFolio, folioPayLink, hotelReport, takeDeposit, roomStats, updateRoom } from './hotelService.js';
 import { db } from '../db/index.js';
 
 // Stub the cross-service calls hotelService makes so the tests stay unit-scoped.
@@ -111,11 +111,12 @@ describe('hotelService', () => {
       const r = await hotelReport('t1', '2026-07-01', '2026-07-31'); // 30 available days
       expect('error' in r).toBe(false);
       if (!('error' in r)) {
-        expect(r.bookings).toBe(2);           // cancelled excluded
+        expect(r.bookings).toBe(2);              // cancelled excluded
         expect(r.roomRevenue).toBe(350);
-        expect(r.occupancy).toBe(5);          // 3 sold nights / (2 rooms * 30 days) = 5%
-        expect(r.adr).toBeCloseTo(116.67, 1); // 350 / 3 sold nights
-        expect(r.revpar).toBeCloseTo(5.83, 1); // 350 / 60 available room-nights
+        expect(r.soldNights).toBe(3);
+        expect(r.occupancyPct).toBe(5);          // 3 sold nights / (2 rooms * 30 days) = 5%
+        expect(r.adr).toBeCloseTo(116.67, 1);    // 350 / 3 sold nights
+        expect(r.revpar).toBeCloseTo(5.83, 1);   // 350 / 60 available room-nights
       }
     });
 
@@ -149,6 +150,46 @@ describe('hotelService', () => {
       ]);
       const res = await folioPayLink('t1', 'b1');
       expect('error' in res && res.error).toMatch(/nothing to charge/i);
+    });
+  });
+
+  // The two occupancy numbers answer different questions on purpose:
+  // roomStats is a live physical count, hotelReport is a period measure.
+  describe('occupancy — two deliberately different measures', () => {
+    it('roomStats counts rooms physically occupied right now', async () => {
+      mockDb.__setQueryQueue([
+        [
+          { status: 'occupied' }, { status: 'occupied' }, { status: 'occupied' },
+          { status: 'available' }, { status: 'cleaning' }, { status: 'maintenance' },
+          { status: 'reserved' },
+        ],
+      ]);
+      const s = await roomStats('t1');
+      expect(s.total).toBe(7);
+      expect(s.occupied).toBe(3);
+      expect(s.occupancy).toBe(43); // 3/7 of the house, right now
+    });
+
+    it('roomStats reports zero occupancy for a property with no rooms', async () => {
+      mockDb.__setQueryQueue([[]]);
+      const s = await roomStats('t1');
+      expect(s.total).toBe(0);
+      expect(s.occupancy).toBe(0);
+    });
+  });
+
+  describe('updateRoom — housekeeper assignment', () => {
+    it('rejects a housekeeper who is not a user of this tenant', async () => {
+      mockDb.__setQueryQueue([[]]); // user lookup finds nothing
+      const res = await updateRoom('t1', 'room1', { housekeeperId: 'user-from-another-tenant' });
+      expect('error' in res && res.error).toMatch(/housekeeper not found/i);
+    });
+
+    it('accepts a housekeeper who belongs to this tenant', async () => {
+      mockDb.__setQueryQueue([[{ id: 'u1' }], []]);
+      const res = await updateRoom('t1', 'room1', { housekeeperId: 'u1' });
+      expect('error' in res).toBe(false);
+      expect(mockDb.set.mock.calls.at(-1)?.[0].housekeeperId).toBe('u1');
     });
   });
 });

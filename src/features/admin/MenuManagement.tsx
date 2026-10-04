@@ -77,6 +77,8 @@ export function MenuManagement() {
   const { t } = useI18n();
   const { state: { tenant } } = useAuth();
   const slug = tenant?.slug;
+  // Hotels deliver a subset of this menu to rooms, so they get a second toggle.
+  const isHotel = tenant?.venueType === 'hotel' || tenant?.venueType === 'both';
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [allCategories, setAllCategories] = useState<MenuCategory[]>([]);
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -216,7 +218,7 @@ export function MenuManagement() {
             <FolderTree className="w-5 h-5 mr-2" aria-hidden /> {t('category.manage')}
           </button>
           <button
-            onClick={() => setEditing({ name: '', price: 0, categoryId: selectedCategory, available: true })}
+            onClick={() => setEditing({ name: '', price: 0, categoryId: selectedCategory, available: true, roomServiceAvailable: true })}
             className="flex items-center px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]"
           >
             <PlusCircle className="w-5 h-5 mr-2" aria-hidden /> {t('menu.addItem')}
@@ -326,14 +328,29 @@ export function MenuManagement() {
                   </div>
                 ) : null;
               })()}
-              <div className="flex items-center">
-                <input
-                  type="checkbox" id="menu-avail"
-                  checked={editing.available ?? true}
-                  onChange={(e) => setEditing({ ...editing, available: e.target.checked })}
-                  className="h-4 w-4 text-[#0f766e] border-gray-300 rounded"
-                />
-                <label htmlFor="menu-avail" className="ml-2 text-sm text-gray-900">{t('menu.available')}</label>
+              <div className="flex items-center gap-6 flex-wrap">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox" id="menu-avail"
+                    checked={editing.available ?? true}
+                    onChange={(e) => setEditing({ ...editing, available: e.target.checked })}
+                    className="h-4 w-4 text-[#0f766e] border-gray-300 rounded"
+                  />
+                  <label htmlFor="menu-avail" className="ml-2 text-sm text-gray-900">{t('menu.available')}</label>
+                </div>
+                {isHotel && (
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox" id="menu-room-service"
+                      checked={editing.roomServiceAvailable ?? true}
+                      onChange={(e) => setEditing({ ...editing, roomServiceAvailable: e.target.checked })}
+                      className="h-4 w-4 text-[#0f766e] border-gray-300 rounded"
+                    />
+                    <label htmlFor="menu-room-service" className="ml-2 text-sm text-gray-900">
+                      {t('menu.roomServiceAvailable')}
+                    </label>
+                  </div>
+                )}
               </div>
 
               {/* Translations */}

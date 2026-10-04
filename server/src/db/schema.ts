@@ -1,4 +1,4 @@
-import { pgTable, text, integer, doublePrecision, boolean, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, doublePrecision, boolean, jsonb, index } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 export const tenantGroups = pgTable('tenant_groups', {
@@ -179,6 +179,10 @@ export const menuItems = pgTable('menu_items', {
   imageUrl: text('image_url'),
   imageData: text('image_data'),
   available: boolean('available').notNull().default(true),
+  // Hotel room service serves a subset of the menu: a kitchen-only dish or an
+  // item they can't deliver to a room can be turned off for in-room ordering
+  // without 86-ing it from the restaurant. No-op for restaurant-only tenants.
+  roomServiceAvailable: boolean('room_service_available').notNull().default(true),
   taxCategoryId: text('tax_category_id').references(() => taxCategories.id),
   taxExempt: boolean('tax_exempt').notNull().default(false),
   sortOrder: integer('sort_order').notNull().default(0),
@@ -206,6 +210,9 @@ export const orders = pgTable('orders', {
   customerName: text('customer_name'),
   customerPhone: text('customer_phone'),
   orderType: text('order_type', { enum: ['dine_in', 'takeout', 'delivery'] }).notNull().default('dine_in'),
+  // Set for hotel room-service orders so the order is traceable to the guest
+  // stay whose folio it was posted to. NULL for every other order.
+  bookingId: text('booking_id').references(() => roomBookings.id),
   deliveryAddress: text('delivery_address'),
   deliveryFee: doublePrecision('delivery_fee').default(0),
   estimatedPickupTime: text('estimated_pickup_time'),
@@ -224,7 +231,10 @@ export const orders = pgTable('orders', {
   createdAt: text('created_at').notNull().default(sql`now()`),
   updatedAt: text('updated_at').notNull().default(sql`now()`),
   completedAt: text('completed_at'),
-});
+}, (t) => [
+  // Trace a room-service order back to the guest stay whose folio it hit.
+  index('orders_booking_id_idx').on(t.bookingId),
+]);
 
 export const orderItems = pgTable('order_items', {
   id: text('id').primaryKey(),
@@ -535,7 +545,7 @@ export const rooms = pgTable('rooms', {
   floor: text('floor'),
   rate: doublePrecision('rate').notNull().default(0), // price per night
   serviceToken: text('service_token'), // unguessable token for the in-room service QR link
-  housekeeperId: text('housekeeper_id'), // staff user assigned to clean the room
+  housekeeperId: text('housekeeper_id').references(() => users.id), // staff user assigned to clean the room
   guestName: text('guest_name'),
   notes: text('notes'),
   createdAt: text('created_at').notNull().default(sql`now()`),
@@ -560,7 +570,12 @@ export const roomBookings = pgTable('room_bookings', {
   notes: text('notes'),
   createdAt: text('created_at').notNull().default(sql`now()`),
   updatedAt: text('updated_at').notNull().default(sql`now()`),
-});
+}, (t) => [
+  // Availability/overlap lookups scan by tenant then date range.
+  index('room_bookings_tenant_checkin_idx').on(t.tenantId, t.checkIn),
+  // Conflict detection per room, and the folio join.
+  index('room_bookings_room_status_idx').on(t.roomId, t.status),
+]);
 
 // ── Hotel: guest folio (extra charges posted to a booking) ──────────────────
 export const folioItems = pgTable('folio_items', {

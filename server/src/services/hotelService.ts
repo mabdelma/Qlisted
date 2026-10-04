@@ -47,6 +47,16 @@ export async function updateRoom(
   id: string,
   data: Partial<{ number: string; type: string; floor: string; status: RoomStatus; rate: number; housekeeperId: string | null; guestName: string; notes: string }>,
 ) {
+  // The assigner must be a real user of THIS tenant — the column is a FK to
+  // users.id, which on its own would happily accept another tenant's user id.
+  if (data.housekeeperId) {
+    const [hk] = await db
+      .select({ id: schema.users.id })
+      .from(schema.users)
+      .where(and(eq(schema.users.id, data.housekeeperId), eq(schema.users.tenantId, tenantId)))
+      .limit(1);
+    if (!hk) return { error: 'housekeeper not found in this tenant' as const };
+  }
   await db
     .update(schema.rooms)
     .set({ ...data, updatedAt: new Date().toISOString() })
@@ -393,22 +403,112 @@ export async function placeRoomServiceOrder(
 ) {
   const stay = await activeStay(tenantId, token);
   if (!stay) return { error: 'no active stay for this room' as const };
+
+  // A guest can only order what the property currently offers for in-room
+  // delivery: re-price server-side from the menu and drop anything unavailable
+  // rather than trusting prices/names posted by the browser.
+  const priced = await priceRoomServiceItems(tenantId, items);
+  if (priced.length === 0) return { error: 'none of those items are available for room service' as const };
+
   const result = await createOrder(tenantId, {
     orderType: 'takeout',
     customerName: `Room ${stay.roomNumber} — ${stay.guestName}`,
-    items,
+    bookingId: stay.bookingId,
+    items: priced,
   });
   if ('error' in result) return { error: result.error };
-  const total = Number(result.data.total || 0);
-  const n = items.reduce((s, i) => s + i.quantity, 0);
-  await addFolioItem(tenantId, stay.bookingId, { description: `Room service (${n} item${n > 1 ? 's' : ''})`, amount: total });
-  return { orderId: result.data.id, total };
+
+  // Post one folio line per item so the guest bill itemises what they ordered
+  // (a single "Room service (3 items)" summary was unauditable and couldn't be
+  // disputed line-by-line at checkout).
+  for (const item of priced) {
+    await addFolioItem(tenantId, stay.bookingId, {
+      description: item.quantity > 1 ? `${item.name} ×${item.quantity}` : item.name,
+      amount: +(item.unitPrice * item.quantity).toFixed(2),
+    });
+  }
+  return { orderId: result.data.id, total: Number(result.data.total || 0) };
+}
+
+/**
+ * In-room menu for a room's active stay: the tenant's `main` categories plus
+ * only the items that are both generally available AND flagged for room service.
+ * Validates the token up front so an invalid/rotated link gets the same
+ * "no active stay" answer as /stay rather than leaking the menu.
+ */
+export async function roomServiceMenu(tenantId: string, token: string) {
+  const stay = await activeStay(tenantId, token);
+  if (!stay) return { error: 'no active stay for this room' as const };
+
+  const categories = await db
+    .select()
+    .from(schema.menuCategories)
+    .where(and(eq(schema.menuCategories.tenantId, tenantId), eq(schema.menuCategories.type, 'main')))
+    .orderBy(asc(schema.menuCategories.sortOrder));
+  const items = await db
+    .select()
+    .from(schema.menuItems)
+    .where(and(
+      eq(schema.menuItems.tenantId, tenantId),
+      eq(schema.menuItems.available, true),
+      eq(schema.menuItems.roomServiceAvailable, true),
+    ))
+    .orderBy(asc(schema.menuItems.sortOrder));
+
+  // Drop categories that ended up with nothing deliverable.
+  const byCategory = new Map(items.map((i) => [i.categoryId, 0]));
+  for (const i of items) byCategory.set(i.categoryId, (byCategory.get(i.categoryId) ?? 0) + 1);
+  const [tenant] = await db
+    .select({ currency: schema.tenants.currency })
+    .from(schema.tenants)
+    .where(eq(schema.tenants.id, tenantId));
+  return {
+    guestName: stay.guestName,
+    roomNumber: stay.roomNumber,
+    currency: tenant?.currency ?? 'USD',
+    categories: categories.filter((c) => byCategory.get(c.id)),
+    items,
+  };
+}
+
+/**
+ * Re-resolve posted room-service lines against the live menu: keeps only items
+ * that exist, are `available`, and are flagged for room service, and replaces
+ * the client-supplied name/price with the authoritative menu values.
+ */
+async function priceRoomServiceItems(
+  tenantId: string,
+  items: { menuItemId: string; name: string; quantity: number; unitPrice: number }[],
+) {
+  const ids = [...new Set(items.map((i) => i.menuItemId))];
+  if (ids.length === 0) return [];
+  const rows = await db
+    .select({
+      id: schema.menuItems.id,
+      name: schema.menuItems.name,
+      price: schema.menuItems.price,
+      available: schema.menuItems.available,
+      roomServiceAvailable: schema.menuItems.roomServiceAvailable,
+    })
+    .from(schema.menuItems)
+    .where(and(eq(schema.menuItems.tenantId, tenantId), inArray(schema.menuItems.id, ids)));
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  const out: { menuItemId: string; name: string; quantity: number; unitPrice: number }[] = [];
+  for (const item of items) {
+    const row = byId.get(item.menuItemId);
+    if (!row || !row.available || !row.roomServiceAvailable) continue;
+    out.push({ menuItemId: row.id, name: row.name, quantity: item.quantity, unitPrice: Number(row.price || 0) });
+  }
+  return out;
 }
 
 /**
  * Hotel performance report over [from, to): occupancy, ADR (avg daily rate),
  * RevPAR (revenue per available room), room revenue, and arrivals/departures.
  * Attributed by check-in date within the range (simple, staff-legible).
+ *
+ * `occupancyPct` here is the *period* measure (sold nights ÷ available
+ * room-nights) — see roomStats() for the live point-in-time one.
  */
 export async function hotelReport(tenantId: string, from: string, to: string) {
   if (!from || !to || to <= from) return { error: 'invalid date range' as const };
@@ -435,14 +535,24 @@ export async function hotelReport(tenantId: string, from: string, to: string) {
   const availNights = rooms * days;
   return {
     from, to, rooms, days, bookings, arrivals, departures,
+    soldNights,
     roomRevenue: +revenue.toFixed(2),
-    occupancy: availNights ? Math.round((soldNights / availNights) * 100) : 0,
+    occupancyPct: availNights ? Math.round((soldNights / availNights) * 100) : 0,
     adr: soldNights ? +(revenue / soldNights).toFixed(2) : 0,
     revpar: availNights ? +(revenue / availNights).toFixed(2) : 0,
   };
 }
 
-/** Occupancy summary for the front-desk header / dashboard. */
+/**
+ * Live occupancy summary for the front-desk header / dashboard.
+ *
+ * NOTE the deliberate difference from hotelReport(): this is a *point-in-time*
+ * physical count (rooms whose status is `occupied` right now ÷ total rooms), so
+ * it reacts instantly to a walk-in or a checkout. hotelReport() is a *period*
+ * measure (sold nights ÷ available room-nights) used for revenue reporting.
+ * They will not agree — that is expected, not a bug. Naming is explicit so
+ * callers can't mix them up: `occupancy` here, `occupancyPct` in the report.
+ */
 export async function roomStats(tenantId: string) {
   const all = await db.select({ status: schema.rooms.status }).from(schema.rooms).where(eq(schema.rooms.tenantId, tenantId));
   const by: Record<RoomStatus, number> = { available: 0, occupied: 0, cleaning: 0, maintenance: 0, reserved: 0 };
