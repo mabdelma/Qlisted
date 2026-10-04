@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { createBooking, getFolio, availableRooms, settleFolio, folioPayLink, hotelReport, takeDeposit, roomStats, updateRoom } from './hotelService.js';
+import { createBooking, getFolio, availableRooms, settleFolio, folioPayLink, hotelReport, takeDeposit, roomStats, updateRoom, selfCheckIn, selfCheckOut } from './hotelService.js';
 import { db } from '../db/index.js';
 
 // Stub the cross-service calls hotelService makes so the tests stay unit-scoped.
@@ -190,6 +190,71 @@ describe('hotelService', () => {
       const res = await updateRoom('t1', 'room1', { housekeeperId: 'u1' });
       expect('error' in res).toBe(false);
       expect(mockDb.set.mock.calls.at(-1)?.[0].housekeeperId).toBe('u1');
+    });
+  });
+
+  describe('guest self check-in', () => {
+    const stay = (over = {}) => ({
+      id: 'b1', status: 'booked', guestName: 'Alex',
+      checkIn: '2000-01-01', checkOut: '2999-01-01',
+      total: 100, depositAmount: 0, folioPaidAt: null,
+      roomNumber: '101', serviceToken: 'svc', ...over,
+    });
+
+    it('refuses an unknown token rather than leaking that it is unknown', async () => {
+      mockDb.__setQueryQueue([[]]);
+      const res = await selfCheckIn('t1', 'nope');
+      expect(res.status).toBe(404);
+    });
+
+    it('refuses before the arrival date so a guest cannot take a room early', async () => {
+      mockDb.__setQueryQueue([[stay({ checkIn: '2999-01-01', checkOut: '2999-01-02' })]]);
+      const res = await selfCheckIn('t1', 'tok');
+      expect(res.status).toBe(400);
+      expect('error' in res && res.error).toMatch(/too early/i);
+    });
+
+    it('refuses once the stay has ended', async () => {
+      mockDb.__setQueryQueue([[stay({ checkIn: '2000-01-01', checkOut: '2000-01-02' })]]);
+      const res = await selfCheckIn('t1', 'tok');
+      expect(res.status).toBe(400);
+      expect('error' in res && res.error).toMatch(/ended/i);
+    });
+  });
+
+  describe('guest self check-out', () => {
+    const stay = (over = {}) => ({
+      id: 'b1', status: 'checked_in', guestName: 'Alex',
+      checkIn: '2000-01-01', checkOut: '2999-01-01',
+      total: 100, depositAmount: 0, folioPaidAt: null,
+      roomNumber: '101', serviceToken: 'svc', ...over,
+    });
+
+    it('refuses while the folio still owes money', async () => {
+      mockDb.__setQueryQueue([
+        [stay()],                                   // token lookup
+        // getFolio's booking row: a 100 room charge with no deposit paid
+        [{ id: 'b1', guestName: 'Alex', roomNumber: '101', checkIn: '2000-01-01',
+           checkOut: '2999-01-01', status: 'checked_in', roomCharge: 100, deposit: 0, paidAt: null }],
+        [],                                         // folio items
+      ]);
+      const res = await selfCheckOut('t1', 'tok');
+      expect(res.status).toBe(400);
+      expect('error' in res && res.error).toMatch(/settle/i);
+    });
+
+    it('is idempotent once already checked out', async () => {
+      mockDb.__setQueryQueue([[stay({ status: 'checked_out' })]]);
+      const res = await selfCheckOut('t1', 'tok');
+      expect(res.status).toBe(200);
+      expect('alreadyDone' in res && res.alreadyDone).toBe(true);
+    });
+
+    it('refuses when the guest never checked in', async () => {
+      mockDb.__setQueryQueue([[stay({ status: 'booked' })]]);
+      const res = await selfCheckOut('t1', 'tok');
+      expect(res.status).toBe(400);
+      expect('error' in res && res.error).toMatch(/not checked in/i);
     });
   });
 });

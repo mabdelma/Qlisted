@@ -440,6 +440,30 @@ export const bookingApi = {
 };
 
 // Room service — guest-facing (no auth): a checked-in guest orders to their room.
+export interface GuestStay {
+  id: string;
+  status: 'booked' | 'checked_in' | 'checked_out' | 'cancelled';
+  guestName: string;
+  checkIn: string;
+  checkOut: string;
+  total: number;
+  depositAmount: number;
+  folioPaidAt: string | null;
+  roomNumber: string | null;
+  /** Only present once checked in — it is the room's ordering link. */
+  serviceToken: string | null;
+}
+
+/** Guest self-service stay, reached by the token in the booking confirmation. */
+export const stayApi = {
+  get: (slug: string, token: string) =>
+    api.get<GuestStay>(`/r/${slug}/stay/${token}`, { skipAuth: true }),
+  checkIn: (slug: string, token: string) =>
+    api.post<{ success?: boolean; error?: string; stay?: GuestStay }>(`/r/${slug}/stay/${token}/check-in`, {}, { skipAuth: true }),
+  checkOut: (slug: string, token: string) =>
+    api.post<{ success?: boolean; error?: string; balance?: number }>(`/r/${slug}/stay/${token}/check-out`, {}, { skipAuth: true }),
+};
+
 export const roomServiceApi = {
   stay: (slug: string, roomId: string) =>
     api.get<{ active: boolean; guestName: string | null; roomNumber: string | null }>(`/r/${slug}/room/${roomId}/stay`, { skipAuth: true }),

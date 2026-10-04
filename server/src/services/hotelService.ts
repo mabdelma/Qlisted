@@ -150,14 +150,18 @@ export async function createBooking(
   const ratePerNight = room[0].rate || 0;
   const total = ratePerNight * nightsBetween(data.checkIn, data.checkOut);
   const id = uuid();
-  await db.insert(schema.roomBookings).values({ id, tenantId, ...data, ratePerNight, total });
+  // Every booking gets its guest token up front, so the confirmation can carry
+  // the self check-in link whether the booking came from the desk or the web.
+  const accessToken = newServiceToken();
+  await db.insert(schema.roomBookings).values({ id, tenantId, ...data, ratePerNight, total, accessToken });
   // Mark the room reserved (unless already occupied) so the board reflects the hold.
   await db.update(schema.rooms).set({ status: 'reserved', guestName: data.guestName, updatedAt: new Date().toISOString() })
     .where(and(eq(schema.rooms.id, data.roomId), eq(schema.rooms.tenantId, tenantId), eq(schema.rooms.status, 'available')));
 
   if (data.guestEmail) void sendBookingConfirmation(tenantId, data.guestEmail, data.guestName, room[0].number, data.checkIn, data.checkOut);
   if (data.guestPhone) void sendBookingSms(tenantId, data.guestPhone, room[0].number, data.checkIn, data.checkOut);
-  return { id };
+  // The caller returns this to the guest so they can reach their stay later.
+  return { id, accessToken };
 }
 
 /** Fire-and-forget SMS confirmation (degrades to a log if Twilio isn't configured). */
@@ -199,16 +203,82 @@ async function bookingWithRoom(tenantId: string, id: string) {
 }
 
 /** Check a guest in: booking → checked_in, room → occupied with the guest name. */
-export async function checkIn(tenantId: string, id: string) {
+export async function checkIn(tenantId: string, id: string, by: 'guest' | 'staff' = 'staff') {
   const b = await bookingWithRoom(tenantId, id);
   if (!b) return { error: 'booking not found' as const };
+  // Idempotent: a double tap, or a guest refreshing the page, must not re-run
+  // the side effects or overwrite who checked in first.
+  if (b.status === 'checked_in') return { success: true, alreadyDone: true };
+  if (b.status !== 'booked') return { error: 'booking is not open for check-in' as const };
   const now = new Date().toISOString();
-  await db.update(schema.roomBookings).set({ status: 'checked_in', updatedAt: now })
+  await db.update(schema.roomBookings)
+    .set({ status: 'checked_in', checkedInAt: now, checkedInBy: by, updatedAt: now })
     .where(and(eq(schema.roomBookings.id, id), eq(schema.roomBookings.tenantId, tenantId)));
   await db.update(schema.rooms).set({ status: 'occupied', guestName: b.guestName, updatedAt: now })
     .where(and(eq(schema.rooms.id, b.roomId), eq(schema.rooms.tenantId, tenantId)));
   if (b.guestEmail) void sendCheckInEmail(tenantId, id);
   return { success: true };
+}
+
+/** Resolve a stay from its guest token. Scoped to exactly one booking. */
+export async function bookingByAccessToken(tenantId: string, token: string) {
+  if (!token) return null;
+  const [row] = await db
+    .select({
+      id: schema.roomBookings.id,
+      status: schema.roomBookings.status,
+      guestName: schema.roomBookings.guestName,
+      checkIn: schema.roomBookings.checkIn,
+      checkOut: schema.roomBookings.checkOut,
+      total: schema.roomBookings.total,
+      depositAmount: schema.roomBookings.depositAmount,
+      folioPaidAt: schema.roomBookings.folioPaidAt,
+      roomNumber: schema.rooms.number,
+      serviceToken: schema.rooms.serviceToken,
+    })
+    .from(schema.roomBookings)
+    .leftJoin(schema.rooms, eq(schema.roomBookings.roomId, schema.rooms.id))
+    .where(and(
+      eq(schema.roomBookings.tenantId, tenantId),
+      eq(schema.roomBookings.accessToken, token),
+    ))
+    .limit(1);
+  return row ?? null;
+}
+
+/**
+ * Guest-driven check-in. Everything the desk route enforces still applies — the
+ * token only decides *who* may act on this one booking, never what is allowed.
+ * Refuses before the arrival date so a guest cannot take a room early.
+ */
+export async function selfCheckIn(tenantId: string, token: string) {
+  const b = await bookingByAccessToken(tenantId, token);
+  if (!b) return { error: 'stay not found' as const, status: 404 as const };
+  const today = new Date().toISOString().slice(0, 10);
+  if (today < b.checkIn) return { error: 'too early to check in' as const, status: 400 as const };
+  if (today >= b.checkOut) return { error: 'this stay has ended' as const, status: 400 as const };
+  const res = await checkIn(tenantId, b.id, 'guest');
+  if ('error' in res) return { ...res, status: 400 as const };
+  // Re-read so the guest immediately gets the room number and service link.
+  return { success: true, stay: await bookingByAccessToken(tenantId, token), status: 200 as const };
+}
+
+/**
+ * Guest-driven check-out. Refuses while the folio still owes money, so a guest
+ * cannot walk out of an unpaid bill by tapping a button.
+ */
+export async function selfCheckOut(tenantId: string, token: string) {
+  const b = await bookingByAccessToken(tenantId, token);
+  if (!b) return { error: 'stay not found' as const, status: 404 as const };
+  if (b.status === 'checked_out') return { success: true, alreadyDone: true, status: 200 as const };
+  if (b.status !== 'checked_in') return { error: 'you are not checked in' as const, status: 400 as const };
+  const folio = await getFolio(tenantId, b.id);
+  if (!('error' in folio) && folio.balance > 0.001) {
+    return { error: 'settle the bill before checking out' as const, balance: folio.balance, status: 400 as const };
+  }
+  const res = await checkOut(tenantId, b.id);
+  if ('error' in res) return { ...res, status: 400 as const };
+  return { success: true, status: 200 as const };
 }
 
 /**
@@ -258,7 +328,7 @@ export async function checkOut(tenantId: string, id: string) {
   const b = await bookingWithRoom(tenantId, id);
   if (!b) return { error: 'booking not found' as const };
   const now = new Date().toISOString();
-  await db.update(schema.roomBookings).set({ status: 'checked_out', updatedAt: now })
+  await db.update(schema.roomBookings).set({ status: 'checked_out', checkedOutAt: now, updatedAt: now })
     .where(and(eq(schema.roomBookings.id, id), eq(schema.roomBookings.tenantId, tenantId)));
   await db.update(schema.rooms).set({ status: 'cleaning', guestName: null, serviceToken: newServiceToken(), updatedAt: now })
     .where(and(eq(schema.rooms.id, b.roomId), eq(schema.rooms.tenantId, tenantId)));

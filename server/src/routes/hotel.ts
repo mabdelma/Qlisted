@@ -150,6 +150,28 @@ const roomServiceSchema = z.object({
   })).min(1),
 });
 
+// ── Guest self-service stay (public, token-scoped) ──────────────────────────
+// The token identifies exactly one booking. It decides who may act, never what
+// is allowed: the same rules the front desk obeys are enforced in the service.
+hotel.get('/:slug/stay/:token', ...publicHotel, async (c) => {
+  const stay = await svc.bookingByAccessToken(c.get('tenantId'), c.req.param('token')!);
+  if (!stay) return c.json({ error: 'stay not found' }, 404);
+  // Never expose the room's service token before the guest is actually checked
+  // in — that link is what lets anyone order to the room.
+  const { serviceToken, ...rest } = stay;
+  return c.json({ ...rest, serviceToken: stay.status === 'checked_in' ? serviceToken : null });
+});
+
+hotel.post('/:slug/stay/:token/check-in', ...publicHotel, async (c) => {
+  const r = await svc.selfCheckIn(c.get('tenantId'), c.req.param('token')!);
+  return c.json(r, r.status);
+});
+
+hotel.post('/:slug/stay/:token/check-out', ...publicHotel, async (c) => {
+  const r = await svc.selfCheckOut(c.get('tenantId'), c.req.param('token')!);
+  return c.json(r, r.status);
+});
+
 hotel.get('/:slug/room/:token/stay', ...publicHotel, async (c) => {
   const stay = await svc.activeStay(c.get('tenantId'), c.req.param('token')!);
   return c.json({ active: !!stay, guestName: stay?.guestName ?? null, roomNumber: stay?.roomNumber ?? null });

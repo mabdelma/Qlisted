@@ -567,6 +567,13 @@ export const roomBookings = pgTable('room_bookings', {
   total: doublePrecision('total').notNull().default(0),
   depositAmount: doublePrecision('deposit_amount').notNull().default(0), // pre-paid deposit
   folioPaidAt: text('folio_paid_at'), // set when the guest's folio is settled
+  // Unguessable per-booking token. It is what lets a guest reach their own stay
+  // without an account, so it is scoped to one booking and nothing else.
+  accessToken: text('access_token'),
+  checkedInAt: text('checked_in_at'),
+  checkedOutAt: text('checked_out_at'),
+  // Who performed it, so the desk can tell self-service from a front-desk action.
+  checkedInBy: text('checked_in_by', { enum: ['guest', 'staff'] }),
   notes: text('notes'),
   createdAt: text('created_at').notNull().default(sql`now()`),
   updatedAt: text('updated_at').notNull().default(sql`now()`),
