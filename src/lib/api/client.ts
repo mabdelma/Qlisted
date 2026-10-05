@@ -67,7 +67,7 @@ class ApiClient {
     method: string,
     path: string,
     body?: unknown,
-    opts?: { token?: string; skipAuth?: boolean },
+    opts?: { token?: string; skipAuth?: boolean; asText?: boolean },
   ): Promise<T> {
     const headers: Record<string, string> = {};
     const token = opts?.token ?? this.getToken();
@@ -106,10 +106,15 @@ class ApiClient {
     }
 
     if (res.status === 204) return undefined as T;
+    // Not every endpoint speaks JSON. The receipt route returns text/plain so
+    // it can go straight to a thermal printer; res.json() on that throws a
+    // parse error that reads like a server fault. Opt in per call rather than
+    // sniffing Content-Type, so the caller's expectation is explicit.
+    if (opts?.asText) return (await res.text()) as T;
     return res.json() as Promise<T>;
   }
 
-  get<T>(path: string, opts?: { skipAuth?: boolean }): Promise<T> {
+  get<T>(path: string, opts?: { skipAuth?: boolean; asText?: boolean }): Promise<T> {
     return this.request<T>('GET', path, undefined, opts);
   }
 

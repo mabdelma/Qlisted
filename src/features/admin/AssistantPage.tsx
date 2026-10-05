@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useI18n } from '../../contexts/I18nContext';
 import { aiApi } from '../../lib/api';
 import { AiChat, type ChatMessage } from '../../components/ai/AiChat';
+import { VoiceConsole } from './VoiceConsole';
 
 export function AssistantPage() {
   const { t } = useI18n();
@@ -28,7 +29,11 @@ export function AssistantPage() {
           {t('assistant.notConfigured')}
         </div>
       ) : (
-        <div className="flex-1 min-h-0 rounded-card bg-white shadow-card dark:bg-gray-900">
+        <div className="flex flex-1 min-h-0 flex-col gap-4">
+          {/* Same copilot, two ways in: speak to it or type. Both are gated on
+              the same provider, so neither renders until AI is configured. */}
+          {slug && <VoiceConsole slug={slug} />}
+          <div className="flex-1 min-h-0 rounded-card bg-white shadow-card dark:bg-gray-900">
           {slug && (
             <AiChat
               greeting={t('assistant.greeting')}
@@ -42,6 +47,7 @@ export function AssistantPage() {
               send={(messages: ChatMessage[]) => aiApi.adminChat(slug, messages)}
             />
           )}
+          </div>
         </div>
       )}
     </div>

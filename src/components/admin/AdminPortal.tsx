@@ -35,6 +35,7 @@ import TimeTracking from '../../features/admin/TimeTracking';
 import { ReportsPage } from '../../features/admin/ReportsPage';
 import { AssistantPage } from '../../features/admin/AssistantPage';
 import { PaymentLinks } from '../../features/admin/PaymentLinks';
+import { ReceiptsPage } from '../../features/admin/ReceiptsPage';
 
 /**
  * Client-side venue guard for hotel-only admin tabs. Mirrors the server's
@@ -50,6 +51,7 @@ function VenueGate({ venue, children }: { venue: 'hotel'; children: React.ReactN
 
 const routes = [
   { path: 'orders', element: <OrderManagement /> },
+  { path: 'receipts', element: <ReceiptsPage /> },
   { path: 'payment-links', element: <PaymentLinks /> },
   { path: 'reports', element: <ReportsPage /> },
   { path: 'assistant', element: <AssistantPage /> },

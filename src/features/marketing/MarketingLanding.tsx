@@ -5,7 +5,7 @@ import {
   QrCode, CreditCard, Clock, Users, ArrowRight, Shield, BarChart3,
   Check, Star, Zap, Utensils, ChevronDown, Sparkles, Bot, Send,
   Boxes, TrendingUp, CalendarClock, Heart, Megaphone, Hotel, ConciergeBell,
-  Languages, ArrowDown, ChefHat, Smartphone,
+  Languages, ArrowDown, ChefHat, Smartphone, AudioLines,
 } from 'lucide-react';
 import { MarketingHeader } from '../../components/layout/MarketingHeader';
 import { Footer } from '../../components/layout/Footer';
@@ -52,6 +52,7 @@ export function MarketingLanding() {
     // The language bridge leads the grid: it is the reason venues pick Qlisted
     // over a cheaper ordering app.
     { icon: Languages, title: t('marketing.featureLanguage'), desc: t('marketing.featureLanguageDesc'), highlight: true },
+    { icon: AudioLines, title: t('marketing.featureVoiceAi'), desc: t('marketing.featureVoiceAiDesc'), highlight: true },
     { icon: QrCode, title: t('marketing.featureQrCode'), desc: t('marketing.featureQrCodeDesc') },
     { icon: CreditCard, title: t('marketing.featurePayments'), desc: t('marketing.featurePaymentsDesc') },
     { icon: Clock, title: t('marketing.featureKitchen'), desc: t('marketing.featureKitchenDesc') },

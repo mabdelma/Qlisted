@@ -87,6 +87,14 @@ export const aiApi = {
     api.post<{ clientSecret: string; expiresAt?: number; model: string }>(`/r/${slug}/ai/voice-session`, {}, { skipAuth: true }),
 };
 
+// Receipts
+export const receiptApi = {
+  // Returns the rendered receipt as plain text — the same body the thermal
+  // printer gets, so what the dashboard shows is what the guest was handed.
+  get: (slug: string, orderId: string) =>
+    api.get<string>(`/r/${slug}/orders/${orderId}/receipt`, { asText: true }),
+};
+
 // Reports (P&L)
 export const reportApi = {
   getPnL: (slug: string, start?: string, end?: string) => {

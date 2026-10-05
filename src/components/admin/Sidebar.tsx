@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutGrid, Users, ChefHat, Table, ClipboardList, UserCheck, Settings, ToggleLeft, CreditCard, Palette, Tag, Star, CalendarDays, Clock, Percent, Grid3X3, Gift, Timer, FileBarChart, Sparkles, X, Boxes, CalendarClock, UserCircle, Hotel } from 'lucide-react';
+import { LayoutGrid, Users, ChefHat, Table, ClipboardList, UserCheck, Settings, ToggleLeft, CreditCard, Palette, Tag, Star, CalendarDays, Clock, Percent, Grid3X3, Gift, Timer, FileBarChart, Sparkles, X, Boxes, CalendarClock, UserCircle, Hotel, Receipt } from 'lucide-react';
 import { useI18n, type TranslationKey } from '../../contexts/I18nContext';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -49,6 +49,7 @@ const groups = [
     { id: 'gift-cards', icon: Gift },
   ] },
   { label: 'Account', items: [
+    { id: 'receipts', icon: Receipt },
     { id: 'payment-links', icon: CreditCard },
     { id: 'subscription', icon: CreditCard },
     { id: 'branding', icon: Palette },
@@ -72,6 +73,7 @@ const tabKeyMap: Record<string, string> = {
   rooms: 'hotel.title',
   schedule: 'scheduling.title',
   customers: 'nav.customers',
+  receipts: 'receipts.title',
   'payment-links': 'nav.paymentLinks',
   subscription: 'nav.subscription',
   branding: 'nav.branding',
