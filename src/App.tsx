@@ -40,6 +40,7 @@ const DemoPage = lazy(() => import('./features/marketing/DemoPage').then(m => ({
 const TableFlowLayout = lazy(() => import('./features/restaurant/TableFlowLayout').then(m => ({ default: m.TableFlowLayout })));
 const TableMenuPage = lazy(() => import('./features/restaurant/TableMenuPage').then(m => ({ default: m.TableMenuPage })));
 const RoomServicePage = lazy(() => import('./features/restaurant/RoomServicePage').then(m => ({ default: m.RoomServicePage })));
+const StayPage = lazy(() => import('./features/restaurant/StayPage').then(m => ({ default: m.StayPage })));
 const BookRoomPage = lazy(() => import('./features/restaurant/BookRoomPage').then(m => ({ default: m.BookRoomPage })));
 const TableMenuItemDetail = lazy(() => import('./features/restaurant/TableMenuItemDetail').then(m => ({ default: m.TableMenuItemDetail })));
 const CartPage = lazy(() => import('./features/cart/CartPage').then(m => ({ default: m.CartPage })));
@@ -156,6 +157,9 @@ function App() {
 
           {/* Public restaurant landing page */}
           <Route path="/r/:slug/room/:token" element={<RouteErrorBoundary name="room-service"><RoomServicePage /></RouteErrorBoundary>} />
+          {/* Guest self-service stay — the token is the guest's only credential,
+              so this must stay outside ProtectedRoute (hotel guests have no account). */}
+          <Route path="/r/:slug/stay/:token" element={<RouteErrorBoundary name="stay"><StayPage /></RouteErrorBoundary>} />
           <Route path="/r/:slug/book" element={<RouteErrorBoundary name="book-room"><BookRoomPage /></RouteErrorBoundary>} />
           <Route path="/r/:slug" element={<RouteErrorBoundary name="restaurant"><RestaurantLanding /></RouteErrorBoundary>} />
           <Route path="/:slug" element={<RouteErrorBoundary name="restaurant"><RestaurantLanding /></RouteErrorBoundary>} />

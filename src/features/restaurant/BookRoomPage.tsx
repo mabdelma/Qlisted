@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 import { BedDouble, Search, Check, Loader2, ArrowLeft } from 'lucide-react';
 import { bookingApi } from '../../lib/api';
 import { useI18n } from '../../contexts/I18nContext';
@@ -19,6 +19,9 @@ export function BookRoomPage() {
   const [booking, setBooking] = useState(false);
   const [done, setDone] = useState(false);
   const [deposit, setDeposit] = useState<{ url: string; amount: number } | null>(null);
+  // The guest's own link to this booking. Without surfacing it here the stay
+  // page is reachable only from the confirmation email.
+  const [stayToken, setStayToken] = useState<string | null>(null);
 
   const nights = checkIn && checkOut && checkOut > checkIn
     ? Math.max(1, Math.round((new Date(checkOut + 'T00:00:00Z').getTime() - new Date(checkIn + 'T00:00:00Z').getTime()) / 86400000)) : 0;
@@ -40,6 +43,7 @@ export function BookRoomPage() {
       // confirmation NOW rather than waiting on a deposit link click — clicking
       // through to Stripe never meant payment had succeeded.
       setDeposit(res.deposit ?? null);
+      setStayToken(res.accessToken ?? null);
       setDone(true);
     } catch { /* ignore */ } finally { setBooking(false); }
   }
@@ -63,7 +67,16 @@ export function BookRoomPage() {
             </div>
           )}
 
-          <button onClick={() => { setDone(false); setDeposit(null); setRooms(null); setSelected(null); setGuest({ name: '', email: '', phone: '' }); }}
+          {stayToken && slug && (
+            <div className="bg-white rounded-xl shadow-sm p-4 mb-6 text-start">
+              <p className="font-semibold text-gray-900 mb-1">{t('stay.manageLink')}</p>
+              <p className="text-sm text-gray-500 mb-3">{t('stay.manageLinkDesc')}</p>
+              <Link to={`/r/${slug}/stay/${stayToken}`}
+                className="block text-center px-5 py-2.5 bg-[#0f766e] text-white rounded-lg hover:bg-[#1e3a5f]">{t('stay.title')}</Link>
+            </div>
+          )}
+
+          <button onClick={() => { setDone(false); setDeposit(null); setStayToken(null); setRooms(null); setSelected(null); setGuest({ name: '', email: '', phone: '' }); }}
             className="px-5 py-2.5 bg-[#0f766e] text-white rounded-lg hover:bg-[#1e3a5f]">{t('book.bookAnother')}</button>
         </div>
       </div>

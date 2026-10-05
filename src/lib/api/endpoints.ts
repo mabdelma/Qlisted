@@ -435,8 +435,11 @@ export const hotelApi = {
 export const bookingApi = {
   availability: (slug: string, checkIn: string, checkOut: string) =>
     api.get<{ id: string; number: string; type?: string | null; rate: number }[]>(`/r/${slug}/book/availability?checkIn=${checkIn}&checkOut=${checkOut}`, { skipAuth: true }),
+  // `accessToken` is the guest's own link to this one booking — it is what the
+  // confirmation screen turns into a /stay/:token URL. It was being dropped on
+  // the floor here, which is why the stay page had no way in.
   book: (slug: string, data: { roomId: string; guestName: string; guestEmail?: string; guestPhone?: string; checkIn: string; checkOut: string }) =>
-    api.post<{ id: string; deposit?: { url: string; amount: number } | null }>(`/r/${slug}/book`, data, { skipAuth: true }),
+    api.post<{ id: string; accessToken?: string | null; deposit?: { url: string; amount: number } | null }>(`/r/${slug}/book`, data, { skipAuth: true }),
 };
 
 // Room service — guest-facing (no auth): a checked-in guest orders to their room.
@@ -473,6 +476,34 @@ export const roomServiceApi = {
       `/r/${slug}/room/${token}/menu`, { skipAuth: true }),
   order: (slug: string, roomId: string, items: { menuItemId: string; name: string; quantity: number; unitPrice: number }[]) =>
     api.post<{ orderId: string; total: number }>(`/r/${slug}/room/${roomId}/order`, { items }, { skipAuth: true }),
+};
+
+/**
+ * Per-tenant outbound integrations (`webhook_integrations`). A row whose `url`
+ * is a WhatsApp address (`https://wa.me/<number>` or `whatsapp:+<number>`) is
+ * the venue's opt-in to WhatsApp order routing — see
+ * `microservices/services/notifications/src/whatsapp.ts`.
+ */
+export interface WebhookIntegration {
+  id: string;
+  tenantId: string;
+  name: string;
+  provider: 'delivery' | 'accounting' | 'custom';
+  url: string;
+  events: string;
+  isActive: boolean;
+  lastTriggeredAt: string | null;
+}
+
+export const integrationApi = {
+  list: async (slug: string): Promise<WebhookIntegration[]> =>
+    asList(await api.get<WebhookIntegration[] | { data: WebhookIntegration[] }>(`/r/${slug}/integrations`)),
+  create: (slug: string, data: { name: string; provider: 'delivery' | 'accounting' | 'custom'; url: string; events?: string }) =>
+    api.post<{ data: { id: string; secret: string } }>(`/r/${slug}/integrations`, data),
+  update: (slug: string, id: string, data: Partial<{ name: string; url: string; events: string; isActive: boolean }>) =>
+    api.put<{ success: boolean }>(`/r/${slug}/integrations/${id}`, data),
+  remove: (slug: string, id: string) =>
+    api.delete<{ success: boolean }>(`/r/${slug}/integrations/${id}`),
 };
 
 export const customerApi = {
