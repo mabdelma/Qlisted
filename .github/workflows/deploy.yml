@@ -201,8 +201,14 @@ jobs:
             cd /var/www/qcart/microservices
             export QLISTED_TAG="${{ github.event.workflow_run.head_sha }}"
             SVC_COMPOSE="-f docker-compose.services.yml -f docker-compose.prod.yml"
-            docker compose --env-file ../.env.prod $SVC_COMPOSE pull
-            docker compose --env-file ../.env.prod $SVC_COMPOSE up -d --force-recreate --no-deps \
+            # microservices/.env, NOT ../.env.prod. The services stack requires
+            # AUTH_SECRET (= the monolith JWT_SECRET) and .env.prod does not
+            # define it, so compose aborts before building or pulling anything:
+            #   required variable AUTH_SECRET is missing a value
+            # Found by running this deploy by hand — the automated path would
+            # have failed identically on its first real run.
+            docker compose --env-file .env $SVC_COMPOSE pull
+            docker compose --env-file .env $SVC_COMPOSE up -d --force-recreate --no-deps \
               gateway auth catalog orders billing engagement notifications
 
             # Each service must answer its own /health. The monolith smoke test
