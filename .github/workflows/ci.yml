@@ -256,11 +256,18 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          # NOT ${{ env.NODE_VERSION }} (24). Expo 52 cannot run on Node 24 —
+          # Node's type-stripping refuses expo-modules-core/src/index.ts inside
+          # node_modules and the CLI dies before reaching app code.
+          node-version: 20
           cache: npm
           cache-dependency-path: mobile/package-lock.json
       - run: cd mobile && npm ci
       - run: cd mobile && npm run typecheck
+      # A real Metro bundle. Typechecking alone would NOT have caught the bug
+      # that made this app unbuildable: app.json listed expo-linking as a config
+      # plugin, which only fails once the CLI tries to load it.
+      - run: cd mobile && npm run build:bundle
 
   lint:
     name: Lint
