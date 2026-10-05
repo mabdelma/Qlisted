@@ -1098,4 +1098,5 @@ export const translations: Partial<Record<TranslationKey, string>> = {
   'stay.roomServiceHint': "تصفَّح قائمة الغرف بلغتك",
   'stay.manageLink': "إدارة إقامتك",
   'stay.manageLinkDesc': "احفظ هذا الرابط — تسجيل الوصول والمغادرة والطلب إلى غرفتك من هنا.",
+  'users.passwordTooShort': "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
 };

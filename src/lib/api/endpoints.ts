@@ -199,8 +199,14 @@ export const orderApi = {
 
 // Users / Staff management
 export const userApi = {
-  list: (slug: string) =>
-    api.get<User[]>(`/r/${slug}/users`),
+  // GET /r/:slug/users returns a PAGINATED ENVELOPE — the route ends in
+  // `buildPagination(...)`, so the body is { data, pagination } and never a
+  // bare array. Typing it as User[] handed every caller an object, and the
+  // first `.map`/`.filter`/`.length` on it threw. That single mismatch broke
+  // four screens at once: User Management, the housekeeper picker on Rooms,
+  // Scheduling, and Staff Performance.
+  list: async (slug: string) =>
+    asList(await api.get<User[] | { data: User[] }>(`/r/${slug}/users`)),
   create: (slug: string, data: { name: string; email: string; password: string; role: string; phone?: string }) =>
     api.post<User>(`/r/${slug}/users`, data),
   update: (slug: string, userId: string, data: Partial<User>) =>

@@ -44,10 +44,21 @@ export function UserManagement() {
           role: editingUser.role as User['role'],
         });
       } else {
+        // Never substitute a default password. This used to fall back to
+        // 'pass123' — unreachable through the form today because the input is
+        // `required`, but it is a hardcoded weak credential sitting one markup
+        // change away from silently issuing a known password to a staff
+        // account, on a tenant sharing a database with other tenants.
+        // Refusing is the only safe behaviour.
+        const password = (editingUser.password || '').trim();
+        if (password.length < 6) {
+          setError(t('users.passwordTooShort'));
+          return;
+        }
         await userApi.create(slug, {
           name: editingUser.name || '',
           email: editingUser.email || '',
-          password: editingUser.password || 'pass123',
+          password,
           role: editingUser.role || 'waiter',
         });
       }

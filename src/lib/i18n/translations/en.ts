@@ -1105,6 +1105,7 @@ export const translations = {
   'stay.roomServiceHint': "Browse the in-room menu in your language",
   'stay.manageLink': "Manage your stay",
   'stay.manageLinkDesc': "Save this link — check in, check out and order to your room from here.",
+  'users.passwordTooShort': "Password must be at least 6 characters",
 };
 
 /**
