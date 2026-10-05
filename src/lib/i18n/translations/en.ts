@@ -297,12 +297,12 @@ export const translations = {
   'marketing.seeFeatures': 'See Features',
   'marketing.bridgeBadge': "Why venues choose Qlisted",
   'marketing.bridgeTitle': "The language barrier, gone",
-  'marketing.bridgeDesc': "Tourists do not speak your staff's language, and your staff should not have to learn theirs. Qlisted sits in the middle: guests browse and order in any of 11 languages, and every note they write arrives in your team's working language — kitchen, bar, housekeeping and front desk alike.",
+  'marketing.bridgeDesc': "Tourists do not speak your staff's language, and your staff should not have to learn theirs. Qlisted sits in the middle: the interface comes in 11 languages, and a note written in any language at all arrives in your team's working language — kitchen, bar, housekeeping and front desk alike.",
   'marketing.bridgeGuest': "Guest writes",
   'marketing.bridgeGuestNote': "sin cebolla, por favor",
   'marketing.bridgeKitchen': "Kitchen reads",
   'marketing.bridgeKitchenNote': "no onion, please",
-  'marketing.bridgePoint1': "11 languages for guests, out of the box",
+  'marketing.bridgePoint1': "Guests write in any language — not a fixed list",
   'marketing.bridgePoint2': "Orders and notes translated as they are placed",
   'marketing.bridgePoint3': "The guest's original wording is never thrown away",
   'marketing.bridgePoint4': "Front desk and housekeeping requests too, not just food",
@@ -1128,6 +1128,7 @@ export const translations = {
   'assistant.voiceConnecting': "Connecting",
   'marketing.featureVoiceAi': "Talk to your venue",
   'marketing.featureVoiceAiDesc': "A conversational copilot you speak to. Ask what sold, what is running low, or what last night looked like — and your guests can order by voice too, in their own language.",
+  'marketing.moreLanguages': "and more",
 };
 
 /**

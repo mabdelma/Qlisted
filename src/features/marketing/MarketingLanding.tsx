@@ -37,6 +37,10 @@ const GUEST_LANGUAGES = [
   'English', 'Español', 'العربية', 'Français', 'Deutsch', 'Português',
   'Italiano', '中文', '日本語', 'Русский', 'हिन्दी',
 ];
+// These eleven are the INTERFACE locales, shown as examples. Guest notes are
+// not limited to them — translateNote passes the text to the model, which
+// handles far more — so the row ends with an explicit "and more" rather than
+// reading as the complete set.
 
 export function MarketingLanding() {
   const { t, locale } = useI18n();
@@ -129,6 +133,9 @@ export function MarketingLanding() {
                     {lang}
                   </span>
                 ))}
+                <span className="rounded-full bg-[#0f766e]/10 px-2.5 py-1 text-xs font-medium text-[#0f766e] ring-1 ring-[#0f766e]/20">
+                  + {t('marketing.moreLanguages')}
+                </span>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">

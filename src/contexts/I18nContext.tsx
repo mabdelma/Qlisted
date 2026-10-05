@@ -30,10 +30,45 @@ async function loadTranslations(locale: Locale): Promise<Partial<Record<Translat
 
 let fallbackTranslations: Partial<Record<TranslationKey, string>> | null = null;
 
+/**
+ * Which language to open in, for someone who has never been here before.
+ *
+ * This used to be `localStorage.getItem('locale') || 'en'` — so a guest
+ * scanning a QR code got ENGLISH no matter what their phone was set to, and
+ * had to find the switcher themselves. On a product whose headline feature is
+ * removing the language barrier, that was the barrier.
+ *
+ * Order matters: an explicit choice always wins, because someone who picked a
+ * language should not have it overridden by their device on the next visit.
+ * Only when there is no stored choice do we read the browser, which on a phone
+ * is the device language and on the mobile app's WebView is the OS language.
+ *
+ * `navigator.languages` is preferred over `.language`: a user whose first
+ * preference we do not ship may well have a second that we do.
+ */
+function detectInitialLocale(): Locale {
+  try {
+    const stored = localStorage.getItem('locale') as Locale | null;
+    if (stored && stored in LOCALE_NAMES) return stored;
+  } catch {
+    /* storage blocked (private mode, embedded webview) — fall through */
+  }
+
+  const candidates = typeof navigator !== 'undefined'
+    ? [...(navigator.languages ?? []), navigator.language].filter(Boolean)
+    : [];
+
+  for (const tag of candidates) {
+    // Match on the base subtag: "es-419" and "es-MX" are both Spanish to us,
+    // and "zh-Hant" should still land on Chinese rather than English.
+    const base = tag.toLowerCase().split('-')[0];
+    if (base in LOCALE_NAMES) return base as Locale;
+  }
+  return 'en';
+}
+
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => {
-    return (localStorage.getItem('locale') as Locale) || 'en';
-  });
+  const [locale, setLocaleState] = useState<Locale>(detectInitialLocale);
   const [translations, setTranslations] = useState<Partial<Record<TranslationKey, string>> | null>(null);
 
   useEffect(() => {
@@ -46,10 +81,20 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.dir = RTL_LOCALES.has(locale) ? 'rtl' : 'ltr';
     document.documentElement.lang = locale;
-    localStorage.setItem('locale', locale);
   }, [locale]);
 
-  const setLocale = useCallback((l: Locale) => setLocaleState(l), []);
+  // Persist only a deliberate choice, never the detected one. Writing the
+  // detection back would make it indistinguishable from a choice on the next
+  // visit, so a guest who later switched their phone to Arabic would keep
+  // getting whatever we guessed the first time.
+  const setLocale = useCallback((l: Locale) => {
+    setLocaleState(l);
+    try {
+      localStorage.setItem('locale', l);
+    } catch {
+      /* storage blocked — the choice still applies for this session */
+    }
+  }, []);
 
   const t = useCallback(
     (key: TranslationKey, vars?: Record<string, string | number>): string => {

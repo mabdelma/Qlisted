@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: 12,
     paddingHorizontal: 24,
-    backgroundColor: '#2563eb',
+    backgroundColor: '#0f766e',
     borderRadius: 8,
     marginBottom: 12,
   },

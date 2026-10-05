@@ -243,6 +243,25 @@ jobs:
       # and two such failures were killing services on startup in production.
       - run: cd microservices && npm run smoke:bundle
 
+  # The Expo app had NO typecheck anywhere and its node_modules were never even
+  # installed in CI, so three real bugs sat in it unnoticed: a Tab.Screen with
+  # no component (React Navigation throws for that at runtime), a screen missing
+  # from TabParamList, and a call to a setter that does not exist — which threw
+  # a ReferenceError inside an empty catch, so enabling push notifications
+  # silently did nothing. Typechecking is what found all three.
+  mobile:
+    name: Mobile
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: cd mobile && npm ci
+      - run: cd mobile && npm run typecheck
+
   lint:
     name: Lint
     runs-on: ubuntu-24.04

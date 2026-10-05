@@ -30,7 +30,12 @@ const AccountScreen: React.FC<AccountScreenProps> = ({ slug, baseUrl, isOnline }
     try {
       const token = await registerForPushNotificationsAsync();
       if (token) {
-        setPushToken(token);
+        // There is no pushToken state and nothing displays the token — this
+        // line called a setter that does not exist. Being an undefined
+        // identifier it threw a ReferenceError, which the empty `catch` below
+        // swallowed, so `setPushEnabled(true)` never ran and the register POST
+        // never fired: the toggle looked inert and push could never be turned
+        // on. The token is only needed for the request just below.
         setPushEnabled(true);
         await fetch(`${baseUrl}/api/r/${slug}/push/expo/register`, {
           method: 'POST',
@@ -139,7 +144,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 2,
   },
-  toggleActive: { backgroundColor: '#2563eb' },
+  toggleActive: { backgroundColor: '#0f766e' },
   toggleDot: {
     width: 20,
     height: 20,

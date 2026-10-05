@@ -11,12 +11,17 @@ import QRScanScreen from './src/screens/QRScanScreen';
 import { handleDeepLink } from './src/services/deepLink';
 import { useOfflineSync, setNetInfoConnected } from './src/hooks/useOfflineSync';
 import { registerForPushNotificationsAsync, addNotificationResponseListener } from './src/services/pushNotifications';
+import { t } from './src/i18n';
 
 const BASE_URL = process.env.APP_BASE_URL || 'https://qlisted.com';
 
 type TabParamList = {
   Menu: { slug?: string; tableId?: string };
   Orders: { slug?: string };
+  // The Scan tab exists below but was missing here, so <Tab.Screen name="Scan">
+  // did not typecheck. It takes no params: its tabPress is intercepted to open
+  // the scanner modal rather than navigating to a screen.
+  Scan: undefined;
   Account: undefined;
 };
 
@@ -32,7 +37,7 @@ const TAB_ICONS: Record<string, string> = {
 function TabIcon({ label, focused }: { label: string; focused: boolean }) {
   return (
     <View style={{ alignItems: 'center' }}>
-      <Text style={{ fontSize: 20, color: focused ? '#2563eb' : '#6b7280' }}>
+      <Text style={{ fontSize: 20, color: focused ? '#0f766e' : '#6b7280' }}>
         {TAB_ICONS[label] || '•'}
       </Text>
     </View>
@@ -118,7 +123,7 @@ function AppInner() {
       {!isOnline && (
         <View style={styles.offlineBanner}>
           <Text style={styles.offlineText}>
-            No internet connection{pendingCount > 0 ? ` · ${pendingCount} pending` : ''}
+            {t('offline')}{pendingCount > 0 ? ` · ${pendingCount} ${t('pending')}` : ''}
           </Text>
         </View>
       )}
@@ -127,7 +132,7 @@ function AppInner() {
         <Tab.Navigator
           screenOptions={{
             headerShown: false,
-            tabBarActiveTintColor: '#2563eb',
+            tabBarActiveTintColor: '#0f766e',
             tabBarInactiveTintColor: '#6b7280',
           }}
         >
@@ -136,6 +141,7 @@ function AppInner() {
             children={() => <MenuScreen slug={slug} tableId={tableId} baseUrl={BASE_URL} />}
             initialParams={{ slug, tableId }}
             options={{
+              tabBarLabel: t('tabMenu'),
               tabBarIcon: ({ focused }) => <TabIcon label="Menu" focused={focused} />,
             }}
           />
@@ -144,11 +150,17 @@ function AppInner() {
             children={() => <OrdersScreen slug={slug} baseUrl={BASE_URL} />}
             initialParams={{ slug }}
             options={{
+              tabBarLabel: t('tabOrders'),
               tabBarIcon: ({ focused }) => <TabIcon label="Orders" focused={focused} />,
             }}
           />
           <Tab.Screen
             name="Scan"
+            // Never actually rendered: tabPress is preventDefault-ed below and
+            // opens the scanner modal instead. React Navigation still requires
+            // a component for every screen, and without one it throws
+            // "Couldn't find a 'component' ... for the screen 'Scan'".
+            children={() => null}
             listeners={{
               tabPress: (e) => {
                 e.preventDefault();
@@ -156,6 +168,7 @@ function AppInner() {
               },
             }}
             options={{
+              tabBarLabel: t('tabScan'),
               tabBarIcon: ({ focused }) => <TabIcon label="Scan" focused={focused} />,
             }}
           />
@@ -163,6 +176,7 @@ function AppInner() {
             name="Account"
             children={() => <AccountScreen slug={slug} baseUrl={BASE_URL} isOnline={isOnline} />}
             options={{
+              tabBarLabel: t('tabAccount'),
               tabBarIcon: ({ focused }) => <TabIcon label="Account" focused={focused} />,
             }}
           />
