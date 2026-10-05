@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "QCart",
+    "name": "Qlisted",
     "slug": "qcart",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,7 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.qcart.app"
@@ -24,7 +26,12 @@
       "package": "com.qcart.app"
     },
     "plugins": [
-      "expo-linking"
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Qlisted uses the camera to scan the QR code on your table."
+        }
+      ]
     ]
   }
 }
