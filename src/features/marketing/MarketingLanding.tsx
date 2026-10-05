@@ -9,6 +9,23 @@ import {
 } from 'lucide-react';
 import { MarketingHeader } from '../../components/layout/MarketingHeader';
 import { Footer } from '../../components/layout/Footer';
+import { useReveal } from '../../hooks/useReveal';
+import type { ReactNode } from 'react';
+
+/**
+ * Reveals its children once, as they scroll into view.
+ *
+ * `delay` staggers siblings — a grid where every card arrives at the same
+ * instant reads as a page that was slow to paint, whereas 60-80ms apart reads
+ * as deliberate. Keep the total stagger under roughly half a second or the last
+ * card feels broken rather than choreographed.
+ *
+ * Does nothing for a viewer who asked for reduced motion: see useReveal.
+ */
+function Reveal({ children, delay, className }: { children: ReactNode; delay?: number; className?: string }) {
+  const ref = useReveal<HTMLDivElement>({ delay });
+  return <div ref={ref} data-reveal="" className={className}>{children}</div>;
+}
 
 /**
  * The eleven guest languages, each in its own script.
@@ -88,8 +105,8 @@ export function MarketingLanding() {
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden bg-gradient-to-b from-amber-50 via-white to-white">
         {/* decorative blobs */}
-        <div className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-[#0f766e]/10 blur-3xl" />
-        <div className="pointer-events-none absolute top-40 -left-24 h-80 w-80 rounded-full bg-amber-200/40 blur-3xl" />
+        <div className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-[#0f766e]/10 blur-3xl animate-drift" />
+        <div className="pointer-events-none absolute top-40 -left-24 h-80 w-80 rounded-full bg-amber-200/40 blur-3xl animate-drift" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 md:pt-24 md:pb-28">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -138,11 +155,11 @@ export function MarketingLanding() {
         {/* Stats bar */}
         <div className="relative border-t border-gray-100 bg-white/60 backdrop-blur">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            {stats.map((s) => (
-              <div key={s.label}>
+            {stats.map((s, i) => (
+              <Reveal key={s.label} delay={i * 70}>
                 <div className="text-3xl font-bold text-[#0f766e]">{s.value}</div>
                 <div className="text-sm text-gray-500 mt-1">{s.label}</div>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -152,8 +169,8 @@ export function MarketingLanding() {
       {/* Dark section, straight after the hero: the one thing a competitor
           ordering app cannot do sits above everything operational. */}
       <section className="relative overflow-hidden bg-gray-900 py-20 md:py-28">
-        <div className="pointer-events-none absolute -top-40 left-1/4 h-[28rem] w-[28rem] rounded-full bg-[#0f766e]/35 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-40 right-1/5 h-96 w-96 rounded-full bg-amber-400/15 blur-3xl" />
+        <div className="pointer-events-none absolute -top-40 left-1/4 h-[28rem] w-[28rem] rounded-full bg-[#0f766e]/35 blur-3xl animate-drift" />
+        <div className="pointer-events-none absolute -bottom-40 right-1/5 h-96 w-96 rounded-full bg-amber-400/15 blur-3xl animate-drift" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-14 items-center">
           <div>
@@ -193,9 +210,9 @@ export function MarketingLanding() {
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">{t('marketing.featuresDesc')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((f) => (
+            {features.map((f, i) => (
+              <Reveal key={f.title} delay={(i % 3) * 80}>
               <div
-                key={f.title}
                 className={`group bg-white rounded-2xl border p-6 hover:shadow-xl hover:-translate-y-1 transition-all ${
                   f.highlight
                     ? 'border-[#0f766e]/40 ring-1 ring-[#0f766e]/15 shadow-lg shadow-[#0f766e]/5'
@@ -210,6 +227,7 @@ export function MarketingLanding() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{f.title}</h3>
                 <p className="text-sm text-gray-600 leading-relaxed">{f.desc}</p>
               </div>
+              </Reveal>
             ))}
           </div>
 
@@ -236,15 +254,15 @@ export function MarketingLanding() {
           </div>
           <div className="relative grid grid-cols-1 md:grid-cols-3 gap-10">
             <div className="hidden md:block absolute top-8 left-[16.66%] right-[16.66%] h-px bg-gradient-to-r from-[#0f766e]/30 via-[#0f766e]/30 to-[#0f766e]/30" />
-            {steps.map((s) => (
-              <div key={s.num} className="relative text-center">
+            {steps.map((s, i) => (
+              <Reveal key={s.num} delay={i * 110} className="relative text-center">
                 <div className="w-16 h-16 bg-[#0f766e] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[#0f766e]/20">
                   <s.icon className="h-7 w-7 text-white" />
                 </div>
                 <div className="text-xs font-semibold text-[#0f766e] tracking-widest mb-2">{t('marketing.stepLabel', { num: s.num })}</div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">{s.title}</h3>
                 <p className="text-gray-600 max-w-xs mx-auto">{s.desc}</p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -314,8 +332,9 @@ export function MarketingLanding() {
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">{t('marketing.testimonialsDesc')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((tItem) => (
-              <figure key={tItem.name} className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col">
+            {testimonials.map((tItem, i) => (
+              <Reveal key={tItem.name} delay={i * 90}>
+              <figure className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col">
                 <div className="flex gap-1 mb-4 text-amber-400">
                   {Array.from({ length: 5 }).map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}
                 </div>
@@ -330,6 +349,7 @@ export function MarketingLanding() {
                   </div>
                 </figcaption>
               </figure>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -429,7 +449,7 @@ function PhoneMockup() {
         <span className="text-[10px] font-medium text-gray-500">{t('marketing.scanToOrder')}</span>
       </div>
 
-      <div className="w-[270px] rounded-[2.5rem] border-[10px] border-gray-900 bg-gray-900 shadow-2xl">
+      <div className="w-[270px] rounded-[2.5rem] border-[10px] border-gray-900 bg-gray-900 shadow-2xl animate-float-soft">
         <div className="relative overflow-hidden rounded-[1.8rem] bg-white">
           {/* notch */}
           <div className="absolute left-1/2 top-0 z-10 h-5 w-28 -translate-x-1/2 rounded-b-2xl bg-gray-900" />
@@ -494,7 +514,7 @@ function TranslationMockup() {
 
       {/* The bridge itself */}
       <div className="flex items-center justify-center py-3">
-        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0f766e] text-white shadow-lg ring-4 ring-[#0f766e]/25">
+        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0f766e] text-white shadow-lg ring-4 ring-[#0f766e]/25 animate-bridge-pulse">
           <ArrowDown className="h-5 w-5" />
         </span>
       </div>
