@@ -47,7 +47,7 @@ services:
     networks: [default]
 
   migrate:
-    image: ghcr.io/anomalyco/qcart/api:latest
+    image: ghcr.io/mabdelma/qlisted/api:latest
     environment:
       DATABASE_URL: "postgresql://${POSTGRES_USER:-qcart}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-qcart}"
       # Seed creates the platform super_admin (idempotent) with these on first run.
@@ -56,7 +56,7 @@ services:
     networks: [default]
 
   api:
-    image: ghcr.io/anomalyco/qcart/api:latest
+    image: ghcr.io/mabdelma/qlisted/api:latest
     depends_on:
       redis:
         condition: service_started
@@ -106,7 +106,7 @@ services:
     networks: [default, edge]
 
   qcart-frontend:
-    image: ghcr.io/anomalyco/qcart/frontend:latest
+    image: ghcr.io/mabdelma/qlisted/frontend:latest
     # Caddy proxies this by name over `edge`. The service name doubles as the
     # edge DNS alias, so it MUST be unique across all stacks on the VPS — a
     # generic "frontend" alias collides with qarrito's upstream and 502s it.

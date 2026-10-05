@@ -34,8 +34,16 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://qcart:qcart@postgres:5432/qcart
+    # Apply versioned migrations from ./drizzle (recorded in
+    # drizzle.__drizzle_migrations), then seed. This replaces the previous
+    # `drizzle-kit push --force`, a declarative diff with the data-loss prompt
+    # suppressed: a renamed column in schema.ts would silently DROP+ADD in prod.
+    # `migrate` only runs .sql files whose folderMillis is newer than the latest
+    # recorded row, so it is a no-op once prod is baselined (see
+    # docs/PHASE1-SCHEMA.md). NOTE: an existing prod DB built by `push` MUST be
+    # baselined before this runs, or 0000 would `CREATE TABLE tenants` and fail.
     command: >
-      sh -c "npx drizzle-kit push --config=drizzle.config.ts --force 2>&1 && node dist/db/seed.js"
+      sh -c "npx drizzle-kit migrate --config=drizzle.config.ts && node dist/db/seed.js"
     restart: no
 
   api:
