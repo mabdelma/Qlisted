@@ -1,4 +1,45 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+/**
+ * True once the element has been scrolled into view, and true forever after.
+ *
+ * For animations that should PLAY rather than just appear — the AI chat
+ * mockup types out a conversation, which is pointless if it finishes while
+ * still below the fold.
+ *
+ * Returns true immediately when the viewer prefers reduced motion or when
+ * IntersectionObserver is unavailable, so callers render their finished state
+ * instead of an empty box.
+ */
+export function useInView<T extends HTMLElement = HTMLDivElement>(threshold = 0.3) {
+  const ref = useRef<T | null>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (
+      typeof IntersectionObserver === 'undefined'
+      || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    ) {
+      setInView(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setInView(true);
+          io.unobserve(el);
+        }
+      },
+      { threshold },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [threshold]);
+
+  return [ref, inView] as const;
+}
 
 /**
  * Reveal an element the first time it scrolls into view.

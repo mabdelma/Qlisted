@@ -9,8 +9,8 @@ import {
 } from 'lucide-react';
 import { MarketingHeader } from '../../components/layout/MarketingHeader';
 import { Footer } from '../../components/layout/Footer';
-import { useReveal } from '../../hooks/useReveal';
-import type { ReactNode } from 'react';
+import { useReveal, useInView } from '../../hooks/useReveal';
+import { useState, useEffect, type ReactNode } from 'react';
 
 /**
  * Reveals its children once, as they scroll into view.
@@ -538,26 +538,68 @@ function TranslationMockup() {
 /* ── CSS-only AI copilot chat mockup ──────────────────────────────────────── */
 function AiChatMockup() {
   const { t } = useI18n();
+  const [ref, inView] = useInView<HTMLDivElement>(0.4);
+  // 0 nothing → 1 guest asks → 2 copilot is thinking → 3 copilot answers.
+  const [stage, setStage] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    // useInView reports true immediately under reduced motion, so jump to the
+    // finished conversation rather than animating it.
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      setStage(3);
+      return;
+    }
+    const timers = [
+      setTimeout(() => setStage(1), 250),
+      setTimeout(() => setStage(2), 1100),
+      setTimeout(() => setStage(3), 2300),
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, [inView]);
+
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-xl">
+    <div ref={ref} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-xl">
       <div className="mb-4 flex items-center gap-2 border-b border-gray-100 pb-3">
         <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500 text-white">
           <Sparkles className="h-4 w-4" />
         </span>
         <span className="text-sm font-semibold text-gray-900">{t('marketing.aiBadge')}</span>
       </div>
-      <div className="space-y-3">
-        <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-brand-500 px-4 py-2.5 text-sm text-white">
-          {t('marketing.aiChatUser')}
-        </div>
-        <div className="flex max-w-[92%] items-start gap-2">
-          <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-brand-500">
-            <Bot className="h-4 w-4" />
-          </span>
-          <div className="rounded-2xl rounded-bl-sm bg-gray-100 px-4 py-2.5 text-sm text-gray-800">
-            {t('marketing.aiChatBot')}
+      {/* Fixed min-height so the surrounding layout does not jump as each turn
+          lands — a reflowing card looks broken, not alive. */}
+      <div className="space-y-3 min-h-[8.5rem]">
+        {stage >= 1 && (
+          <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-brand-500 px-4 py-2.5 text-sm text-white animate-scale-in">
+            {t('marketing.aiChatUser')}
           </div>
-        </div>
+        )}
+        {stage === 2 && (
+          <div className="flex max-w-[92%] items-start gap-2 animate-fade-in">
+            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-brand-500">
+              <Bot className="h-4 w-4" />
+            </span>
+            <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm bg-gray-100 px-4 py-3" aria-label="typing">
+              {[0, 1, 2].map((i) => (
+                <span
+                  key={i}
+                  className="h-1.5 w-1.5 rounded-full bg-gray-400 animate-bridge-pulse"
+                  style={{ animationDelay: `${i * 180}ms` }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        {stage >= 3 && (
+          <div className="flex max-w-[92%] items-start gap-2 animate-scale-in">
+            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-brand-500">
+              <Bot className="h-4 w-4" />
+            </span>
+            <div className="rounded-2xl rounded-bl-sm bg-gray-100 px-4 py-2.5 text-sm text-gray-800">
+              {t('marketing.aiChatBot')}
+            </div>
+          </div>
+        )}
       </div>
       <div className="mt-4 flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2">
         <span className="flex-1 truncate text-sm text-gray-400">{t('marketing.aiChatPlaceholder')}</span>
