@@ -85,6 +85,11 @@ export const aiApi = {
     api.post<CustomerChatResponse>(`/r/${slug}/ai/customer`, { messages, context }, { skipAuth: true }),
   voiceSession: (slug: string) =>
     api.post<{ clientSecret: string; expiresAt?: number; model: string }>(`/r/${slug}/ai/voice-session`, {}, { skipAuth: true }),
+  // Generates a description and every locale's translation for a menu item.
+  // Returns the copy for review rather than saving it — generated text about
+  // food should not be persisted unread.
+  menuCopy: (slug: string, data: { name: string; category?: string; price?: number; currency?: string; existingDescription?: string | null }) =>
+    api.post<{ data: { description: string | null; translations: Record<string, { name?: string; description?: string }> } }>(`/r/${slug}/ai/menu-copy`, data),
 };
 
 // Receipts
@@ -173,7 +178,7 @@ export const tableApi = {
     api.get<TableData>(`/r/${slug}/table/${qrToken}`, { skipAuth: true }),
   list: (slug: string) =>
     api.get<TableData[]>(`/r/${slug}/tables`),
-  create: (slug: string, data: { number: number; capacity?: number; xPos?: number; yPos?: number }) =>
+  create: (slug: string, data: { number: number; name?: string; capacity?: number; xPos?: number; yPos?: number }) =>
     api.post<TableData>(`/r/${slug}/tables`, data),
   update: (slug: string, tableId: string, data: Partial<TableData>) =>
     api.put<{ success: boolean }>(`/r/${slug}/tables/${tableId}`, data),

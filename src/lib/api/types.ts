@@ -134,6 +134,8 @@ export interface TableData {
   id: string;
   tenantId: string;
   number: number;
+  /** Editable label, unique within the tenant (e.g. "Terrace 1"). */
+  name: string;
   capacity: number;
   status: 'available' | 'occupied' | 'reserved' | 'closed';
   qrToken: string;

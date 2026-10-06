@@ -14,10 +14,37 @@ const tables = new Hono();
 
 const tableSchema = z.object({
   number: z.number().int().positive(),
+  // Optional on the wire: a caller that sends only a number gets "Table N",
+  // which keeps the existing clients and the QR flow working unchanged.
+  name: z.string().trim().min(1).max(60).optional(),
   capacity: z.number().int().positive().optional().default(2),
   xPos: z.number().optional(),
   yPos: z.number().optional(),
 });
+
+/**
+ * Reject a name or number already used by another table in this tenant.
+ *
+ * Name uniqueness is also a database constraint; this exists so the admin gets
+ * a message naming the clash instead of a raw 500 from the index. Number has
+ * no DB constraint on purpose — see drizzle/0027_table_names.sql — so for that
+ * this check IS the enforcement.
+ */
+async function findClash(tenantId: string, name: string | undefined, number: number | undefined, excludeId?: string) {
+  const rows = await db.select({ id: schema.tables.id, name: schema.tables.name, number: schema.tables.number })
+    .from(schema.tables)
+    .where(eq(schema.tables.tenantId, tenantId));
+  for (const r of rows) {
+    if (excludeId && r.id === excludeId) continue;
+    if (name !== undefined && r.name.toLowerCase() === name.toLowerCase()) {
+      return `A table named "${r.name}" already exists`;
+    }
+    if (number !== undefined && r.number === number) {
+      return `Table number ${r.number} is already in use`;
+    }
+  }
+  return null;
+}
 
 // Public: resolve a table by QR token (no slug needed)
 tables.get('/resolve/:qrToken', async (c) => {
@@ -83,16 +110,21 @@ tables.get('/:slug/table/:qrToken', resolveTenant, async (c) => {
 tables.post('/:slug/tables', authMiddleware, requireRole('admin'), resolveTenant, zValidator('json', tableSchema), async (c) => {
   const tenantId = c.get('tenantId');
   const input = c.req.valid('json');
+  const name = input.name ?? `Table ${input.number}`;
+
+  const clash = await findClash(tenantId, name, input.number);
+  if (clash) return c.json({ error: clash }, 409);
+
   const id = uuid();
   const qrToken = crypto.randomBytes(16).toString('hex');
 
   const qrUrl = `https://${c.req.header('host')}/api/tables/resolve/${qrToken}`;
   const qrImage = await qrcode.toDataURL(qrUrl, { width: 300, margin: 2 });
 
-  await db.insert(schema.tables).values({ id, tenantId, qrToken, qrImage, ...input });
+  await db.insert(schema.tables).values({ id, tenantId, qrToken, qrImage, ...input, name });
 
-  logger.info({ tenantId, tableId: id, number: input.number }, 'Table created');
-  return c.json({ id, qrToken, qrImage, ...input }, 201);
+  logger.info({ tenantId, tableId: id, number: input.number, name }, 'Table created');
+  return c.json({ id, qrToken, qrImage, ...input, name }, 201);
 });
 
 tables.get('/:slug/tables', authMiddleware, requireRole('admin', 'manager', 'waiter'), resolveTenant, async (c) => {
@@ -112,11 +144,27 @@ tables.put('/:slug/tables/:tableId', authMiddleware, requireRole('admin'), resol
   const tableId = c.req.param('tableId')!;
   const body = await c.req.json();
 
-  const allowed = ['number', 'capacity', 'status', 'xPos', 'yPos'];
+  const allowed = ['number', 'name', 'capacity', 'status', 'xPos', 'yPos'];
   const updates: Record<string, unknown> = {};
   for (const key of allowed) {
     if (body[key] !== undefined) updates[key] = body[key];
   }
+
+  if (typeof updates.name === 'string') {
+    const trimmed = updates.name.trim();
+    if (!trimmed) return c.json({ error: 'Table name cannot be empty' }, 400);
+    updates.name = trimmed;
+  }
+
+  // Excluding this table, or renaming it to its own name would report a clash
+  // with itself.
+  const clash = await findClash(
+    tenantId,
+    typeof updates.name === 'string' ? updates.name : undefined,
+    typeof updates.number === 'number' ? updates.number : undefined,
+    tableId,
+  );
+  if (clash) return c.json({ error: clash }, 409);
 
   await db.update(schema.tables)
     .set(updates)
@@ -175,17 +223,24 @@ tables.post('/:slug/tables/split', authMiddleware, requireRole('admin', 'manager
   const qrUrl = `https://${c.req.header('host')}/api/tables/resolve/${qrToken}`;
   const qrImage = await qrcode.toDataURL(qrUrl, { width: 300, margin: 2 });
 
-  await db.insert(schema.tables).values({
-    id: newTableId, tenantId, number: 0, capacity: existing.capacity,
-    status: 'occupied', qrToken, qrImage,
-  });
-
+  // Work the number out BEFORE inserting. This used to insert `number: 0` and
+  // then renumber in a second statement, which now also has to carry a unique
+  // name — two writes where one will do, and a window where the row is wrong.
   const maxNumber = await db
     .select({ max: sql<number>`max(number)` })
     .from(schema.tables)
     .where(eq(schema.tables.tenantId, tenantId));
   const newNumber = (maxNumber[0]?.max || 0) + 1;
-  await db.update(schema.tables).set({ number: newNumber }).where(eq(schema.tables.id, newTableId));
+
+  // Derived from the table it split off, which is what staff will look for,
+  // with a numeric suffix if that name is somehow taken.
+  let splitName = `${existing.name} (split)`;
+  if (await findClash(tenantId, splitName, undefined)) splitName = `${existing.name} (split ${newNumber})`;
+
+  await db.insert(schema.tables).values({
+    id: newTableId, tenantId, number: newNumber, name: splitName,
+    capacity: existing.capacity, status: 'occupied', qrToken, qrImage,
+  });
 
   const orderItemsToMove = await db
     .select()

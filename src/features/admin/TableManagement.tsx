@@ -13,8 +13,15 @@ export function TableManagement() {
   const [tables, setTables] = useState<TableData[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ number: 1, capacity: 2 });
+  const [form, setForm] = useState({ number: 1, name: '', capacity: 2 });
   const [qrModal, setQrModal] = useState<TableData | null>(null);
+  const [error, setError] = useState('');
+  const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
+
+  // Next free number, not `tables.length + 1` — with 5 tables numbered 1-5,
+  // deleting #3 leaves length 4 and the old default proposed 5, which already
+  // existed. The server rejects the clash now, but suggesting it was the bug.
+  const nextNumber = () => (tables.length ? Math.max(...tables.map((t) => t.number)) + 1 : 1);
 
   useEffect(() => {
     if (!slug) return;
@@ -28,14 +35,18 @@ export function TableManagement() {
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!slug) return;
+    setError('');
     try {
-      await tableApi.create(slug, form);
+      // Blank name means "name it for me" — the server fills in "Table N".
+      await tableApi.create(slug, { ...form, name: form.name.trim() || undefined });
       setShowForm(false);
-      setForm({ number: tables.length + 1, capacity: 2 });
       const updated = await tableApi.list(slug);
       setTables(updated);
+      setForm({ number: (updated.length ? Math.max(...updated.map((t) => t.number)) + 1 : 1), name: '', capacity: 2 });
     } catch (err) {
-      console.error('Failed to create table:', err);
+      // A duplicate name or number comes back as 409 with a message naming the
+      // clash. Showing it is the whole point of the guard.
+      setError((err as { message?: string })?.message || t('tables.createFailed'));
     }
   }
 
@@ -63,7 +74,7 @@ export function TableManagement() {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">{t('tables.management')}</h2>
         <button
-          onClick={() => setShowForm(true)}
+          onClick={() => { setError(''); setForm({ number: nextNumber(), name: '', capacity: 2 }); setShowForm(true); }}
           className="flex items-center px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]"
         >
           <PlusCircle className="w-5 h-5 mr-2" /> {t('tables.addTable')}
@@ -75,6 +86,17 @@ export function TableManagement() {
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <h3 className="text-xl font-semibold mb-4">{t('tables.newTable')}</h3>
             <form onSubmit={handleCreate} className="space-y-4">
+              {error && (
+                <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">{t('tables.nameLabel')}</label>
+                <input type="text" maxLength={60} value={form.name}
+                  placeholder={t('tables.namePlaceholder', { number: String(form.number) })}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]" />
+                <p className="mt-1 text-xs text-gray-500">{t('tables.nameHint')}</p>
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">{t('tables.numberLabel')}</label>
                 <input type="number" min="1" required value={form.number}
@@ -102,9 +124,45 @@ export function TableManagement() {
         {tables.map((table) => (
           <div key={table.id} className="bg-white rounded-lg shadow p-4">
             <div className="flex justify-between items-start mb-3">
-              <div>
-                <h3 className="text-lg font-semibold">{t('table.tableNumber', { number: table.number })}</h3>
-                <p className="text-sm text-gray-500">{t('tables.capacity')}: {table.capacity}</p>
+              <div className="min-w-0 flex-1">
+                {renaming?.id === table.id ? (
+                  <form
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      if (!slug || !renaming) return;
+                      setError('');
+                      try {
+                        await tableApi.update(slug, table.id, { name: renaming.name.trim() });
+                        setTables(await tableApi.list(slug));
+                        setRenaming(null);
+                      } catch (err) {
+                        setError((err as { message?: string })?.message || t('tables.renameFailed'));
+                      }
+                    }}
+                    className="flex items-center gap-1"
+                  >
+                    <input
+                      autoFocus
+                      maxLength={60}
+                      value={renaming.name}
+                      onChange={(e) => setRenaming({ id: table.id, name: e.target.value })}
+                      onBlur={() => setRenaming(null)}
+                      className="w-full rounded border-gray-300 px-2 py-1 text-sm focus:border-[#0f766e] focus:ring-[#0f766e]"
+                    />
+                  </form>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { setError(''); setRenaming({ id: table.id, name: table.name }); }}
+                    title={t('tables.rename')}
+                    className="text-start text-lg font-semibold hover:text-[#0f766e]"
+                  >
+                    {table.name}
+                  </button>
+                )}
+                <p className="text-sm text-gray-500">
+                  {t('table.tableNumber', { number: table.number })} · {t('tables.capacity')}: {table.capacity}
+                </p>
               </div>
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                 table.status === 'available' ? 'bg-green-100 text-green-800' :

@@ -4,7 +4,7 @@ import { zValidator } from '@hono/zod-validator';
 import { authMiddleware, requireRole } from '../middleware/auth.js';
 import { resolveTenant } from '../middleware/tenant.js';
 import { aiLimiter, voiceLimiter } from '../middleware/rateLimiter.js';
-import { adminCopilot, customerChat, createRealtimeSession, aiEnabled, type CustomerContext } from '../services/aiService.js';
+import { adminCopilot, customerChat, createRealtimeSession, generateMenuCopy, aiEnabled, type CustomerContext } from '../services/aiService.js';
 
 const ai = new Hono();
 
@@ -31,6 +31,33 @@ const customerChatSchema = chatSchema.extend({
     locale: z.string().optional(),
     isMobile: z.boolean().optional(),
   }).optional(),
+});
+
+const menuCopySchema = z.object({
+  name: z.string().trim().min(1).max(200),
+  category: z.string().trim().max(120).optional(),
+  price: z.number().min(0).optional(),
+  currency: z.string().trim().max(8).optional(),
+  existingDescription: z.string().max(2000).nullable().optional(),
+});
+
+/**
+ * Generate a menu item's description and its translations.
+ *
+ * Returns the copy rather than writing it, so the admin sees what was produced
+ * and can edit before saving — generated text about food is exactly the kind of
+ * thing that should not be persisted unreviewed.
+ *
+ * Rate-limited with the other AI endpoints, and admin/manager only: it spends
+ * provider credit.
+ */
+ai.post('/:slug/ai/menu-copy', authMiddleware, requireRole('admin', 'manager'), resolveTenant, aiLimiter, zValidator('json', menuCopySchema), async (c) => {
+  if (!aiEnabled()) return c.json({ error: 'AI is not configured' }, 503);
+  const input = c.req.valid('json');
+  const copy = await generateMenuCopy(input.name, input);
+  // A null description means the provider failed or returned nothing usable.
+  // That is not a server error — the caller keeps whatever they typed.
+  return c.json({ data: copy });
 });
 
 // Is the assistant configured? (cheap check for the UI to hide the feature)

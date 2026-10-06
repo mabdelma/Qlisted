@@ -1129,6 +1129,19 @@ export const translations = {
   'marketing.featureVoiceAi': "Talk to your venue",
   'marketing.featureVoiceAiDesc': "A conversational copilot you speak to. Ask what sold, what is running low, or what last night looked like — and your guests can order by voice too, in their own language.",
   'marketing.moreLanguages': "and more",
+  'tables.nameLabel': "Name",
+  'tables.namePlaceholder': "Table {number}",
+  'tables.nameHint': "Leave blank and we will name it for you. Must be unique.",
+  'tables.rename': "Rename",
+  'tables.createFailed': "Could not create the table.",
+  'tables.renameFailed': "Could not rename the table.",
+  'menu.generateCopy': "Write with AI",
+  'menu.generating': "Writing…",
+  'menu.generateFailed': "Could not generate the copy. Your text is unchanged.",
+  'menu.generateNeedsName': "Enter a name first",
+  'menu.descriptionAiHint': "Leave empty and let AI write it",
+  'menu.translationsAiHint': "Generated from the item name, then editable. Only blank fields are filled.",
+  'menu.translationsManualHint': "Filled in by hand, or generate them from the description above.",
 };
 
 /**

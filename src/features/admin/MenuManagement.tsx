@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { PlusCircle, Edit, Trash2, Image as ImageIcon, Upload, GripVertical, ToggleLeft, Globe, FolderTree } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, Image as ImageIcon, Upload, GripVertical, ToggleLeft, Globe, FolderTree, Sparkles, Loader2 } from 'lucide-react';
 import { CategoryManager } from './CategoryManager';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable, rectSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { menuApi, uploadApi } from '../../lib/api';
+import { menuApi, uploadApi, aiApi } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useI18n } from '../../contexts/I18nContext';
 import type { MenuItem, MenuCategory, ModifierGroup } from '../../lib/api/types';
@@ -77,6 +77,62 @@ export function MenuManagement() {
   const { t } = useI18n();
   const { state: { tenant } } = useAuth();
   const slug = tenant?.slug;
+
+  // Generated copy is held for review rather than written straight to the item:
+  // machine-written text about food — ingredients, allergens — should be read
+  // by a human before a guest sees it.
+  const [generating, setGenerating] = useState(false);
+  const [genError, setGenError] = useState('');
+  const [aiOn, setAiOn] = useState(false);
+
+  useEffect(() => {
+    if (!slug) return;
+    aiApi.status(slug).then((r) => setAiOn(r.enabled)).catch(() => setAiOn(false));
+  }, [slug]);
+
+  /**
+   * Write the description and all ten translations for the item being edited.
+   *
+   * Fills the form; does not save. Anything the admin already typed is passed
+   * as context so this refines rather than discards their wording, and only
+   * empty fields are overwritten — regenerating must not silently replace copy
+   * someone deliberately wrote.
+   */
+  async function generateCopy() {
+    if (!slug || !editing?.name?.trim()) return;
+    setGenerating(true);
+    setGenError('');
+    try {
+      const category = categories.find((c) => c.id === editing.categoryId)?.name;
+      const { data } = await aiApi.menuCopy(slug, {
+        name: editing.name,
+        category,
+        price: typeof editing.price === 'number' ? editing.price : undefined,
+        existingDescription: editing.description || null,
+      });
+      if (!data.description && Object.keys(data.translations).length === 0) {
+        setGenError(t('menu.generateFailed'));
+        return;
+      }
+      const merged = { ...(editing.translations || {}) };
+      for (const [code, copy] of Object.entries(data.translations)) {
+        const current = (merged[code] || {}) as { name?: string; description?: string };
+        merged[code] = {
+          name: current.name?.trim() ? current.name : copy.name,
+          description: current.description?.trim() ? current.description : copy.description,
+        };
+      }
+      setEditing({
+        ...editing,
+        description: editing.description?.trim() ? editing.description : (data.description || ''),
+        translations: merged,
+      });
+    } catch (err) {
+      setGenError((err as { message?: string })?.message || t('menu.generateFailed'));
+    } finally {
+      setGenerating(false);
+    }
+  }
   // Hotels deliver a subset of this menu to rooms, so they get a second toggle.
   const isHotel = tenant?.venueType === 'hotel' || tenant?.venueType === 'both';
   const [categories, setCategories] = useState<MenuCategory[]>([]);
@@ -251,13 +307,29 @@ export function MenuManagement() {
                 />
               </div>
               <div>
-                <label htmlFor="menu-desc" className="block text-sm font-medium text-gray-700">{t('common.description')}</label>
+                <div className="flex items-center justify-between gap-2">
+                  <label htmlFor="menu-desc" className="block text-sm font-medium text-gray-700">{t('common.description')}</label>
+                  {aiOn && (
+                    <button
+                      type="button"
+                      onClick={generateCopy}
+                      disabled={generating || !editing.name?.trim()}
+                      title={!editing.name?.trim() ? t('menu.generateNeedsName') : undefined}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-[#0f766e]/30 px-2.5 py-1 text-xs font-medium text-[#0f766e] hover:bg-[#0f766e]/5 disabled:opacity-50"
+                    >
+                      {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                      {generating ? t('menu.generating') : t('menu.generateCopy')}
+                    </button>
+                  )}
+                </div>
                 <textarea
                   id="menu-desc"
                   value={editing.description || ''}
                   onChange={(e) => setEditing({ ...editing, description: e.target.value })}
+                  placeholder={aiOn ? t('menu.descriptionAiHint') : undefined}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring-[#0f766e]"
                 />
+                {genError && <p className="mt-1 text-xs text-red-600">{genError}</p>}
               </div>
               <div>
                 <label htmlFor="menu-image-upload" className="block text-sm font-medium text-gray-700 mb-1">{t('menu.image')}</label>
@@ -359,6 +431,9 @@ export function MenuManagement() {
                   <Globe className="w-4 h-4" /> {t('menu.translations')}
                 </summary>
                 <div className="px-3 pb-3 space-y-3 border-t border-gray-200 pt-3">
+                  <p className="text-xs text-gray-500">
+                    {aiOn ? t('menu.translationsAiHint') : t('menu.translationsManualHint')}
+                  </p>
                   {locales.filter((l) => l.code !== 'en').map((locale) => (
                     <div key={locale.code} className="p-3 bg-gray-50 rounded-lg space-y-2">
                       <span className="text-xs font-semibold text-gray-500 uppercase">{locale.label}</span>

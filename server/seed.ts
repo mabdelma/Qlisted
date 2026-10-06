@@ -130,6 +130,7 @@ async function seed() {
       id: tableId,
       tenantId,
       number: i,
+      name: `Table ${i}`,
       capacity: i <= 4 ? 2 : i <= 8 ? 4 : 6,
       status: 'available',
       // Deliberately `table-N`, not SEED_QR_TOKEN: every spec addresses table 1

@@ -588,3 +588,103 @@ export async function createRealtimeSession(tenantId: string, tenantName: string
     return { error: 'Could not start voice session', status: 502 as const };
   }
 }
+
+// ── Menu copy: description + translations, generated rather than typed ───────
+
+/** The locales the guest-facing interface ships, minus the source language. */
+export const MENU_LOCALES = ['ar', 'es', 'fr', 'de', 'pt', 'zh', 'hi', 'ru', 'ja', 'it'] as const;
+
+export interface MenuCopy {
+  description: string | null;
+  translations: Record<string, { name?: string; description?: string }>;
+}
+
+const EMPTY_COPY: MenuCopy = { description: null, translations: {} };
+
+/**
+ * Write a menu item's description and translate it into every guest locale.
+ *
+ * This replaces hand-typing: a description per item, then a name and a
+ * description for each of ten languages, was ~21 fields before an item could
+ * go live. Nobody fills that in, so items shipped bare and the whole menu fell
+ * back to English for every non-English guest.
+ *
+ * Best-effort by the same rule as the order-note bridge: the caller is creating
+ * a menu item, and that must not fail because a provider was slow or
+ * unconfigured. Every failure path returns EMPTY_COPY so the item saves with
+ * whatever the admin typed.
+ *
+ * The name is translated too, but transliteration is explicitly refused — a
+ * dish called "Beef Burger" should read as a dish, not as phonetic English.
+ */
+export async function generateMenuCopy(
+  name: string,
+  opts: { category?: string; price?: number; currency?: string; existingDescription?: string | null } = {},
+): Promise<MenuCopy> {
+  const trimmed = name.trim();
+  if (!trimmed) return EMPTY_COPY;
+
+  const client = getClient();
+  if (!client) return EMPTY_COPY;
+
+  const context = [
+    opts.category ? `Category: ${opts.category}` : null,
+    typeof opts.price === 'number' ? `Price: ${opts.price} ${opts.currency || ''}`.trim() : null,
+    opts.existingDescription ? `Existing description to refine: ${opts.existingDescription}` : null,
+  ].filter(Boolean).join('\n');
+
+  try {
+    const resp = await client.chat.completions.create(
+      {
+        model: MODEL,
+        max_tokens: 1400,
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You write menu copy for a restaurant and translate it. Reply with JSON only, shaped '
+              + '{"description":"<one sentence, English>","translations":{"<code>":{"name":"...","description":"..."}}}. '
+              + `Provide translations for exactly these codes: ${MENU_LOCALES.join(', ')}. `
+              + 'The description is ONE short appetising sentence naming the real components of the dish — '
+              + 'no invented ingredients, no allergens you were not given, no price, no superlatives. '
+              + 'Translate the name idiomatically into each language; do NOT transliterate it phonetically, '
+              + 'and keep a proper noun or a widely-known dish name as-is where that is what a local would say.',
+          },
+          { role: 'user', content: context ? `Item: ${trimmed}\n${context}` : `Item: ${trimmed}` },
+        ],
+        response_format: { type: 'json_object' },
+      },
+      // One attempt. `timeout` is per attempt and the SDK retries twice by
+      // default, which would hold the admin's save for three times as long.
+      { timeout: 12000, maxRetries: 0 },
+    );
+
+    const raw = resp.choices[0]?.message?.content;
+    if (!raw) return EMPTY_COPY;
+    const parsed = JSON.parse(raw) as { description?: unknown; translations?: unknown };
+
+    const description = typeof parsed.description === 'string' && parsed.description.trim()
+      ? parsed.description.trim()
+      : null;
+
+    const translations: MenuCopy['translations'] = {};
+    if (parsed.translations && typeof parsed.translations === 'object') {
+      for (const code of MENU_LOCALES) {
+        const entry = (parsed.translations as Record<string, unknown>)[code];
+        if (!entry || typeof entry !== 'object') continue;
+        const e = entry as { name?: unknown; description?: unknown };
+        const out: { name?: string; description?: string } = {};
+        if (typeof e.name === 'string' && e.name.trim()) out.name = e.name.trim();
+        if (typeof e.description === 'string' && e.description.trim()) out.description = e.description.trim();
+        // Drop a locale the model returned empty rather than storing a blank
+        // that would render as an empty menu entry.
+        if (out.name || out.description) translations[code] = out;
+      }
+    }
+
+    return { description, translations };
+  } catch (err) {
+    logger.warn({ err, name: trimmed }, 'menu copy generation failed; leaving the item as entered');
+    return EMPTY_COPY;
+  }
+}

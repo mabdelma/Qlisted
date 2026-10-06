@@ -117,7 +117,7 @@ async function seed() {
   // can address the demo table by a stable URL. Only ever set in CI.
   const qrToken = process.env.SEED_QR_TOKEN || crypto.randomBytes(16).toString('hex');
   await db.insert(schema.tables).values({
-    id: uuid(), tenantId, number: 1, capacity: 4, qrToken,
+    id: uuid(), tenantId, number: 1, name: 'Table 1', capacity: 4, qrToken,
   });
 
   await db.insert(schema.promoCampaigns).values([

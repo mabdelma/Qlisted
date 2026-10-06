@@ -1,4 +1,4 @@
-import { pgTable, text, integer, doublePrecision, boolean, jsonb, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, doublePrecision, boolean, jsonb, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 export const tenantGroups = pgTable('tenant_groups', {
@@ -197,13 +197,19 @@ export const tables = pgTable('tables', {
   id: text('id').primaryKey(),
   tenantId: text('tenant_id').notNull().references(() => tenants.id),
   number: integer('number').notNull(),
+  // Editable label, unique within the tenant. `number` alone was never unique
+  // and is a poor name for a floor plan — "Terrace 1" and "Window 4" are what
+  // staff actually say.
+  name: text('name').notNull(),
   capacity: integer('capacity').notNull().default(2),
   status: text('status', { enum: ['available', 'occupied', 'reserved', 'closed'] }).notNull().default('available'),
   qrToken: text('qr_token').notNull().unique(),
   qrImage: text('qr_image'),
   xPos: doublePrecision('x_pos'),
   yPos: doublePrecision('y_pos'),
-});
+}, (t) => [
+  uniqueIndex('tables_tenant_name_unique').on(t.tenantId, t.name),
+]);
 
 export const orders = pgTable('orders', {
   id: text('id').primaryKey(),
