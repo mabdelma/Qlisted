@@ -18,10 +18,20 @@ export function TableManagement() {
   const [error, setError] = useState('');
   const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
 
-  // Next free number, not `tables.length + 1` — with 5 tables numbered 1-5,
-  // deleting #3 leaves length 4 and the old default proposed 5, which already
-  // existed. The server rejects the clash now, but suggesting it was the bug.
-  const nextNumber = () => (tables.length ? Math.max(...tables.map((t) => t.number)) + 1 : 1);
+  /**
+   * The lowest number not currently in use.
+   *
+   * Not `tables.length + 1` (with 1-5, deleting #3 proposed 5, which existed)
+   * and not `max + 1` either — with 1, 2, 4, 5 the next AVAILABLE number is 3,
+   * and a venue that removed a table expects the gap to be reused rather than
+   * numbering climbing forever.
+   */
+  const nextNumber = () => {
+    const used = new Set(tables.map((t) => t.number));
+    let n = 1;
+    while (used.has(n)) n += 1;
+    return n;
+  };
 
   useEffect(() => {
     if (!slug) return;

@@ -30,6 +30,55 @@ const tableSchema = z.object({
  * no DB constraint on purpose — see drizzle/0027_table_names.sql — so for that
  * this check IS the enforcement.
  */
+/**
+ * The lowest table number not in use for this tenant.
+ *
+ * Deliberately the first GAP, not max+1: a venue that removes a table expects
+ * the number to become available again rather than the numbering climbing
+ * forever. With 1, 2, 4, 5 this returns 3.
+ */
+export function firstFreeNumber(used: Iterable<number>): number {
+  const taken = new Set(used);
+  let n = 1;
+  while (taken.has(n)) n += 1;
+  return n;
+}
+
+async function nextFreeNumber(tenantId: string): Promise<number> {
+  const rows = await db.select({ number: schema.tables.number })
+    .from(schema.tables)
+    .where(eq(schema.tables.tenantId, tenantId));
+  return firstFreeNumber(rows.map((r) => r.number));
+}
+
+/**
+ * A default name that is free.
+ *
+ * Only used when the caller did NOT type a name. "Table 3" can already be
+ * taken by a table whose number is something else entirely — someone renamed
+ * it — and failing the request over a name the admin never chose would be
+ * their problem to solve for no reason. An explicitly typed name still errors
+ * on a clash, because that one they did choose.
+ */
+export function firstFreeName(existing: Iterable<string>, number: number): string {
+  const taken = new Set([...existing].map((n) => n.toLowerCase()));
+  const base = `Table ${number}`;
+  if (!taken.has(base.toLowerCase())) return base;
+  for (let i = 2; i < 1000; i += 1) {
+    const candidate = `${base} (${i})`;
+    if (!taken.has(candidate.toLowerCase())) return candidate;
+  }
+  // 1000 collisions on one number is not a real venue; stay unique anyway.
+  return `${base} (${Date.now()})`;
+}
+
+async function freeAutoName(tenantId: string, number: number): Promise<string> {
+  const rows = await db.select({ name: schema.tables.name })
+    .from(schema.tables)
+    .where(eq(schema.tables.tenantId, tenantId));
+  return firstFreeName(rows.map((r) => r.name), number);
+}
+
 async function findClash(tenantId: string, name: string | undefined, number: number | undefined, excludeId?: string) {
   const rows = await db.select({ id: schema.tables.id, name: schema.tables.name, number: schema.tables.number })
     .from(schema.tables)
@@ -110,9 +159,13 @@ tables.get('/:slug/table/:qrToken', resolveTenant, async (c) => {
 tables.post('/:slug/tables', authMiddleware, requireRole('admin'), resolveTenant, zValidator('json', tableSchema), async (c) => {
   const tenantId = c.get('tenantId');
   const input = c.req.valid('json');
-  const name = input.name ?? `Table ${input.number}`;
 
-  const clash = await findClash(tenantId, name, input.number);
+  // A typed name is checked and can be rejected. An auto name is resolved to
+  // something free instead, since the admin did not pick it.
+  const typed = input.name?.trim();
+  const name = typed || await freeAutoName(tenantId, input.number);
+
+  const clash = await findClash(tenantId, typed || undefined, input.number);
   if (clash) return c.json({ error: clash }, 409);
 
   const id = uuid();
@@ -226,16 +279,13 @@ tables.post('/:slug/tables/split', authMiddleware, requireRole('admin', 'manager
   // Work the number out BEFORE inserting. This used to insert `number: 0` and
   // then renumber in a second statement, which now also has to carry a unique
   // name — two writes where one will do, and a window where the row is wrong.
-  const maxNumber = await db
-    .select({ max: sql<number>`max(number)` })
-    .from(schema.tables)
-    .where(eq(schema.tables.tenantId, tenantId));
-  const newNumber = (maxNumber[0]?.max || 0) + 1;
+  const newNumber = await nextFreeNumber(tenantId);
 
-  // Derived from the table it split off, which is what staff will look for,
-  // with a numeric suffix if that name is somehow taken.
+  // Derived from the table it split off, which is what staff will look for.
   let splitName = `${existing.name} (split)`;
-  if (await findClash(tenantId, splitName, undefined)) splitName = `${existing.name} (split ${newNumber})`;
+  if (await findClash(tenantId, splitName, undefined)) {
+    splitName = await freeAutoName(tenantId, newNumber);
+  }
 
   await db.insert(schema.tables).values({
     id: newTableId, tenantId, number: newNumber, name: splitName,
