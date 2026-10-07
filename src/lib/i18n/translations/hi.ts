@@ -1124,4 +1124,8 @@ export const translations: Partial<Record<TranslationKey, string>> = {
   'menu.descriptionAiHint': "खाली छोड़ें, AI लिख देगा",
   'menu.translationsAiHint': "आइटम के नाम से बनता है, फिर संपादित कर सकते हैं। सिर्फ़ खाली फ़ील्ड भरे जाते हैं।",
   'menu.translationsManualHint': "हाथ से भरें, या ऊपर के विवरण से बनवाएँ।",
+  'common.live': "लाइव",
+  'tables.countSummary': "{total} टेबल · {occupied} व्यस्त",
+  'orders.countSummary': "{total} ऑर्डर · {active} सक्रिय",
+  'orders.dineIn': "डाइन-इन",
 };

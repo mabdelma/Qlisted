@@ -1123,4 +1123,8 @@ export const translations: Partial<Record<TranslationKey, string>> = {
   'menu.descriptionAiHint': "Lascia vuoto e lo scrive l’IA",
   'menu.translationsAiHint': "Generato dal nome del piatto, poi modificabile. Vengono riempiti solo i campi vuoti.",
   'menu.translationsManualHint': "Compilali a mano, o generali dalla descrizione sopra.",
+  'common.live': "In diretta",
+  'tables.countSummary': "{total} tavoli · {occupied} occupati",
+  'orders.countSummary': "{total} ordini · {active} attivi",
+  'orders.dineIn': "Al tavolo",
 };

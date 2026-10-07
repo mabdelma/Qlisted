@@ -1135,4 +1135,8 @@ export const translations: Partial<Record<TranslationKey, string>> = {
   'menu.descriptionAiHint': "اتركه فارغًا ليكتبه الذكاء الاصطناعي",
   'menu.translationsAiHint': "يُولَّد من اسم الطبق ثم يمكن تعديله. تُملأ الحقول الفارغة فقط.",
   'menu.translationsManualHint': "املأها يدويًا، أو ولّدها من الوصف أعلاه.",
+  'common.live': "مباشر",
+  'tables.countSummary': "{total} طاولة · {occupied} مشغولة",
+  'orders.countSummary': "{total} طلب · {active} نشط",
+  'orders.dineIn': "في المكان",
 };

@@ -1124,4 +1124,8 @@ export const translations: Partial<Record<TranslationKey, string>> = {
   'menu.descriptionAiHint': "留空，交给 AI 撰写",
   'menu.translationsAiHint': "根据菜品名称生成，可再编辑。仅填充空白字段。",
   'menu.translationsManualHint': "手动填写，或从上方描述生成。",
+  'common.live': "实时",
+  'tables.countSummary': "{total} 张桌 · {occupied} 已占用",
+  'orders.countSummary': "{total} 笔订单 · {active} 进行中",
+  'orders.dineIn': "堂食",
 };

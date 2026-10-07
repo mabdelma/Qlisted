@@ -1142,6 +1142,10 @@ export const translations = {
   'menu.descriptionAiHint': "Leave empty and let AI write it",
   'menu.translationsAiHint': "Generated from the item name, then editable. Only blank fields are filled.",
   'menu.translationsManualHint': "Filled in by hand, or generate them from the description above.",
+  'common.live': "Live",
+  'tables.countSummary': "{total} tables · {occupied} occupied",
+  'orders.countSummary': "{total} orders · {active} active",
+  'orders.dineIn': "Dine-in",
 };
 
 /**

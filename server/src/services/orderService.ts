@@ -180,7 +180,21 @@ export async function getTableOrders(tenantId: string, tableId: string, params: 
   return buildPagination(data, Number(count), { page, limit });
 }
 
-export async function getAllOrders(tenantId: string, statusFilter?: string, orderTypeFilter?: string, params: PaginationParams = {}): Promise<PaginatedResult<typeof schema.orders.$inferSelect>> {
+/**
+ * An order plus the table's human label.
+ *
+ * The dashboard had only `tableId` to work with and rendered
+ * `Table ${tableId.slice(0, 8)}` — a UUID fragment. Nobody can find "Table
+ * 09644ab9" on a floor. Carrying the name and number here means every consumer
+ * gets the same label without each one fetching the table list to join
+ * client-side.
+ */
+export type OrderWithTable = typeof schema.orders.$inferSelect & {
+  tableName: string | null;
+  tableNumber: number | null;
+};
+
+export async function getAllOrders(tenantId: string, statusFilter?: string, orderTypeFilter?: string, params: PaginationParams = {}): Promise<PaginatedResult<OrderWithTable>> {
   const conditions = [eq(schema.orders.tenantId, tenantId)];
   if (statusFilter) {
     conditions.push(eq(schema.orders.status, statusFilter as typeof schema.orders.$inferSelect.status));
@@ -197,13 +211,22 @@ export async function getAllOrders(tenantId: string, statusFilter?: string, orde
     .from(schema.orders)
     .where(and(...conditions));
 
-  const data = await db
-    .select()
+  // Left join: a takeout or delivery order has no table, and those must still
+  // be listed.
+  const rows = await db
+    .select({ order: schema.orders, tableName: schema.tables.name, tableNumber: schema.tables.number })
     .from(schema.orders)
+    .leftJoin(schema.tables, eq(schema.tables.id, schema.orders.tableId))
     .where(and(...conditions))
     .orderBy(schema.orders.createdAt)
     .limit(limit)
     .offset(offset);
+
+  const data: OrderWithTable[] = rows.map((r) => ({
+    ...r.order,
+    tableName: r.tableName ?? null,
+    tableNumber: r.tableNumber ?? null,
+  }));
 
   return buildPagination(data, Number(count), { page, limit });
 }

@@ -34,7 +34,9 @@ export function TableManagement() {
   };
 
   useEffect(() => {
-    if (!slug) return;
+    // Same stuck-spinner shape as the orders page: bail out of the initial
+    // `loading` state rather than leaving it true with nothing in flight.
+    if (!slug) { setLoading(false); return; }
     setLoading(true);
     tableApi.list(slug)
       .then(setTables)
@@ -82,7 +84,18 @@ export function TableManagement() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">{t('tables.management')}</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">{t('tables.management')}</h2>
+          {/* There was no count at all. Occupied is the half a manager scans
+              for, so it is shown beside the total rather than making them
+              count the cards. */}
+          <p className="mt-0.5 text-sm text-gray-500">
+            {t('tables.countSummary', {
+              total: tables.length,
+              occupied: tables.filter((tb) => tb.status === 'occupied').length,
+            })}
+          </p>
+        </div>
         <button
           onClick={() => { setError(''); setForm({ number: nextNumber(), name: '', capacity: 2 }); setShowForm(true); }}
           className="flex items-center px-4 py-2 bg-[#0f766e] text-white rounded-md hover:bg-[#1e3a5f]"

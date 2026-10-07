@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Clock, Check, ChefHat, Ban, FileDown } from 'lucide-react';
 import { orderApi, invoiceApi } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useI18n, type TranslationKey } from '../../contexts/I18nContext';
+import { useSSE } from '../../hooks/useSSE';
 import type { Order } from '../../lib/api/types';
 
 const statusColors: Record<string, string> = {
@@ -29,14 +30,38 @@ export function OrderManagement() {
   const [filter, setFilter] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!slug) return;
-    setLoading(true);
-    orderApi.list(slug, filter || undefined)
-      .then(setOrders)
-      .catch(console.error)
-      .finally(() => setLoading(false));
+  const load = useCallback(async (showSpinner = true) => {
+    // Without a tenant there is nothing to fetch, and returning while
+    // `loading` is still its initial `true` left the page on "Loading…"
+    // forever rather than showing its empty state. Writing the test is what
+    // surfaced this.
+    if (!slug) { setLoading(false); return; }
+    if (showSpinner) setLoading(true);
+    try {
+      setOrders(await orderApi.list(slug, filter || undefined));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      if (showSpinner) setLoading(false);
+    }
   }, [slug, filter]);
+
+  useEffect(() => { load(); }, [load]);
+
+  /**
+   * Live updates. This page had none — no EventSource, no polling — so a new
+   * order never appeared until someone reloaded, on the screen staff watch to
+   * see new orders. The kitchen display already consumed this exact stream.
+   *
+   * Refreshed without the spinner: flashing a loading state over a list
+   * somebody is reading, every time a guest orders, is worse than a quiet
+   * update.
+   */
+  useSSE(slug, {
+    onOrderCreated: () => { void load(false); },
+    onOrderUpdated: () => { void load(false); },
+    onOrderStatusChanged: () => { void load(false); },
+  });
 
   async function updateStatus(orderId: string, status: string) {
     if (!slug) return;
@@ -58,7 +83,21 @@ export function OrderManagement() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">{t('orders.management')}</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">{t('orders.management')}</h2>
+          <p className="mt-0.5 flex items-center gap-2 text-sm text-gray-500">
+            {t('orders.countSummary', {
+              total: orders.length,
+              active: orders.filter((o) => o.status === 'pending' || o.status === 'preparing').length,
+            })}
+            {/* The page now refreshes itself from the order stream; say so, or
+                staff keep reloading a list that is already current. */}
+            <span className="inline-flex items-center gap-1 text-xs text-green-700">
+              <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+              {t('common.live')}
+            </span>
+          </p>
+        </div>
         <span className="text-sm text-gray-500">{t('orders.count', { count: orders.length })}</span>
       </div>
 
@@ -88,7 +127,10 @@ export function OrderManagement() {
                     {order.customerName && <span className="text-gray-500 ml-2">- {order.customerName}</span>}
                   </h3>
                   <p className="text-sm text-gray-500">
-                    {order.orderType === 'dine_in' ? `Table ${order.tableId?.slice(0, 8) || '?'}` : order.orderType === 'takeout' ? t('orders.takeout') : t('orders.delivery')} · {order.itemCount} {t('common.items')}
+                    {order.orderType === 'dine_in'
+                      ? (order.tableName
+                        || (order.tableNumber != null ? t('table.tableNumber', { number: order.tableNumber }) : t('orders.dineIn')))
+                      : order.orderType === 'takeout' ? t('orders.takeout') : t('orders.delivery')} · {order.itemCount} {t('common.items')}
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">

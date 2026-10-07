@@ -145,6 +145,9 @@ export interface TableData {
 
 export interface Order {
   id: string;
+  /** Joined from the table, so the dashboard can show a label a human knows. */
+  tableName?: string | null;
+  tableNumber?: number | null;
   tenantId: string;
   tableId?: string;
   serverId?: string;

@@ -1124,4 +1124,8 @@ export const translations: Partial<Record<TranslationKey, string>> = {
   'menu.descriptionAiHint': "空欄にすればAIが作成します",
   'menu.translationsAiHint': "商品名から生成し、あとで編集できます。空欄の項目だけ埋まります。",
   'menu.translationsManualHint': "手入力するか、上の説明から生成してください。",
+  'common.live': "ライブ",
+  'tables.countSummary': "テーブル {total} · 使用中 {occupied}",
+  'orders.countSummary': "注文 {total} · 進行中 {active}",
+  'orders.dineIn': "店内",
 };
