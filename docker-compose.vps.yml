@@ -46,6 +46,18 @@ services:
     ports: !reset []
     networks: [default]
 
+  uploads-init:
+    image: alpine:3
+    # Explicitly root: the whole job is to hand the volume to the unprivileged
+    # user the API actually runs as.
+    user: "0:0"
+    volumes:
+      - qcart_uploads:/data
+    # uid/gid come from server/Dockerfile's `adduser -S appuser -G appgroup`.
+    command: ["sh", "-c", "chown -R 100:101 /data && chmod 775 /data"]
+    restart: "no"
+    networks: [default]
+
   migrate:
     image: ghcr.io/mabdelma/qlisted/api:latest
     environment:
@@ -60,6 +72,8 @@ services:
     depends_on:
       redis:
         condition: service_started
+      uploads-init:
+        condition: service_completed_successfully
     restart: always
     mem_limit: 1g
     environment:
