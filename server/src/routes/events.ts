@@ -1,44 +1,58 @@
 import { Hono } from 'hono';
-import type { ServerResponse } from 'node:http';
+import { streamSSE } from 'hono/streaming';
 import { resolveTenant } from '../middleware/tenant.js';
 import { onOrderEvent } from '../lib/events.js';
 
 const events = new Hono();
 
-events.get('/:slug/events', resolveTenant, async (c) => {
+/**
+ * Live order stream (SSE). The kitchen display and the admin order list both
+ * consume it.
+ *
+ * This was written against Node's `ServerResponse` — `c.res as unknown as
+ * ServerResponse`, then `writeHead`/`write`/`on`. In Hono `c.res` is a web
+ * `Response`, which has none of those methods, so the very first line threw
+ * `res.writeHead is not a function` and EVERY request to this endpoint
+ * returned 500. Live updates never worked anywhere, and because the client
+ * reconnects on error, a connected browser retried every few seconds forever.
+ * The `as unknown as` cast is what let it compile.
+ *
+ * Rewritten on Hono's own SSE helper, which owns the response and the headers.
+ */
+events.get('/:slug/events', resolveTenant, (c) => {
   const tenantId = c.get('tenantId');
 
-  const res = c.res as unknown as ServerResponse;
-  res.writeHead(200, {
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive',
-  });
+  return streamSSE(c, async (stream) => {
+    let unsubscribe: (() => void) | null = null;
+    let keepAlive: ReturnType<typeof setInterval> | null = null;
 
-  res.write(': connected\n\n');
+    const teardown = () => {
+      unsubscribe?.();
+      unsubscribe = null;
+      if (keepAlive) { clearInterval(keepAlive); keepAlive = null; }
+    };
 
-  const cleanup = onOrderEvent(tenantId, (event) => {
-    try {
-      res.write(`event: ${event.type}\n`);
-      res.write(`data: ${JSON.stringify(event)}\n\n`);
-    } catch {
-      cleanup();
-      clearInterval(keepAlive);
-    }
-  });
+    // The callback must stay pending for as long as the client is listening:
+    // returning closes the stream. Resolve only once the client goes away.
+    await new Promise<void>((resolve) => {
+      stream.onAbort(() => { teardown(); resolve(); });
 
-  const keepAlive = setInterval(() => {
-    try {
-      res.write(': keepalive\n\n');
-    } catch {
-      cleanup();
-      clearInterval(keepAlive);
-    }
-  }, 15000);
+      unsubscribe = onOrderEvent(tenantId, (event) => {
+        // A write to a stream the client has already dropped rejects; tear
+        // down rather than letting it surface as an unhandled rejection.
+        void stream
+          .writeSSE({ event: event.type, data: JSON.stringify(event) })
+          .catch(() => { teardown(); resolve(); });
+      });
 
-  res.on('close', () => {
-    cleanup();
-    clearInterval(keepAlive);
+      // Without periodic traffic an idle SSE connection is dropped by proxies
+      // and by some mobile networks.
+      keepAlive = setInterval(() => {
+        void stream
+          .writeSSE({ event: 'ping', data: '' })
+          .catch(() => { teardown(); resolve(); });
+      }, 15000);
+    });
   });
 });
 
