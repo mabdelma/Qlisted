@@ -96,6 +96,41 @@ async function findClash(tenantId: string, name: string | undefined, number: num
 }
 
 // Public: resolve a table by QR token (no slug needed)
+/**
+ * What a scanned QR code actually opens.
+ *
+ * The printed QR encoded `/api/tables/resolve/<token>`, which is not a mounted
+ * path — this router lives under `/api/r` — so scanning any QR this system has
+ * ever produced returned 404 {"error":"Not found"}. And even the correct path
+ * (`/api/r/resolve/<token>`) answers with JSON: a guest would have been shown a
+ * raw object instead of a menu.
+ *
+ * So the QR now points here, and this redirects to the guest ordering page.
+ * Deliberately a server-side redirect rather than encoding the page URL
+ * directly: a printed sticker cannot be reissued, and this keeps the token the
+ * only thing baked into it — the slug, the table id and the route can all
+ * change without invalidating paper on tables.
+ *
+ * Kept under `/api/` so nginx proxies it to the API; any other prefix would be
+ * served as the SPA and 404 in the client router.
+ */
+tables.get('/t/:qrToken', async (c) => {
+  const qrToken = c.req.param('qrToken')!;
+
+  const [row] = await db
+    .select({ tableId: schema.tables.id, slug: schema.tenants.slug })
+    .from(schema.tables)
+    .innerJoin(schema.tenants, eq(schema.tenants.id, schema.tables.tenantId))
+    .where(eq(schema.tables.qrToken, qrToken))
+    .limit(1);
+
+  // An unknown or rotated token sends the guest to the site rather than a JSON
+  // error they cannot act on.
+  if (!row) return c.redirect('/?qr=unknown', 302);
+
+  return c.redirect(`/r/${row.slug}/table/${row.tableId}/menu`, 302);
+});
+
 tables.get('/resolve/:qrToken', async (c) => {
   const qrToken = c.req.param('qrToken')!;
 
@@ -171,7 +206,7 @@ tables.post('/:slug/tables', authMiddleware, requireRole('admin'), resolveTenant
   const id = uuid();
   const qrToken = crypto.randomBytes(16).toString('hex');
 
-  const qrUrl = `https://${c.req.header('host')}/api/tables/resolve/${qrToken}`;
+  const qrUrl = `https://${c.req.header('host')}/api/r/t/${qrToken}`;
   const qrImage = await qrcode.toDataURL(qrUrl, { width: 300, margin: 2 });
 
   await db.insert(schema.tables).values({ id, tenantId, qrToken, qrImage, ...input, name });
@@ -273,7 +308,7 @@ tables.post('/:slug/tables/split', authMiddleware, requireRole('admin', 'manager
 
   const newTableId = uuid();
   const qrToken = crypto.randomBytes(16).toString('hex');
-  const qrUrl = `https://${c.req.header('host')}/api/tables/resolve/${qrToken}`;
+  const qrUrl = `https://${c.req.header('host')}/api/r/t/${qrToken}`;
   const qrImage = await qrcode.toDataURL(qrUrl, { width: 300, margin: 2 });
 
   // Work the number out BEFORE inserting. This used to insert `number: 0` and

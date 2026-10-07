@@ -73,7 +73,12 @@ export function TableManagement() {
   }
 
   function getQRUrl(table: TableData) {
-    return `${window.location.origin}/table/${table.id}/menu?token=${table.qrToken}`;
+    // Must match what the server bakes into the stored QR image, or the code an
+    // admin prints from this screen differs from the one in the database. This
+    // was a third, separate URL — the server used /api/tables/resolve/<token>
+    // (unmounted, 404) while this used /table/<id>/menu, so the two never
+    // agreed. Both now point at the redirect that lands a guest on the menu.
+    return `${window.location.origin}/api/r/t/${table.qrToken}`;
   }
 
   const statusLabel = (s: string) => t(`layout.legend${s.charAt(0).toUpperCase()}${s.slice(1)}` as TranslationKey);

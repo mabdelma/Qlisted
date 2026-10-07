@@ -800,10 +800,26 @@ to every venue type.`,
     },
 
     // ── Tables ──
-    '/api/tables/resolve/{qrToken}': {
+    // The scan target a printed QR actually points at: redirects a guest to the
+    // ordering page. Documented because anyone reading this spec to build a
+    // scanner needs the redirect, not the JSON resolver below.
+    '/api/r/t/{qrToken}': {
       get: {
         tags: ['Tables'],
-        summary: 'Resolve a table by QR token',
+        summary: 'Open the guest menu for a QR token (302 redirect)',
+        operationId: 'openTableByQrToken',
+        parameters: [{ name: 'qrToken', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: {
+          '302': { description: 'Redirect to /r/{slug}/table/{tableId}/menu, or to / for an unknown token' },
+        },
+      },
+    },
+    // The path was documented as /api/tables/resolve/{qrToken}, which is not
+    // mounted — this router lives under /api/r.
+    '/api/r/resolve/{qrToken}': {
+      get: {
+        tags: ['Tables'],
+        summary: 'Resolve a table by QR token (JSON, for API clients)',
         operationId: 'resolveTableByQrToken',
         parameters: [{ name: 'qrToken', in: 'path', required: true, schema: { type: 'string' } }],
         responses: {
