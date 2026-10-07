@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router';
-import { BedDouble, Plus, Minus, Check, ConciergeBell, Loader2 } from 'lucide-react';
+import { BedDouble, Plus, Minus, Check, ConciergeBell, Loader2, UtensilsCrossed } from 'lucide-react';
 import { roomServiceApi } from '../../lib/api';
 import { useI18n } from '../../contexts/I18nContext';
 import { formatMoney } from '../../lib/pricing';
@@ -105,6 +105,17 @@ export function RoomServicePage() {
             <div className="space-y-2">
               {items.filter((i) => i.categoryId === cat.id).map((item) => (
                 <div key={item.id} className="flex items-center gap-3 bg-white rounded-xl p-3 shadow-sm">
+                  {/* A hotel guest ordering from their room had no photos at
+                      all, which is the one place a picture matters most: they
+                      cannot see the dish or ask anyone. */}
+                  {item.imageUrl ? (
+                    <img src={item.imageUrl} alt="" width="56" height="56" loading="lazy" decoding="async"
+                      className="h-14 w-14 shrink-0 rounded-lg object-cover" />
+                  ) : (
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-gray-100">
+                      <UtensilsCrossed className="h-5 w-5 text-gray-400" />
+                    </div>
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-gray-900 truncate">{tr(item)}</p>
                     {item.description && <p className="text-xs text-gray-500 line-clamp-1">{item.description}</p>}

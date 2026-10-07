@@ -53,6 +53,12 @@ export function CartPage() {
             {state.items.map((item) => (
               <div key={item.menuItem.id} className="card p-4">
                 <div className="flex justify-between items-start gap-3">
+                  {/* Thumbnail so the guest can still recognise what they
+                      picked once they are a screen away from the menu. */}
+                  {item.menuItem.imageUrl && (
+                    <img src={item.menuItem.imageUrl} alt="" width="48" height="48" loading="lazy"
+                      className="h-12 w-12 shrink-0 rounded-lg object-cover" />
+                  )}
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-gray-900 dark:text-gray-100">{item.menuItem.name}</h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{formatMoney(unitPrice(item), currency)} {t('common.item')}</p>

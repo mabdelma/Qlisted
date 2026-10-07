@@ -1,4 +1,5 @@
 import { useState, useEffect, createContext, useReducer } from 'react';
+import { UtensilsCrossed } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { menuApi, tableApi, orderApi, paymentApi } from '../../lib/api';
 import { useI18n } from '../../contexts/I18nContext';
@@ -164,8 +165,16 @@ export function CustomerMenuPage() {
 
               <div className="space-y-3">
                 {filteredItems.filter((i) => i.available).map((item) => (
-                  <div key={item.id} className="bg-white rounded-lg shadow-sm p-4 flex justify-between items-center">
-                    <div className="flex-1 mr-4">
+                  <div key={item.id} className="bg-white rounded-lg shadow-sm p-4 flex items-center gap-4">
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.name} width="64" height="64" loading="lazy" decoding="async"
+                        className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                        <UtensilsCrossed className="w-6 h-6 text-gray-400" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-gray-900">{item.name}</h3>
                       {item.description && <p className="text-sm text-gray-500">{item.description}</p>}
                       <p className="text-[#0f766e] font-bold mt-1">${item.price.toFixed(2)}</p>
@@ -185,8 +194,12 @@ export function CustomerMenuPage() {
             <div className="space-y-4">
               {cartState.items.length === 0 && <p className="text-center text-gray-500 py-8">{t('order.emptyCart')}</p>}
               {cartState.items.map((c) => (
-                <div key={c.item.id} className="bg-white rounded-lg shadow-sm p-4 flex justify-between items-center">
-                  <div className="flex-1">
+                <div key={c.item.id} className="bg-white rounded-lg shadow-sm p-4 flex items-center gap-3">
+                  {c.item.imageUrl && (
+                    <img src={c.item.imageUrl} alt="" width="40" height="40" loading="lazy"
+                      className="w-10 h-10 rounded object-cover flex-shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
                     <h3 className="font-semibold">{c.item.name}</h3>
                     <p className="text-sm text-gray-500">${c.item.price.toFixed(2)} {t('common.item')}</p>
                   </div>
