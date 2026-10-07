@@ -58,6 +58,17 @@ services:
       VAPID_PUBLIC_KEY: "${VAPID_PUBLIC_KEY:-}"
       VAPID_PRIVATE_KEY: "${VAPID_PRIVATE_KEY:-}"
       VAPID_SUBJECT: "${VAPID_SUBJECT:-mailto:admin@qlisted.com}"
+      # The Language Bridge. Without these the orders service still runs and
+      # still takes orders — translationEnabled() just returns false and the
+      # bridge silently no-ops, which is exactly what happened: the first real
+      # order stored "sin cebolla, por favor" with notes_translated empty.
+      #
+      # Same names the monolith uses, so one .env entry serves both.
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      OPENAI_BASE_URL: "${OPENAI_BASE_URL:-}"
+      OPENAI_MODEL: "${OPENAI_MODEL:-}"
+      OPENAI_TRANSLATE_MODEL: "${OPENAI_TRANSLATE_MODEL:-}"
+      TRANSLATE_TIMEOUT_MS: "${TRANSLATE_TIMEOUT_MS:-}"
     networks: [qlisted-svc, qcart-prod_default]
 
   billing:
