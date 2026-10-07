@@ -44,6 +44,7 @@ export function RoomsPage() {
   const [editing, setEditing] = useState<Room | null>(null);
   const [creating, setCreating] = useState<{ number: string; type: string; floor: string; rate: string } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState('');
   const [view, setView] = useState<'rooms' | 'bookings' | 'calendar' | 'report'>('rooms');
   const [calRef, setCalRef] = useState(() => { const d = new Date(); return { y: d.getFullYear(), m: d.getMonth() }; });
   const [reportRange, setReportRange] = useState(() => {
@@ -108,6 +109,7 @@ export function RoomsPage() {
 
   async function saveBooking() {
     if (!slug || !booking || !booking.roomId || !booking.guestName.trim() || !booking.checkIn || !booking.checkOut) return;
+    setErr('');
     setSaving(true); setBookingError('');
     try {
       await hotelApi.createBooking(slug, {
@@ -134,6 +136,7 @@ export function RoomsPage() {
   }
   async function addFolioLine() {
     if (!slug || !folioFor || !folioLine.description.trim()) return;
+    setErr('');
     setSaving(true);
     try {
       await hotelApi.addFolioItem(slug, folioFor, { description: folioLine.description, amount: Number(folioLine.amount) || 0 });
@@ -151,6 +154,7 @@ export function RoomsPage() {
   }
   async function markSettled() {
     if (!slug || !folioFor) return;
+    setErr('');
     setSaving(true);
     try { await hotelApi.settleFolio(slug, folioFor); setFolioData(await hotelApi.getFolio(slug, folioFor)); }
     catch { /* ignore */ } finally { setSaving(false); }
@@ -182,38 +186,52 @@ export function RoomsPage() {
 
   async function create() {
     if (!slug || !creating?.number.trim()) return;
+    setErr('');
     setSaving(true);
     try {
       await hotelApi.create(slug, { number: creating.number, type: creating.type || undefined, floor: creating.floor || undefined, rate: Number(creating.rate) || 0 });
       setCreating(null); await load();
-    } catch { /* ignore */ } finally { setSaving(false); }
+    } catch (e) {
+      setErr((e as { message?: string })?.message || t('hotel.roomSaveFailed'));
+    } finally { setSaving(false); }
   }
 
   async function saveEdit() {
     if (!slug || !editing) return;
+    setErr('');
     setSaving(true);
     try {
       await hotelApi.update(slug, editing.id, { number: editing.number, type: editing.type || undefined, floor: editing.floor || undefined, rate: Number(editing.rate) || 0, housekeeperId: editing.housekeeperId || null, notes: editing.notes || undefined });
       if (editing.status !== 'available') await hotelApi.setStatus(slug, editing.id, editing.status, editing.guestName || undefined);
       setEditing(null); await load();
-    } catch { /* ignore */ } finally { setSaving(false); }
+    } catch (e) {
+      setErr((e as { message?: string })?.message || t('hotel.roomSaveFailed'));
+    } finally { setSaving(false); }
   }
 
   async function regenToken() {
     if (!slug || !editing) return;
+    setErr('');
     setSaving(true);
     try {
       const { serviceToken } = await hotelApi.regenerateToken(slug, editing.id);
       setEditing({ ...editing, serviceToken });
       await load();
-    } catch { /* ignore */ } finally { setSaving(false); }
+    } catch (e) {
+      setErr((e as { message?: string })?.message || t('hotel.tokenFailed'));
+    } finally { setSaving(false); }
   }
 
   async function remove() {
     if (!slug || !editing) return;
+    setErr('');
     setSaving(true);
-    try { await hotelApi.delete(slug, editing.id); setEditing(null); await load(); }
-    catch { /* ignore */ } finally { setSaving(false); }
+    try {
+      await hotelApi.delete(slug, editing.id);
+      setEditing(null); await load();
+    } catch (e) {
+      setErr((e as { message?: string })?.message || t('hotel.roomDeleteFailed'));
+    } finally { setSaving(false); }
   }
 
   const statCards: { key: RoomStatus | 'occupancy'; value: number; label: string }[] = stats ? [
@@ -521,7 +539,8 @@ export function RoomsPage() {
       )}
 
       {creating && (
-        <Modal title={t('hotel.addRoom')} onClose={() => setCreating(null)}>
+        <Modal title={t('hotel.addRoom')} onClose={() => { setErr(''); setCreating(null); }}>
+          {err && <p className="mb-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{err}</p>}
           <Field label={t('hotel.roomNumber')}><input autoFocus value={creating.number} onChange={(e) => setCreating({ ...creating, number: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
           <div className="grid grid-cols-3 gap-3">
             <Field label={t('hotel.roomType')}><input value={creating.type} onChange={(e) => setCreating({ ...creating, type: e.target.value })} placeholder={t('hotel.roomTypeHint')} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
@@ -536,7 +555,8 @@ export function RoomsPage() {
       )}
 
       {editing && (
-        <Modal title={`${t('hotel.room')} ${editing.number}`} onClose={() => setEditing(null)}>
+        <Modal title={`${t('hotel.room')} ${editing.number}`} onClose={() => { setErr(''); setEditing(null); }}>
+          {err && <p className="mb-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{err}</p>}
           <div className="grid grid-cols-2 gap-3">
             <Field label={t('hotel.roomNumber')}><input value={editing.number} onChange={(e) => setEditing({ ...editing, number: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
             <Field label={t('hotel.floor')}><input value={editing.floor || ''} onChange={(e) => setEditing({ ...editing, floor: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>

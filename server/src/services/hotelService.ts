@@ -74,9 +74,61 @@ export async function setRoomStatus(tenantId: string, id: string, status: RoomSt
   return { success: true };
 }
 
+/**
+ * Delete a room, or explain why it cannot be deleted.
+ *
+ * `room_bookings.room_id` is a NOT NULL foreign key, so a room with any
+ * booking — including a long-past stay — cannot be removed. This used to issue
+ * the DELETE blind, Postgres raised a foreign-key violation, and the client
+ * swallowed the 500: the button appeared to do nothing at all.
+ *
+ * Checked up front so the caller gets a reason. Deliberately NOT cascading:
+ * deleting a room should never quietly erase its booking history, which is
+ * revenue and guest records.
+ */
 export async function deleteRoom(tenantId: string, id: string) {
+  const [room] = await db.select({ id: schema.rooms.id, number: schema.rooms.number })
+    .from(schema.rooms)
+    .where(and(eq(schema.rooms.id, id), eq(schema.rooms.tenantId, tenantId)))
+    .limit(1);
+  if (!room) return { error: 'room not found' as const, status: 404 as const };
+
+  const bookings = await db.select({ id: schema.roomBookings.id, status: schema.roomBookings.status })
+    .from(schema.roomBookings)
+    .where(eq(schema.roomBookings.roomId, id));
+
+  if (bookings.length > 0) {
+    const active = bookings.filter((b) => b.status === 'booked' || b.status === 'checked_in').length;
+    return {
+      error: active > 0
+        ? `Room ${room.number} has ${active} active booking(s). Check the guest out or cancel the booking first.`
+        : `Room ${room.number} has ${bookings.length} past booking(s), so it cannot be deleted without losing that history. Set it to maintenance instead.`,
+      status: 409 as const,
+    };
+  }
+
   await db.delete(schema.rooms).where(and(eq(schema.rooms.id, id), eq(schema.rooms.tenantId, tenantId)));
   return { success: true };
+}
+
+/**
+ * Reject a room number already used in this tenant.
+ *
+ * `rooms.number` has no unique constraint, so nothing stopped two "101"s —
+ * and a duplicate room number on a floor plan is worse than useless.
+ * Enforced here rather than by migration for the same reason as tables: a
+ * tenant that already has duplicates would fail an index at deploy time.
+ */
+export async function roomNumberClash(tenantId: string, number: string, excludeId?: string) {
+  const rows = await db.select({ id: schema.rooms.id, number: schema.rooms.number })
+    .from(schema.rooms)
+    .where(eq(schema.rooms.tenantId, tenantId));
+  const wanted = number.trim().toLowerCase();
+  for (const r of rows) {
+    if (excludeId && r.id === excludeId) continue;
+    if (r.number.trim().toLowerCase() === wanted) return `Room ${r.number} already exists`;
+  }
+  return null;
 }
 
 // ── Reservations / check-in ─────────────────────────────────────────────────

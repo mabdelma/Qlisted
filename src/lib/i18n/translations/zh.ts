@@ -1128,4 +1128,7 @@ export const translations: Partial<Record<TranslationKey, string>> = {
   'tables.countSummary': "{total} 张桌 · {occupied} 已占用",
   'orders.countSummary': "{total} 笔订单 · {active} 进行中",
   'orders.dineIn': "堂食",
+  'hotel.roomSaveFailed': "无法保存房间。",
+  'hotel.roomDeleteFailed': "无法删除房间。",
+  'hotel.tokenFailed': "无法重新生成链接。",
 };

@@ -46,18 +46,35 @@ hotel.get('/:slug/hotel-report', ...adminMgr, async (c) => {
 });
 hotel.get('/:slug/rooms/available', ...adminMgr, async (c) =>
   c.json(await svc.availableRooms(c.get('tenantId'), c.req.query('checkIn') || '', c.req.query('checkOut') || '')));
-hotel.post('/:slug/rooms', ...adminMgr, zValidator('json', roomSchema), async (c) =>
-  c.json(await svc.createRoom(c.get('tenantId'), c.req.valid('json')), 201));
+hotel.post('/:slug/rooms', ...adminMgr, zValidator('json', roomSchema), async (c) => {
+  const tenantId = c.get('tenantId');
+  const input = c.req.valid('json');
+  const clash = await svc.roomNumberClash(tenantId, input.number);
+  if (clash) return c.json({ error: clash }, 409);
+  return c.json(await svc.createRoom(tenantId, input), 201);
+});
 hotel.put('/:slug/rooms/:id', ...adminMgr, zValidator('json', roomUpdateSchema), async (c) => {
-  const r = await svc.updateRoom(c.get('tenantId'), c.req.param('id')!, c.req.valid('json'));
+  const tenantId = c.get('tenantId');
+  const id = c.req.param('id')!;
+  const input = c.req.valid('json');
+  if (typeof input.number === 'string') {
+    const clash = await svc.roomNumberClash(tenantId, input.number, id);
+    if (clash) return c.json({ error: clash }, 409);
+  }
+  const r = await svc.updateRoom(tenantId, id, input);
   return 'error' in r ? c.json(r, 400) : c.json(r);
 });
 hotel.post('/:slug/rooms/:id/status', ...adminMgr, zValidator('json', statusSchema), async (c) => {
   const { status, guestName } = c.req.valid('json');
   return c.json(await svc.setRoomStatus(c.get('tenantId'), c.req.param('id')!, status, guestName));
 });
-hotel.delete('/:slug/rooms/:id', ...adminMgr, async (c) =>
-  c.json(await svc.deleteRoom(c.get('tenantId'), c.req.param('id')!)));
+hotel.delete('/:slug/rooms/:id', ...adminMgr, async (c) => {
+  const r = await svc.deleteRoom(c.get('tenantId'), c.req.param('id')!);
+  // A refusal carries its own status: 404 for a missing room, 409 when
+  // bookings reference it. Previously this always answered 200 while the DELETE
+  // had actually raised a foreign-key violation.
+  return 'error' in r ? c.json({ error: r.error }, r.status) : c.json(r);
+});
 hotel.post('/:slug/rooms/:id/regenerate-token', ...adminMgr, async (c) =>
   c.json(await svc.regenerateServiceToken(c.get('tenantId'), c.req.param('id')!)));
 

@@ -1128,4 +1128,7 @@ export const translations: Partial<Record<TranslationKey, string>> = {
   'tables.countSummary': "テーブル {total} · 使用中 {occupied}",
   'orders.countSummary': "注文 {total} · 進行中 {active}",
   'orders.dineIn': "店内",
+  'hotel.roomSaveFailed': "客室を保存できませんでした。",
+  'hotel.roomDeleteFailed': "客室を削除できませんでした。",
+  'hotel.tokenFailed': "リンクを再生成できませんでした。",
 };

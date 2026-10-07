@@ -1139,4 +1139,7 @@ export const translations: Partial<Record<TranslationKey, string>> = {
   'tables.countSummary': "{total} tables · {occupied} occupées",
   'orders.countSummary': "{total} commandes · {active} en cours",
   'orders.dineIn': "Sur place",
+  'hotel.roomSaveFailed': "Impossible d’enregistrer la chambre.",
+  'hotel.roomDeleteFailed': "Impossible de supprimer la chambre.",
+  'hotel.tokenFailed': "Impossible de régénérer le lien.",
 };

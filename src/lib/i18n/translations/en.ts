@@ -1146,6 +1146,9 @@ export const translations = {
   'tables.countSummary': "{total} tables · {occupied} occupied",
   'orders.countSummary': "{total} orders · {active} active",
   'orders.dineIn': "Dine-in",
+  'hotel.roomSaveFailed': "Could not save the room.",
+  'hotel.roomDeleteFailed': "Could not delete the room.",
+  'hotel.tokenFailed': "Could not regenerate the link.",
 };
 
 /**
