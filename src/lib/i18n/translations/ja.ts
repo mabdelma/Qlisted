@@ -1131,4 +1131,7 @@ export const translations: Partial<Record<TranslationKey, string>> = {
   'hotel.roomSaveFailed': "客室を保存できませんでした。",
   'hotel.roomDeleteFailed': "客室を削除できませんでした。",
   'hotel.tokenFailed': "リンクを再生成できませんでした。",
+  'hotel.roomImage': "写真",
+  'hotel.imageUploadFailed': "画像をアップロードできませんでした。",
+  'menu.uploadFailed': "画像をアップロードできませんでした。",
 };

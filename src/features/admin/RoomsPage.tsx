@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, X, BedDouble, Hotel, LogIn, LogOut, Ban, User as UserIcon, ChevronLeft, ChevronRight, Receipt, Trash2, RefreshCw, Check, CreditCard } from 'lucide-react';
-import { hotelApi, userApi } from '../../lib/api';
+import { Plus, X, BedDouble, Hotel, LogIn, LogOut, Ban, User as UserIcon, ChevronLeft, ChevronRight, Receipt, Trash2, RefreshCw, Check, CreditCard, Upload, Image as ImageIcon } from 'lucide-react';
+import { hotelApi, userApi, uploadApi } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useI18n } from '../../contexts/I18nContext';
 import { formatPrice } from '../../lib/pricing';
@@ -42,7 +42,7 @@ export function RoomsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<RoomStatus | 'all'>('all');
   const [editing, setEditing] = useState<Room | null>(null);
-  const [creating, setCreating] = useState<{ number: string; type: string; floor: string; rate: string } | null>(null);
+  const [creating, setCreating] = useState<{ number: string; type: string; floor: string; rate: string; imageUrl: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
   const [view, setView] = useState<'rooms' | 'bookings' | 'calendar' | 'report'>('rooms');
@@ -184,12 +184,39 @@ export function RoomsPage() {
     await load();
   }
 
+
+  /** Pick an image and upload it; returns the stored path, or null on failure. */
+  async function pickImage(): Promise<string | null> {
+    if (!slug) return null;
+    return new Promise((resolve) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = async () => {
+        const file = input.files?.[0];
+        if (!file) { resolve(null); return; }
+        setErr('');
+        setSaving(true);
+        try {
+          const { url } = await uploadApi.image(slug, file);
+          resolve(url);
+        } catch (e) {
+          setErr((e as { message?: string })?.message || t('hotel.imageUploadFailed'));
+          resolve(null);
+        } finally {
+          setSaving(false);
+        }
+      };
+      input.click();
+    });
+  }
+
   async function create() {
     if (!slug || !creating?.number.trim()) return;
     setErr('');
     setSaving(true);
     try {
-      await hotelApi.create(slug, { number: creating.number, type: creating.type || undefined, floor: creating.floor || undefined, rate: Number(creating.rate) || 0 });
+      await hotelApi.create(slug, { number: creating.number, type: creating.type || undefined, floor: creating.floor || undefined, rate: Number(creating.rate) || 0, imageUrl: creating.imageUrl || null });
       setCreating(null); await load();
     } catch (e) {
       setErr((e as { message?: string })?.message || t('hotel.roomSaveFailed'));
@@ -201,7 +228,7 @@ export function RoomsPage() {
     setErr('');
     setSaving(true);
     try {
-      await hotelApi.update(slug, editing.id, { number: editing.number, type: editing.type || undefined, floor: editing.floor || undefined, rate: Number(editing.rate) || 0, housekeeperId: editing.housekeeperId || null, notes: editing.notes || undefined });
+      await hotelApi.update(slug, editing.id, { number: editing.number, type: editing.type || undefined, floor: editing.floor || undefined, rate: Number(editing.rate) || 0, housekeeperId: editing.housekeeperId || null, notes: editing.notes || undefined, imageUrl: editing.imageUrl || null });
       if (editing.status !== 'available') await hotelApi.setStatus(slug, editing.id, editing.status, editing.guestName || undefined);
       setEditing(null); await load();
     } catch (e) {
@@ -252,7 +279,7 @@ export function RoomsPage() {
           <BedDouble className="w-4 h-4" /> {t('book.title')}
         </button>
         {view === 'rooms' && (
-          <button onClick={() => setCreating({ number: '', type: '', floor: '', rate: '' })}
+          <button onClick={() => setCreating({ number: '', type: '', floor: '', rate: '', imageUrl: '' })}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#0f766e] text-white text-sm hover:bg-[#1e3a5f]">
             <Plus className="w-4 h-4" /> {t('hotel.addRoom')}
           </button>
@@ -305,9 +332,16 @@ export function RoomsPage() {
           {shown.map((room) => (
             <div key={room.id} className={`rounded-xl border p-4 ${STATUS_STYLE[room.status]}`}>
               <div className="flex items-start justify-between">
-                <button onClick={() => setEditing(room)} className="text-left">
-                  <p className="font-bold text-lg flex items-center gap-1.5"><BedDouble className="w-4 h-4" /> {room.number}</p>
+                <button onClick={() => { setErr(''); setEditing(room); }} className="flex items-center gap-2 text-left">
+                  {/* Thumbnail when the room has a photo; the bed icon is the
+                      fallback, so a room without one looks unchanged. */}
+                  {room.imageUrl && (
+                    <img src={room.imageUrl} alt="" className="h-10 w-12 shrink-0 rounded object-cover ring-1 ring-black/10" />
+                  )}
+                  <span>
+                  <p className="font-bold text-lg flex items-center gap-1.5">{!room.imageUrl && <BedDouble className="w-4 h-4" />} {room.number}</p>
                   <p className="text-xs opacity-80">{room.type || t('hotel.room')}{room.floor ? ` · ${t('hotel.floor')} ${room.floor}` : ''}{room.rate ? ` · ${money(room.rate)}` : ''}</p>
+                  </span>
                 </button>
               </div>
               {room.guestName && <p className="text-xs mt-1 font-medium truncate">{room.guestName}</p>}
@@ -542,6 +576,28 @@ export function RoomsPage() {
         <Modal title={t('hotel.addRoom')} onClose={() => { setErr(''); setCreating(null); }}>
           {err && <p className="mb-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{err}</p>}
           <Field label={t('hotel.roomNumber')}><input autoFocus value={creating.number} onChange={(e) => setCreating({ ...creating, number: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
+          {/* Photo. Optional — a room without one keeps the bed icon. */}
+          <Field label={t('hotel.roomImage')}>
+            <div className="flex items-center gap-3">
+              {creating.imageUrl ? (
+                <img src={creating.imageUrl} alt="" className="h-14 w-20 rounded-md object-cover ring-1 ring-gray-200" />
+              ) : (
+                <span className="flex h-14 w-20 items-center justify-center rounded-md bg-gray-100 text-gray-400"><ImageIcon className="h-5 w-5" /></span>
+              )}
+              <button
+                type="button"
+                disabled={saving}
+                onClick={async () => { const url = await pickImage(); if (url) setCreating({ ...creating, imageUrl: url }); }}
+                className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                <Upload className="h-4 w-4" /> {t('menu.upload')}
+              </button>
+              {creating.imageUrl && (
+                <button type="button" onClick={() => setCreating({ ...creating, imageUrl: '' })} className="text-sm text-gray-500 hover:text-red-600">{t('common.remove')}</button>
+              )}
+            </div>
+          </Field>
+
           <div className="grid grid-cols-3 gap-3">
             <Field label={t('hotel.roomType')}><input value={creating.type} onChange={(e) => setCreating({ ...creating, type: e.target.value })} placeholder={t('hotel.roomTypeHint')} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
             <Field label={t('hotel.floor')}><input value={creating.floor} onChange={(e) => setCreating({ ...creating, floor: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
@@ -559,6 +615,28 @@ export function RoomsPage() {
           {err && <p className="mb-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{err}</p>}
           <div className="grid grid-cols-2 gap-3">
             <Field label={t('hotel.roomNumber')}><input value={editing.number} onChange={(e) => setEditing({ ...editing, number: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
+          {/* Photo. Optional — a room without one keeps the bed icon. */}
+          <Field label={t('hotel.roomImage')}>
+            <div className="flex items-center gap-3">
+              {editing.imageUrl ? (
+                <img src={editing.imageUrl} alt="" className="h-14 w-20 rounded-md object-cover ring-1 ring-gray-200" />
+              ) : (
+                <span className="flex h-14 w-20 items-center justify-center rounded-md bg-gray-100 text-gray-400"><ImageIcon className="h-5 w-5" /></span>
+              )}
+              <button
+                type="button"
+                disabled={saving}
+                onClick={async () => { const url = await pickImage(); if (url) setEditing({ ...editing, imageUrl: url }); }}
+                className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                <Upload className="h-4 w-4" /> {t('menu.upload')}
+              </button>
+              {editing.imageUrl && (
+                <button type="button" onClick={() => setEditing({ ...editing, imageUrl: null })} className="text-sm text-gray-500 hover:text-red-600">{t('common.remove')}</button>
+              )}
+            </div>
+          </Field>
+
             <Field label={t('hotel.floor')}><input value={editing.floor || ''} onChange={(e) => setEditing({ ...editing, floor: e.target.value })} className="block w-full rounded-md border-gray-300 text-sm focus:ring-[#0f766e] focus:border-[#0f766e]" /></Field>
           </div>
           <div className="grid grid-cols-2 gap-3">

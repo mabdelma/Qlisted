@@ -20,6 +20,8 @@ const roomSchema = z.object({
   status: z.enum(['available', 'occupied', 'cleaning', 'maintenance', 'reserved']).optional(),
   rate: z.number().nonnegative().optional(),
   notes: z.string().optional(),
+  // Set from the upload endpoint's returned path, same as menu items.
+  imageUrl: z.string().max(500).nullable().optional(),
 });
 // PATCH-shaped update: every field optional, but nothing unvalidated reaches
 // updateRoom (which spreads this straight into the UPDATE set).

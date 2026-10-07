@@ -40,6 +40,16 @@ server {
     gzip_types text/css application/javascript application/json image/svg+xml;
     gzip_min_length 1024;
 
+    # Image uploads. nginx defaults client_max_body_size to 1m, so every photo
+    # over 1MB was rejected with a 413 BEFORE reaching the API — which accepts
+    # up to 5MB. Any ordinary phone picture failed, and the client swallowed the
+    # error, so uploading simply appeared to do nothing.
+    #
+    # Set slightly above the API's own 5MB limit on purpose: a file between the
+    # two then gets the API's explanatory JSON error instead of nginx's opaque
+    # 413 HTML page.
+    client_max_body_size 6m;
+
     # API + Server-Sent Events. Buffering MUST be off or the SSE stream
     # (/api/r/:slug/events) is held back by nginx and live order updates stall.
     location /api/ {

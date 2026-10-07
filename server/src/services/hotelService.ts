@@ -27,7 +27,7 @@ const newServiceToken = () => uuid().replace(/-/g, '') + uuid().replace(/-/g, ''
 
 export async function createRoom(
   tenantId: string,
-  data: { number: string; type?: string; floor?: string; status?: RoomStatus; rate?: number; notes?: string },
+  data: { number: string; type?: string; floor?: string; status?: RoomStatus; rate?: number; notes?: string; imageUrl?: string | null },
 ) {
   const id = uuid();
   await db.insert(schema.rooms).values({ id, tenantId, serviceToken: newServiceToken(), ...data });
@@ -45,7 +45,7 @@ export async function regenerateServiceToken(tenantId: string, id: string) {
 export async function updateRoom(
   tenantId: string,
   id: string,
-  data: Partial<{ number: string; type: string; floor: string; status: RoomStatus; rate: number; housekeeperId: string | null; guestName: string; notes: string }>,
+  data: Partial<{ number: string; type: string; floor: string; status: RoomStatus; rate: number; housekeeperId: string | null; guestName: string; notes: string; imageUrl: string | null }>,
 ) {
   // The assigner must be a real user of THIS tenant — the column is a FK to
   // users.id, which on its own would happily accept another tenant's user id.

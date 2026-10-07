@@ -558,6 +558,7 @@ export const rooms = pgTable('rooms', {
   status: text('status', { enum: ['available', 'occupied', 'cleaning', 'maintenance', 'reserved'] }).notNull().default('available'),
   floor: text('floor'),
   rate: doublePrecision('rate').notNull().default(0), // price per night
+  imageUrl: text('image_url'),
   serviceToken: text('service_token'), // unguessable token for the in-room service QR link
   housekeeperId: text('housekeeper_id').references(() => users.id), // staff user assigned to clean the room
   guestName: text('guest_name'),

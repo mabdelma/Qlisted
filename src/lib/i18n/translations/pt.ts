@@ -1131,4 +1131,7 @@ export const translations: Partial<Record<TranslationKey, string>> = {
   'hotel.roomSaveFailed': "Não foi possível guardar o quarto.",
   'hotel.roomDeleteFailed': "Não foi possível eliminar o quarto.",
   'hotel.tokenFailed': "Não foi possível regenerar o link.",
+  'hotel.roomImage': "Foto",
+  'hotel.imageUploadFailed': "Não foi possível carregar a imagem.",
+  'menu.uploadFailed': "Não foi possível carregar a imagem.",
 };

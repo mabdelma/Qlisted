@@ -1149,6 +1149,9 @@ export const translations = {
   'hotel.roomSaveFailed': "Could not save the room.",
   'hotel.roomDeleteFailed': "Could not delete the room.",
   'hotel.tokenFailed': "Could not regenerate the link.",
+  'hotel.roomImage': "Photo",
+  'hotel.imageUploadFailed': "Could not upload the image.",
+  'menu.uploadFailed': "Could not upload the image.",
 };
 
 /**

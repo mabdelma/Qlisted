@@ -545,6 +545,7 @@ export interface Room {
   status: RoomStatus;
   floor?: string | null;
   rate: number;
+  imageUrl?: string | null;
   serviceToken?: string | null;
   housekeeperId?: string | null;
   guestName?: string | null;

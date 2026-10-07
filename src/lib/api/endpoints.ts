@@ -425,9 +425,9 @@ export const hotelApi = {
   report: (slug: string, from: string, to: string) => api.get<HotelReport>(`/r/${slug}/hotel-report?from=${from}&to=${to}`),
   available: (slug: string, checkIn: string, checkOut: string) =>
     api.get<Room[]>(`/r/${slug}/rooms/available?checkIn=${checkIn}&checkOut=${checkOut}`),
-  create: (slug: string, data: { number: string; type?: string; floor?: string; rate?: number; notes?: string }) =>
+  create: (slug: string, data: { number: string; type?: string; floor?: string; rate?: number; notes?: string; imageUrl?: string | null }) =>
     api.post<{ id: string }>(`/r/${slug}/rooms`, data),
-  update: (slug: string, id: string, data: Partial<{ number: string; type: string; floor: string; rate: number; housekeeperId: string | null; notes: string }>) =>
+  update: (slug: string, id: string, data: Partial<{ number: string; type: string; floor: string; rate: number; housekeeperId: string | null; notes: string; imageUrl: string | null }>) =>
     api.put<{ success: boolean }>(`/r/${slug}/rooms/${id}`, data),
   setStatus: (slug: string, id: string, status: RoomStatus, guestName?: string) =>
     api.post<{ success: boolean }>(`/r/${slug}/rooms/${id}/status`, { status, guestName }),

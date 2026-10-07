@@ -345,9 +345,15 @@ export function MenuManagement() {
                       const file = input.files?.[0];
                       if (!file || !slug) return;
                       try {
+                        setGenError('');
                         const { url } = await uploadApi.image(slug, file);
                         setEditing({ ...editing, imageUrl: url });
-                      } catch { /* ignore */ }
+                      } catch (e) {
+                        // Swallowing this is why uploads "did nothing": nginx
+                        // was returning 413 for any photo over 1MB and the
+                        // failure never reached the screen.
+                        setGenError((e as { message?: string })?.message || t('menu.uploadFailed'));
+                      }
                     };
                     input.click();
                   }}

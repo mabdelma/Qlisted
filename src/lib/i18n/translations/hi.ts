@@ -1131,4 +1131,7 @@ export const translations: Partial<Record<TranslationKey, string>> = {
   'hotel.roomSaveFailed': "कमरा सहेजा नहीं जा सका।",
   'hotel.roomDeleteFailed': "कमरा हटाया नहीं जा सका।",
   'hotel.tokenFailed': "लिंक फिर से नहीं बन सका।",
+  'hotel.roomImage': "फ़ोटो",
+  'hotel.imageUploadFailed': "छवि अपलोड नहीं हो सकी।",
+  'menu.uploadFailed': "छवि अपलोड नहीं हो सकी।",
 };
