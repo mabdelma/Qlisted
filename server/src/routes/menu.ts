@@ -100,10 +100,28 @@ const updateMenuItemSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   description: z.string().max(1000).optional(),
   price: z.number().positive().optional(),
-  categoryId: z.string().uuid().optional(),
+  // NOT .uuid(): the create schema accepts any non-empty id, and a category
+  // created before ids were uuids would make its items unsaveable.
+  categoryId: z.string().min(1).optional(),
+  subCategoryId: z.string().optional().nullable(),
   available: z.boolean().optional(),
   roomServiceAvailable: z.boolean().optional(),
-  imageUrl: z.string().url().max(500).optional().nullable(),
+  // NOT .url(). The upload endpoint returns a RELATIVE path (/uploads/x.png),
+  // which .url() rejects — so attaching an image and saving failed validation
+  // with a 400, and the client logged it to the console and showed nothing.
+  // Creating worked because the create schema uses a plain string, which is
+  // exactly why this only ever broke on edit.
+  imageUrl: z.string().max(500).optional().nullable(),
+  // Present on create but missing here, so every one of these was silently
+  // dropped by zod when an item was edited.
+  sortOrder: z.number().int().optional(),
+  modifiers: z.string().optional().nullable(),
+  // The AI-written copy. Without this the generated translations were stripped
+  // on save and the item kept whatever it had before.
+  translations: z.record(z.object({
+    name: z.string().optional(),
+    description: z.string().optional(),
+  })).optional().nullable(),
 });
 
 menu.put('/:slug/menu/items/:itemId', authMiddleware, requireRole('admin', 'manager'), resolveTenant, zValidator('json', updateMenuItemSchema), auditLog('update', 'menu_item'), async (c) => {

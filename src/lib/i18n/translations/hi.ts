@@ -1134,4 +1134,5 @@ export const translations: Partial<Record<TranslationKey, string>> = {
   'hotel.roomImage': "फ़ोटो",
   'hotel.imageUploadFailed': "छवि अपलोड नहीं हो सकी।",
   'menu.uploadFailed': "छवि अपलोड नहीं हो सकी।",
+  'menu.saveFailed': "आइटम सहेजा नहीं जा सका।",
 };

@@ -1152,6 +1152,7 @@ export const translations = {
   'hotel.roomImage': "Photo",
   'hotel.imageUploadFailed': "Could not upload the image.",
   'menu.uploadFailed': "Could not upload the image.",
+  'menu.saveFailed': "Could not save the item.",
 };
 
 /**

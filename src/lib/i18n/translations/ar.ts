@@ -1145,4 +1145,5 @@ export const translations: Partial<Record<TranslationKey, string>> = {
   'hotel.roomImage': "صورة",
   'hotel.imageUploadFailed': "تعذّر تحميل الصورة.",
   'menu.uploadFailed': "تعذّر تحميل الصورة.",
+  'menu.saveFailed': "تعذّر حفظ العنصر.",
 };

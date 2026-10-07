@@ -1134,4 +1134,5 @@ export const translations: Partial<Record<TranslationKey, string>> = {
   'hotel.roomImage': "照片",
   'hotel.imageUploadFailed': "无法上传图片。",
   'menu.uploadFailed': "无法上传图片。",
+  'menu.saveFailed': "无法保存该菜品。",
 };

@@ -174,6 +174,7 @@ export function MenuManagement() {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!slug || !editing) return;
+    setGenError('');
     try {
       if (editing.id) {
         await menuApi.updateItem(slug, editing.id, editing);
@@ -205,7 +206,10 @@ export function MenuManagement() {
       const data = await menuApi.getFullMenu(slug);
       setItems(data.items);
     } catch (err) {
+      // console.error only is how a 400 from the update schema looked like
+      // "nothing happened": the modal stayed open with no explanation.
       console.error('Failed to save item:', err);
+      setGenError((err as { message?: string })?.message || t('menu.saveFailed'));
     }
   }
 
