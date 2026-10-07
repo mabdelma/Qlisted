@@ -1135,4 +1135,7 @@ export const translations: Partial<Record<TranslationKey, string>> = {
   'hotel.imageUploadFailed': "画像をアップロードできませんでした。",
   'menu.uploadFailed': "画像をアップロードできませんでした。",
   'menu.saveFailed': "商品を保存できませんでした。",
+  'payment.cashRequested': "スタッフが向かっています",
+  'payment.cashRequestedDesc': "スタッフがテーブルまで現金をお受け取りに伺います。それまでお会計は未精算のままです。",
+  'payment.oneOrderAtATime': "このテーブルには未精算の注文が複数あります。1件ずつお支払いください。",
 };

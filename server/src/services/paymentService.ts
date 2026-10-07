@@ -423,3 +423,55 @@ export async function getPaymentLinkByToken(token: string) {
     status: 200 as const,
   };
 }
+
+/**
+ * A guest at the table asking to pay cash.
+ *
+ * Deliberately NOT recordCashPayment. That marks an order paid, and the guest
+ * endpoint is unauthenticated — anyone who can reach the bill page could
+ * declare their own bill settled without handing over a note. This records a
+ * `pending` payment instead: the order stays unpaid, the request is durable so
+ * it survives a refresh, and staff confirm it with the authenticated cash
+ * endpoint once the money is actually in the till.
+ *
+ * Idempotent per order: tapping the button twice should summon staff once, not
+ * queue a second request.
+ */
+export async function requestCashPayment(tenantId: string, orderId: string, amount: number, tip?: number) {
+  const [order] = await db
+    .select()
+    .from(schema.orders)
+    .where(and(eq(schema.orders.id, orderId), eq(schema.orders.tenantId, tenantId)))
+    .limit(1);
+  if (!order) return { error: 'Order not found', status: 404 as const };
+  if (order.paymentStatus === 'paid') return { error: 'Order is already paid', status: 409 as const };
+
+  const [existing] = await db
+    .select()
+    .from(schema.payments)
+    .where(and(
+      eq(schema.payments.orderId, orderId),
+      eq(schema.payments.method, 'cash'),
+      eq(schema.payments.status, 'pending'),
+    ))
+    .limit(1);
+
+  if (existing) return { data: { id: existing.id, status: 'pending' as const, alreadyRequested: true } };
+
+  const paymentId = uuid();
+  await db.insert(schema.payments).values({
+    id: paymentId,
+    tenantId,
+    orderId,
+    amount: Math.max(0, amount),
+    tip: Math.max(0, tip || 0),
+    method: 'cash',
+    status: 'pending',
+  });
+
+  // Put it on the staff feed the kitchen and admin screens already listen to,
+  // so somebody actually walks over.
+  emitOrderEvent({ type: 'order_updated', tenantId, orderId, data: { cashRequested: true } });
+
+  return { data: { id: paymentId, status: 'pending' as const, alreadyRequested: false } };
+}

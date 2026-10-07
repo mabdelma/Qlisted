@@ -1135,4 +1135,7 @@ export const translations: Partial<Record<TranslationKey, string>> = {
   'hotel.imageUploadFailed': "छवि अपलोड नहीं हो सकी।",
   'menu.uploadFailed': "छवि अपलोड नहीं हो सकी।",
   'menu.saveFailed': "आइटम सहेजा नहीं जा सका।",
+  'payment.cashRequested': "स्टाफ़ आ रहा है",
+  'payment.cashRequestedDesc': "कोई आपकी मेज़ पर नकद लेने आएगा। तब तक आपका बिल खुला रहेगा।",
+  'payment.oneOrderAtATime': "इस मेज़ पर एक से ज़्यादा खुले ऑर्डर हैं — वे एक-एक करके चुकाए जाते हैं।",
 };

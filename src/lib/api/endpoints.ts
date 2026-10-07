@@ -234,8 +234,14 @@ export const userApi = {
 export const paymentApi = {
   createIntent: (slug: string, data: { orderId: string; tip?: number; amount?: number }) =>
     api.post<{ clientSecret: string; paymentId: string; amount: number }>(`/r/${slug}/payments/create-intent`, data, { skipAuth: true }),
+  // Staff-only: this MARKS the order paid, so it must stay authenticated.
   recordCash: (slug: string, data: { orderId: string; amount: number; tip?: number }) =>
-    api.post<Payment>(`/r/${slug}/payments/cash`, data, { skipAuth: true }),
+    api.post<Payment>(`/r/${slug}/payments/cash`, data),
+  // Guest-callable: records a PENDING cash payment and notifies staff. The
+  // order is not settled until staff confirm with recordCash — a guest must not
+  // be able to declare their own bill paid.
+  requestCash: (slug: string, data: { orderId: string; amount: number; tip?: number }) =>
+    api.post<{ id: string; status: 'pending'; alreadyRequested: boolean }>(`/r/${slug}/payments/cash-request`, data, { skipAuth: true }),
   list: async (slug: string): Promise<Payment[]> =>
     asList(await api.get<Payment[] | { data: Payment[] }>(`/r/${slug}/payments`)),
   getPaymentLink: (token: string) =>

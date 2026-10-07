@@ -56,7 +56,7 @@ export function OrdersPage() {
   async function handlePayCash(orderId: string, total: number) {
     if (!slug) return;
     try {
-      await paymentApi.recordCash(slug, { orderId, amount: total });
+      await paymentApi.requestCash(slug, { orderId, amount: total });
       setPayingOrderId(null);
       loadOrders();
     } catch {

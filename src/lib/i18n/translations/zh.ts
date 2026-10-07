@@ -1135,4 +1135,7 @@ export const translations: Partial<Record<TranslationKey, string>> = {
   'hotel.imageUploadFailed': "无法上传图片。",
   'menu.uploadFailed': "无法上传图片。",
   'menu.saveFailed': "无法保存该菜品。",
+  'payment.cashRequested': "服务员正在前往",
+  'payment.cashRequestedDesc': "会有服务员到您的桌前收取现金。在此之前账单保持未结。",
+  'payment.oneOrderAtATime': "此桌有多笔未结订单 —— 需逐笔结算。",
 };

@@ -7,7 +7,7 @@ import type { TranslationKey } from '../../contexts/I18nContext';
 import { useSSE } from '../../hooks/useSSE';
 import { loadStripe, type Stripe } from '@stripe/stripe-js';
 import { StripePaymentForm } from '../menu/StripePaymentForm';
-import { Receipt, Plus, Minus, Users, Check, ChevronDown, ChevronUp, AlertTriangle, Star } from 'lucide-react';
+import { Receipt, Plus, Minus, Users, Check, ChevronDown, ChevronUp, AlertTriangle, Star, Banknote } from 'lucide-react';
 import { PromoCodeCheckout } from '../loyalty/PromoCodeCheckout';
 import type { Order, OrderItem } from '../../lib/api/types';
 import { Modal } from '../../components/ui/Modal';
@@ -54,6 +54,9 @@ export function BillPage() {
   const [showAll, setShowAll] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [successPaid, setSuccessPaid] = useState(false);
+  // Cash is REQUESTED, never self-confirmed, so it needs its own state —
+  // showing "Paid!" for money that has not changed hands would be a lie.
+  const [cashRequested, setCashRequested] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({});
   const [orderItemsMap, setOrderItemsMap] = useState<Record<string, OrderItem[]>>({});
   const [itemsLoading, setItemsLoading] = useState(false);
@@ -155,9 +158,10 @@ export function BillPage() {
     try {
       const contributions = perOrderContributions();
       for (const [orderId, { amount, tip }] of Object.entries(contributions)) {
-        await paymentApi.recordCash(slug, { orderId, amount, tip });
+        await paymentApi.requestCash(slug, { orderId, amount, tip });
       }
       setSelectedItemIds(new Set());
+      setCashRequested(true);
       loadOrders();
     } catch (err) {
       setPaymentError((err as { message?: string }).message || 'Payment failed. Please try again.');
@@ -203,10 +207,10 @@ export function BillPage() {
       const perOrderTip = unpaidOrders.length > 0 ? tipAmount / unpaidOrders.length : 0;
       for (const order of unpaidOrders) {
         const orderAmount = order.total - perOrderDiscount;
-        await paymentApi.recordCash(slug, { orderId: order.id, amount: Math.max(0, orderAmount), tip: perOrderTip });
+        await paymentApi.requestCash(slug, { orderId: order.id, amount: Math.max(0, orderAmount), tip: perOrderTip });
       }
-      setSuccessPaid(true);
-      setPaidOrderId('all');
+      // Not setSuccessPaid: the bill is not settled until staff take the cash.
+      setCashRequested(true);
       loadOrders();
     } catch (err) {
       setPaymentError((err as { message?: string }).message || 'Cash payment failed. Please try again.');
@@ -216,9 +220,13 @@ export function BillPage() {
   }
 
   function confirmCardPayment() {
-    if (unpaidOrders.length !== 1) return;
+    // Stripe mounts one intent at a time, so a table with several unpaid
+    // orders is paid one order at a time. This used to `return` silently in
+    // that case, which read as a dead button.
+    if (unpaidOrders.length === 0) return;
     closeConfirmModal();
     setPaidOrderId(unpaidOrders[0].id);
+    if (unpaidOrders.length > 1) setPaymentError(t('payment.oneOrderAtATime'));
   }
 
   function handleStripeSuccess() {
@@ -228,6 +236,22 @@ export function BillPage() {
   }
 
   if (loading) return <div className="py-12"><Spinner className="mx-auto" /></div>;
+
+  if (cashRequested && !successPaid) {
+    return (
+      <div className="text-center py-12 space-y-4 animate-scale-in">
+        <div className="mx-auto h-16 w-16 rounded-full bg-amber-100 flex items-center justify-center">
+          <Banknote className="h-8 w-8 text-amber-600" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t('payment.cashRequested')}</h2>
+        <p className="text-gray-600 dark:text-gray-400">{t('payment.cashRequestedDesc')}</p>
+        <button onClick={() => { setCashRequested(false); loadOrders(); }}
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+          {t('common.back')}
+        </button>
+      </div>
+    );
+  }
 
   if (successPaid) {
     return (

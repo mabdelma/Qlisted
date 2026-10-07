@@ -1135,4 +1135,7 @@ export const translations: Partial<Record<TranslationKey, string>> = {
   'hotel.imageUploadFailed': "Bild konnte nicht hochgeladen werden.",
   'menu.uploadFailed': "Bild konnte nicht hochgeladen werden.",
   'menu.saveFailed': "Artikel konnte nicht gespeichert werden.",
+  'payment.cashRequested': "Das Personal kommt",
+  'payment.cashRequestedDesc': "Jemand kommt an Ihren Tisch, um das Bargeld zu kassieren. Bis dahin bleibt die Rechnung offen.",
+  'payment.oneOrderAtATime': "An diesem Tisch sind mehrere Bestellungen offen — sie werden einzeln bezahlt.",
 };

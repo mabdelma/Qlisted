@@ -10,6 +10,7 @@ import {
   createPaymentLink,
   handleStripeWebhook,
   getPaymentLinkByToken,
+  requestCashPayment,
 } from '../services/paymentService.js';
 
 const payments = new Hono();
@@ -23,6 +24,28 @@ payments.post('/:slug/payments/create-intent', resolveTenant, async (c) => {
     return c.json({ error: result.error }, result.status);
   }
   return c.json(result.data);
+});
+
+/**
+ * Guest asking to settle in cash from the table.
+ *
+ * Public, because a guest scanning a QR code has no account — the client has
+ * always called the cash endpoint with `skipAuth: true`, while the server
+ * required admin/cashier, so paying cash from the table returned 401 every
+ * single time.
+ *
+ * This does NOT mark the order paid. It records a pending cash payment and
+ * notifies staff; the authenticated endpoint below is what confirms the money
+ * arrived. Opening that one up instead would let anyone with the bill URL
+ * declare their own bill settled.
+ */
+payments.post('/:slug/payments/cash-request', resolveTenant, async (c) => {
+  const tenantId = c.get('tenantId');
+  const { orderId, amount, tip } = await c.req.json<{ orderId: string; amount: number; tip?: number }>();
+  if (!orderId) return c.json({ error: 'orderId required' }, 400);
+  const result = await requestCashPayment(tenantId, orderId, Number(amount) || 0, Number(tip) || 0);
+  if ('error' in result) return c.json({ error: result.error }, result.status);
+  return c.json(result.data, 201);
 });
 
 payments.post('/:slug/payments/cash', authMiddleware, requireRole('admin', 'cashier'), resolveTenant, async (c) => {

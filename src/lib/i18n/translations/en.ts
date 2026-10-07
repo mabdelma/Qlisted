@@ -1153,6 +1153,9 @@ export const translations = {
   'hotel.imageUploadFailed': "Could not upload the image.",
   'menu.uploadFailed': "Could not upload the image.",
   'menu.saveFailed': "Could not save the item.",
+  'payment.cashRequested': "Staff are on the way",
+  'payment.cashRequestedDesc': "Someone will come to your table to take the cash. Your bill stays open until then.",
+  'payment.oneOrderAtATime': "This table has more than one open order — they are paid one at a time.",
 };
 
 /**
