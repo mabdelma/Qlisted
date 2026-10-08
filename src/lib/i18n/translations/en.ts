@@ -297,7 +297,7 @@ export const translations = {
   'marketing.seeFeatures': 'See Features',
   'marketing.bridgeBadge': "Why venues choose Qlisted",
   'marketing.bridgeTitle': "The language barrier, gone",
-  'marketing.bridgeDesc': "Tourists do not speak your staff's language, and your staff should not have to learn theirs. Qlisted sits in the middle: the interface comes in 11 languages, and a note written in any language at all arrives in your team's working language — kitchen, bar, housekeeping and front desk alike.",
+  'marketing.bridgeDesc': "Tourists do not speak your staff's language, and your staff should not have to learn theirs. Qlisted sits in the middle: the interface comes in 11 languages, and an order note written in any language at all reaches your kitchen in the language your team works in.",
   'marketing.bridgeGuest': "Guest writes",
   'marketing.bridgeGuestNote': "sin cebolla, por favor",
   'marketing.bridgeKitchen': "Kitchen reads",
@@ -305,7 +305,7 @@ export const translations = {
   'marketing.bridgePoint1': "Guests write in any language — not a fixed list",
   'marketing.bridgePoint2': "Orders and notes translated as they are placed",
   'marketing.bridgePoint3': "The guest's original wording is never thrown away",
-  'marketing.bridgePoint4': "Front desk and housekeeping requests too, not just food",
+  'marketing.bridgePoint4': "The guest's exact words are kept beside the translation",
   'marketing.featuresTitle': "Everything you need to run the business",
   'marketing.featuresDesc': "From the first scan to the final payment — and everything in between: stock, staff, guests, and even rooms.",
   'marketing.howItWorksTitle': 'Live in three steps',
@@ -342,7 +342,7 @@ export const translations = {
   'marketing.phoneItemPizza': 'Margherita Pizza',
   'marketing.phoneItemLemonade': 'Fresh Lemonade',
   'marketing.featureLanguage': 'The Language Bridge',
-  'marketing.featureLanguageDesc': "A guest writes \"sin cebolla, por favor\" and your kitchen reads \"no onion, please\" — instantly. Orders, item notes and room requests cross the language barrier on their own, and the guest's exact words are always kept beside the translation.",
+  'marketing.featureLanguageDesc': "A guest writes “sin cebolla, por favor” and your kitchen reads “no onion, please” — instantly. Order notes and item notes cross the language barrier on their own, and the guest's exact words are always kept beside the translation, because a mistranslated allergy note is dangerous.",
   'marketing.featureQrCode': 'QR Code Ordering',
   'marketing.featureQrCodeDesc': 'Guests scan a code at the table to browse, order, and pay from their own phone — no app to download.',
   'marketing.featurePayments': 'Seamless Payments',
@@ -1156,6 +1156,7 @@ export const translations = {
   'payment.cashRequested': "Staff are on the way",
   'payment.cashRequestedDesc': "Someone will come to your table to take the cash. Your bill stays open until then.",
   'payment.oneOrderAtATime': "This table has more than one open order — they are paid one at a time.",
+  'common.actionFailed': "That action could not be completed.",
 };
 
 /**

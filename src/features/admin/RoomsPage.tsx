@@ -103,8 +103,8 @@ export function RoomsPage() {
     try {
       const [r, s, b] = await Promise.all([hotelApi.list(slug), hotelApi.stats(slug), hotelApi.listBookings(slug)]);
       setRooms(r); setStats(s); setBookings(b);
-    } catch { /* ignore */ } finally { setLoading(false); }
-  }, [slug]);
+    } catch (e) { setErr((e as { message?: string })?.message || t('common.actionFailed')); } finally { setLoading(false); }
+  }, [slug, t]);
   useEffect(() => { load(); }, [load]);
 
   async function saveBooking() {
@@ -126,13 +126,13 @@ export function RoomsPage() {
     if (!slug) return;
     setReportLoading(true);
     try { setReport(await hotelApi.report(slug, reportRange.from, reportRange.to)); }
-    catch { /* ignore */ } finally { setReportLoading(false); }
+    catch (e) { setErr((e as { message?: string })?.message || t('common.actionFailed')); } finally { setReportLoading(false); }
   }
 
   async function openFolio(id: string) {
     if (!slug) return;
     setFolioFor(id); setFolioData(null); setFolioLine({ description: '', amount: '' });
-    try { setFolioData(await hotelApi.getFolio(slug, id)); } catch { /* ignore */ }
+    try { setFolioData(await hotelApi.getFolio(slug, id)); } catch (e) { setErr((e as { message?: string })?.message || t('common.actionFailed')); }
   }
   async function addFolioLine() {
     if (!slug || !folioFor || !folioLine.description.trim()) return;
@@ -142,27 +142,27 @@ export function RoomsPage() {
       await hotelApi.addFolioItem(slug, folioFor, { description: folioLine.description, amount: Number(folioLine.amount) || 0 });
       setFolioLine({ description: '', amount: '' });
       setFolioData(await hotelApi.getFolio(slug, folioFor));
-    } catch { /* ignore */ } finally { setSaving(false); }
+    } catch (e) { setErr((e as { message?: string })?.message || t('common.actionFailed')); } finally { setSaving(false); }
   }
   async function deleteFolioLine(id: string) {
     if (!slug || !folioFor) return;
-    try { await hotelApi.deleteFolioItem(slug, id); setFolioData(await hotelApi.getFolio(slug, folioFor)); } catch { /* ignore */ }
+    try { await hotelApi.deleteFolioItem(slug, id); setFolioData(await hotelApi.getFolio(slug, folioFor)); } catch (e) { setErr((e as { message?: string })?.message || t('common.actionFailed')); }
   }
   async function openPayLink() {
     if (!slug || !folioFor) return;
-    try { const { url } = await hotelApi.folioPayLink(slug, folioFor); window.open(url, '_blank', 'noopener'); } catch { /* ignore */ }
+    try { const { url } = await hotelApi.folioPayLink(slug, folioFor); window.open(url, '_blank', 'noopener'); } catch (e) { setErr((e as { message?: string })?.message || t('common.actionFailed')); }
   }
   async function markSettled() {
     if (!slug || !folioFor) return;
     setErr('');
     setSaving(true);
     try { await hotelApi.settleFolio(slug, folioFor); setFolioData(await hotelApi.getFolio(slug, folioFor)); }
-    catch { /* ignore */ } finally { setSaving(false); }
+    catch (e) { setErr((e as { message?: string })?.message || t('common.actionFailed')); } finally { setSaving(false); }
   }
   async function takeDeposit() {
     if (!slug || !folioFor) return;
     try { const { url } = await hotelApi.takeDeposit(slug, folioFor); window.open(url, '_blank', 'noopener'); setFolioData(await hotelApi.getFolio(slug, folioFor)); }
-    catch { /* ignore */ }
+    catch (e) { setErr((e as { message?: string })?.message || t('common.actionFailed')); }
   }
 
   async function bookingAction(id: string, action: 'check-in' | 'check-out' | 'cancel') {
@@ -171,7 +171,7 @@ export function RoomsPage() {
       if (action === 'check-in') await hotelApi.checkIn(slug, id);
       else if (action === 'check-out') await hotelApi.checkOut(slug, id);
       else await hotelApi.cancelBooking(slug, id);
-    } catch { /* ignore */ }
+    } catch (e) { setErr((e as { message?: string })?.message || t('common.actionFailed')); }
     await load();
   }
 
@@ -180,7 +180,7 @@ export function RoomsPage() {
   async function setStatus(room: Room, status: RoomStatus) {
     if (!slug || room.status === status) return;
     setRooms((prev) => prev.map((r) => (r.id === room.id ? { ...r, status } : r)));
-    try { await hotelApi.setStatus(slug, room.id, status); } catch { /* ignore */ }
+    try { await hotelApi.setStatus(slug, room.id, status); } catch (e) { setErr((e as { message?: string })?.message || t('common.actionFailed')); }
     await load();
   }
 
@@ -301,6 +301,19 @@ export function RoomsPage() {
           </button>
         ))}
       </div>
+
+      {/* Page-level banner: most of the actions on this page (check-in,
+          check-out, cancel, mark settled, take deposit, room status) are
+          triggered outside a modal, so their failures need somewhere visible
+          to land. */}
+      {err && (
+        <div className="flex items-start justify-between gap-3 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+          <span>{err}</span>
+          <button onClick={() => setErr('')} aria-label={t('common.close')} className="shrink-0 text-red-400 hover:text-red-600">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {view === 'rooms' && stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

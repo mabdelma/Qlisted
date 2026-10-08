@@ -10,6 +10,7 @@ export function SettingsPage() {
   const { state: { tenant } } = useAuth();
   const slug = tenant?.slug;
   const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState('');
   const [saved, setSaved] = useState(false);
   const [stripeAccountId, setStripeAccountId] = useState(tenant?.stripeAccountId || '');
   const [venueType, setVenueType] = useState<VenueType>(tenant?.venueType || 'restaurant');
@@ -32,12 +33,13 @@ export function SettingsPage() {
       await tenantApi.updateSettings(slug, { stripeAccountId: stripeAccountId || undefined });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-    } catch { /* ignore */ }
+    } catch (e) { setErr((e as { message?: string })?.message || t('common.actionFailed')); }
     setSaving(false);
   }
 
   return (
     <div className="space-y-6">
+      {err && <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">{err}</p>}
       <h2 className="text-2xl font-bold text-gray-900">{t('common.settings')}</h2>
 
       <div className="bg-white rounded-lg shadow p-6 space-y-4">

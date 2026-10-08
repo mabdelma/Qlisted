@@ -25,6 +25,7 @@ export function SchedulingPage() {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [staff, setStaff] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState('');
   const [error, setError] = useState('');
   const [form, setForm] = useState({ userId: '', date: weekStart, startTime: '09:00', endTime: '17:00', role: '' });
 
@@ -49,13 +50,14 @@ export function SchedulingPage() {
   }
   async function del(id: string) {
     if (!slug) return;
-    try { await schedulingApi.delete(slug, id); await load(); } catch { /* ignore */ }
+    try { await schedulingApi.delete(slug, id); await load(); } catch (e) { setErr((e as { message?: string })?.message || t('common.actionFailed')); }
   }
 
   const dow = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   return (
     <div className="space-y-6">
+      {err && <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">{err}</p>}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">{t('scheduling.title')}</h2>
         <div className="flex items-center gap-2">

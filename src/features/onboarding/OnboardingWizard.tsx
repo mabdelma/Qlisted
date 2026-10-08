@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Building2, Check } from 'lucide-react';
 import { tenantApi } from '../../lib/api';
+import { toSlug } from '../../lib/slug';
 
 type Step = 'tenant' | 'admin' | 'done';
+
+
 
 export function OnboardingWizard() {
   const navigate = useNavigate();
@@ -61,7 +64,7 @@ export function OnboardingWizard() {
             <div>
               <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-1">Slug (URL identifier)</label>
               <input id="slug" type="text" value={tenantInfo.slug}
-                onChange={(e) => setTenantInfo({ ...tenantInfo, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
+                onChange={(e) => setTenantInfo({ ...tenantInfo, slug: toSlug(e.target.value) })}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-[#0f766e] focus:border-[#0f766e]"
                 placeholder="my-restaurant" />
               <p className="text-xs text-gray-500 mt-1">Your URL will be: /r/{tenantInfo.slug || 'my-restaurant'}</p>

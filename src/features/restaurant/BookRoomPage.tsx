@@ -17,6 +17,7 @@ export function BookRoomPage() {
   const [selected, setSelected] = useState<Room | null>(null);
   const [guest, setGuest] = useState({ name: '', email: '', phone: '' });
   const [booking, setBooking] = useState(false);
+  const [err, setErr] = useState('');
   const [done, setDone] = useState(false);
   const [deposit, setDeposit] = useState<{ url: string; amount: number } | null>(null);
   // The guest's own link to this booking. Without surfacing it here the stay
@@ -45,7 +46,7 @@ export function BookRoomPage() {
       setDeposit(res.deposit ?? null);
       setStayToken(res.accessToken ?? null);
       setDone(true);
-    } catch { /* ignore */ } finally { setBooking(false); }
+    } catch (e) { setErr((e as { message?: string })?.message || t('common.actionFailed')); } finally { setBooking(false); }
   }
 
   if (done) {
@@ -124,6 +125,7 @@ export function BookRoomPage() {
               <input type="email" value={guest.email} onChange={(e) => setGuest({ ...guest, email: e.target.value })} placeholder={t('common.email')} className={field} />
               <input value={guest.phone} onChange={(e) => setGuest({ ...guest, phone: e.target.value })} placeholder={t('common.phone')} className={field} />
             </div>
+            {err && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{err}</p>}
             <button onClick={confirm} disabled={booking || !guest.name.trim()}
               className="w-full px-4 py-3 bg-[#0f766e] text-white rounded-lg font-medium hover:bg-[#1e3a5f] disabled:opacity-50">
               {booking ? `${t('common.loading')}...` : t('book.confirm')}

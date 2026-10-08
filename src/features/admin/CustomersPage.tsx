@@ -20,6 +20,7 @@ export function CustomersPage() {
   const [seg, setSeg] = useState<Segment>('all');
   const [editing, setEditing] = useState<Customer | null>(null);
   const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState('');
   const [campaign, setCampaign] = useState<{ subject: string; message: string } | null>(null);
   const [sending, setSending] = useState(false);
   const [sentInfo, setSentInfo] = useState('');
@@ -27,9 +28,9 @@ export function CustomersPage() {
   const load = useCallback(async () => {
     if (!slug) return;
     setLoading(true);
-    try { setCustomers(await customerApi.list(slug)); } catch { /* ignore */ }
+    try { setCustomers(await customerApi.list(slug)); } catch (e) { setErr((e as { message?: string })?.message || t('common.actionFailed')); }
     finally { setLoading(false); }
-  }, [slug]);
+  }, [slug, t]);
   useEffect(() => { load(); }, [load]);
 
   const daysSince = (d?: string | null) => (d ? (Date.now() - new Date(d).getTime()) / 86400000 : Infinity);
@@ -69,7 +70,7 @@ export function CustomersPage() {
     try {
       await customerApi.update(slug, editing.id, { name: editing.name, email: editing.email || undefined, phone: editing.phone || undefined, notes: editing.notes || undefined });
       setEditing(null); await load();
-    } catch { /* ignore */ } finally { setSaving(false); }
+    } catch (e) { setErr((e as { message?: string })?.message || t('common.actionFailed')); } finally { setSaving(false); }
   }
 
   return (
@@ -123,6 +124,8 @@ export function CustomersPage() {
           </table>
         </div>
       )}
+
+      {err && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{err}</p>}
 
       {editing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setEditing(null)}>
