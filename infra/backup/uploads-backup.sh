@@ -1,20 +1,38 @@
 #!/usr/bin/env bash
-# ─── QCart Uploads Backup ───────────────────────────────────────────────────
-# Run daily after db-backup:  0 4 * * * /opt/qcart/infra/backup/uploads-backup.sh
-# Restore:    tar xzf <file.tar.gz> -C /
-# ─────────────────────────────────────────────────────────────────────────────
+# ─── Qlisted uploads backup — menu/room images ───────────────────────────────
+# Install: copy to /usr/local/bin/qlisted-uploads-backup.sh (chmod +x), cron:
+#   45 3 * * * /usr/local/bin/qlisted-uploads-backup.sh >> /var/log/qlisted-uploads-backup.log 2>&1
+# Restore: docker run --rm -v qcart-prod_qcart_uploads:/d -v <dir>:/b alpine:3 \
+#            sh -c 'tar xzf /b/<file.tar.gz> -C /d'
+#
+# The previous version of this script could never have worked:
+#   tar czf "$F" -C /opt/qcart/uploads/
+# has no path operand after -C, so tar had nothing to archive, and uploads do
+# not live on the host filesystem at all — they are in the Docker named volume
+# qcart_uploads, mounted at /app/uploads inside the API container. It was also
+# never installed or cronned, so guest-visible images had NO backup of any kind.
 set -euo pipefail
 
-BACKUP_DIR="/opt/backups/uploads"
-RETENTION_DAYS=30
-DATE=$(date +%Y-%m-%d)
+VOLUME=${QLISTED_UPLOADS_VOLUME:-qcart-prod_qcart_uploads}
+DEST=${QLISTED_UPLOADS_BACKUP_DIR:-/var/backups/qlisted-uploads}
+RETAIN_DAYS=${RETAIN_DAYS:-30}
 
-mkdir -p "${BACKUP_DIR}"
+mkdir -p "$DEST"
+STAMP=$(date +%Y%m%d-%H%M%S)
+FILE="$DEST/qlisted-uploads-$STAMP.tar.gz"
 
-echo "[$(date)] Starting uploads backup…"
-tar czf "${BACKUP_DIR}/uploads_${DATE}.tar.gz" -C /opt/qcart/uploads/
-echo "[$(date)] Uploads backup complete: $(du -h "${BACKUP_DIR}/uploads_${DATE}.tar.gz" | cut -f1)"
+# Archive the volume contents via a throwaway container; "." so an empty volume
+# still produces a valid (if tiny) archive instead of failing the whole run.
+docker run --rm -v "$VOLUME":/data:ro -v "$DEST":/backup alpine:3 \
+  tar czf "/backup/$(basename "$FILE")" -C /data .
 
-# Rotate
-find "${BACKUP_DIR}" -name "uploads_*.tar.gz" -mtime +${RETENTION_DAYS} -delete
-echo "[$(date)] Retention: keeping last ${RETENTION_DAYS} days"
+# Integrity: the gzip stream must be valid and the archive must be listable.
+if ! gzip -t "$FILE" 2>/dev/null; then
+  echo "[qlisted-uploads] FAILED gzip integrity: $FILE" >&2
+  rm -f "$FILE"; exit 1
+fi
+COUNT=$(tar tzf "$FILE" 2>/dev/null | grep -vc '/$' || true)
+SIZE=$(stat -c%s "$FILE")
+
+find "$DEST" -name 'qlisted-uploads-*.tar.gz' -mtime +"$RETAIN_DAYS" -delete
+echo "[qlisted-uploads] ok $(date -Is) $FILE ($SIZE bytes, $COUNT files)"

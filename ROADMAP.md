@@ -1,101 +1,119 @@
-# QCart Roadmap
+# Qlisted Roadmap
 
-> Last updated: 2026-06-17
+> Last verified: **2026-10-10** against commit `34fb3d7`, live in production.
+>
+> The previous version of this file was dated 2026-06-17 and listed as "not
+> built" nine things that were already shipping — modifiers UI, reservations,
+> waitlist, analytics, loyalty, promotions, the kitchen display and push
+> notifications. Planning against it would have funded roughly eight weeks of
+> work that was already in production. Every status below was measured, not
+> remembered. If you are about to plan from this file, re-measure first.
+>
+> The companion document `docs/MISSING-PHASES.md` holds the gap register with
+> metrics and the execution order. **That is the planning document.** This file
+> is the state-of-the-world summary.
 
-## Current State
+---
 
-QCart is a production-deployed QR ordering platform for hospitality. Core features are built and live at `qlisted.com`.
+## Current state (measured)
 
-| Capability | Status |
+| Area | Metric | Value |
+|---|---|---|
+| Interface locales | at exact key parity | **11** |
+| Translation keys | `en.ts`, source of `TranslationKey` | 1,137 |
+| Schema | tables | 45 |
+| API | server route modules | 42 |
+| Microservices | gateway + 6 services, all bundle and load | 7 |
+| Tests | unit/integration files | 51 |
+| Tests | E2E specs (Playwright) | 13 |
+| CI | green jobs | 7 |
+| Security | prod CVEs — frontend / server / microservices | 0 / 0 / 22 moderate |
+| Backups | DB + uploads, nightly, integrity-checked | 2 jobs |
+| Backups | restore drill, quarterly, row-count verified | passing |
+
+### Platform
+
+React 19 SPA (Vite, Tailwind v4, react-router v7) · Hono + Drizzle + Postgres 16
+· Redis · Docker Compose on a shared VPS behind one Caddy · Expo/React Native
+mobile app · OpenAI Realtime (WebRTC) for the voice portal.
+
+**Two backends run at once.** The `microservices/` stack is production for the
+revenue path — Caddy routes orders, order-status, payment intents, the Stripe
+webhook, auth and the public menu to `qlisted-gateway`. Everything else falls
+through to the monolith (`server/`). Treat both as live.
+
+---
+
+## Shipped and verified in production
+
+Verified end-to-end on real production traffic, not merely present in the code:
+
+| Capability | Evidence |
 |---|---|
-| React 19 SPA + Vite 8 + Tailwind v4 + react-router v7 | ✅ |
-| Hono backend + Drizzle ORM + PostgreSQL 16 | ✅ |
-| JWT auth with bcryptjs + role guards (super_admin, admin, waiter, kitchen, cashier) | ✅ |
-| Multi-tenant (tenant-scoped `/api/r/:slug` routes) | ✅ |
-| Stripe Elements (in-person) + Payment Links (remote) | ✅ |
-| SSE real-time order updates with 30s polling fallback | ✅ |
-| Menu CRUD (categories, items, modifiers as JSON) | ✅ |
-| Table management with QR code generation | ✅ |
-| Order lifecycle (pending → preparing → ready → delivered) | ✅ |
-| Staff roles (waiter panel, kitchen display, cashier POS) | ✅ |
-| Super admin panel (cross-tenant management) | ✅ |
-| Image uploads (local + S3/R2) | ✅ |
-| Resend email integration | ✅ |
-| Rate limiting (3 tiers: auth, public, general) | ✅ |
-| PWA with service worker | ✅ |
-| i18n (10 languages) | ✅ |
-| Dark mode | ✅ |
-| CI/CD (GitHub Actions → Docker → VPS) | ✅ |
-| Sentry error monitoring | ✅ |
-| Pino structured logging | ✅ |
-| Zod validation (frontend + server) | ✅ |
-| 13 E2E test suites (Playwright) | ✅ |
+| Multi-tenant QR ordering (`/api/r/:slug`) | order via gateway → `201` |
+| QR scan → menu | `302` → `/r/:slug/table/:token/menu` |
+| Guest card payment | real `pi_…` client secret from Stripe |
+| Guest cash payment | public cash-request endpoint reachable |
+| Image upload + serve | 2 MB upload, fetched back over HTTPS |
+| Signup / login / refresh | client signup `201`, login OK |
+| Live order updates (SSE) | `streamSSE`; previously 500'd on every request |
+| **Language Bridge** | order + item notes translated on the write path, original preserved |
+| Menu, categories, modifiers, tax | `modifier_groups` / `modifier_options` / `tax_categories` |
+| Tables with unique editable names | next-free-number allocation |
+| Hotel: rooms, bookings, folios, check-in/out | `rooms`, `room_bookings`, `folio_items` |
+| Staff: waiter, kitchen display, cashier, scheduling | `shifts`, `time_entries` |
+| Receipts, invoices, exports, reports | `ReceiptsPage`, `routes/invoices.ts` |
+| Loyalty, promos, gift cards | 6 tables |
+| Reservations, waitlist | `reservations`, `waitlist_entries` |
+| Inventory, suppliers, procurement | `stock_items`, `purchase_orders` |
+| Super admin on `central.qlisted.com` | cross-tenant, assignable super admins |
+| Push (web VAPID + Expo) | `push_subscriptions`, `expo_push_tokens` |
+| Nightly backups + quarterly restore drill | see §Current state |
 
 ---
 
-## Phase 1 — Feature Completion (now)
+## Phase A — Close the operational gaps (now)
 
-Complete the remaining feature gaps that have skeletons but lack full implementation.
+Hours, not weeks, and all of it is risk reduction rather than features. Detail
+and metrics in `docs/MISSING-PHASES.md`.
 
-| Item | Effort | Notes |
-|------|--------|-------|
-| **Promotions & loyalty** | 3–5 days | Promo code validation endpoint exists (`/promo/validate`) but backend logic is minimal. Need: discount rules, buy-one-get-one, percentage off, loyalty points, points-to-currency conversion. |
-| **Modifiers management UI** | 2–3 days | Modifiers stored as JSON on `menu_items`. Need: dedicated admin CRUD UI for modifier groups/options, reusability across items, upcharge support. |
-| **Branding / white-label polish** | 2 days | Restaurant settings exist (logo, colors). Need: preview in customer-facing pages, email template branding, receipt branding. |
-| **Mobile app (Expo/React Native)** | 1–2 weeks | Skeleton exists. Need: deep linking (scan QR → open app), offline sync (IndexedDB queue → replay on reconnect), push notifications. |
+| Item | Status |
+|---|---|
+| Patch the `nodemailer` High CVE in the notifications service | **done 2026-10-10** |
+| Back up uploads (menu/room images had no backup at all) | **done 2026-10-10** |
+| Prove a restore works — row-count drill vs prod | **done 2026-10-10, passing** |
+| Disk + backup health check that can actually fail | **done 2026-10-10** |
+| Off-site backup replication | **blocked** — needs a B2/R2 bucket |
+| Encrypt backups at rest | **blocked** — needs a key-custody decision |
+| `VPS_SSH_KEY` + `VITE_STRIPE_KEY` Actions secrets | **blocked** — until set, deploys are manual |
+| OpenAI billing | **blocked** — the Language Bridge cannot translate without credits |
+| Uptime monitoring + log aggregation | not started; configs written, never deployed |
 
----
+## Phase B — Product depth
 
-## Phase 2 — Infrastructure Hardening (weeks 1–3)
+| Item | Notes |
+|---|---|
+| Extend translation past order notes | Needs a guest-notes field on room-service orders first |
+| Native review of 10 non-English locales | Key parity is proven; copy *quality* is not |
+| Ship the mobile app to the stores | Code exists (deep links, offline sync, push); never submitted |
+| Finish self-serve onboarding end-to-end | The `toSlug` fix removed the worst failure mode |
+| WhatsApp routing · GMT Token pricing | Carried over, never started |
 
-Detailed implementation timeline in `infra/production-readiness.md`.
+## Phase C — Scale (deliberately not scheduled)
 
-| Week | Item | Details |
-|------|------|---------|
-| 1 | **Cloudflare DNS + proxying** | Point `qlisted.com` → Cloudflare for DDoS protection, SSL, edge caching. Page rules for `/assets/*` (1yr), `/uploads/*` (7d), `/api/*` (bypass). |
-| 1 | **Uptime monitoring** | Better Stack (free tier, 30s intervals) + Netdata on VPS for CPU/memory/disk. |
-| 2 | **Automated backups** | Cron: daily `pg_dump` → compress → encrypt (`age`) → rotate 30 days. Off-site replication via `rclone` to Backblaze B2. Test restore procedure. |
-| 2 | **Log aggregation** | Loki + Promtail + Grafana (self-hosted) or Better Stack logs (10 GB/mo free). Dashboards for request rate, error rate, p50/p95 latency. |
-| 3 | **PgBouncer** | Connection pooling (config already in `infra/pgbouncer/`). Deploy alongside Postgres. |
-| 3 | **Redis Sentinel** | High-availability for Redis (used by rate limiter, SSE fallback, session cache). |
+PgBouncer, Redis Sentinel, a CDN for `/uploads/`, multi-instance API, managed
+Postgres, Cloudflare in front, Kubernetes.
 
----
-
-## Phase 3 — Scaling (months 2–6)
-
-| Item | Timeline | Details |
-|------|----------|---------|
-| **Multi-instance API** | Month 2 | Second VPS as API worker. Docker Compose overlay (`docker-compose.worker.yml`). Redis pub/sub for cross-instance SSE (EventEmitter → Redis adapter). Caddy reverse proxy load-balances to both instances. No session affinity needed (JWT-based). |
-| **Managed Postgres** | Months 3–6 | Migrate from Docker Postgres to Aiven / DigitalOcean Managed DB. Automatic backups, point-in-time recovery, read replicas, auto-scaling storage. Only `.env.prod` `DATABASE_URL` changes. |
-| **CDN + image optimization** | Month 3 | Offload `/uploads/` to Cloudflare R2 or S3 with signed URLs. Image transformation (resize/webp) at edge via Cloudflare Workers. |
-
----
-
-## Phase 4 — Advanced Features (months 3–9)
-
-| Feature | Effort | Description |
-|---------|--------|-------------|
-| **Kitchen Display System (KDS)** | 2–3 weeks | Dedicated kitchen screen: order queue grouped by time, prep timer, mark-as-done, sound alerts. Auto-refresh via SSE. |
-| **Reservations** | 2 weeks | Table booking: date/time picker, party size, deposit via Stripe, calendar view for admin, SMS/email reminders. |
-| **Waitlist** | 1 week | Digital waitlist: customer joins via QR, estimated wait time, SMS notification when table ready, auto-expire. |
-| **Analytics dashboard** | 2 weeks | Server-side aggregations: sales trends, popular items, peak hours, table turnover, staff performance. Export to CSV/PDF. |
-| **Multi-language menu** | 1 week | Per-item translations stored in JSON column. Customer picks language at table landing page. |
-| **Push notifications** | 1 week | Web push (VAPID) for order status — already depends on `web-push`. Browser permission flow + notification templates. |
+Configs for several of these are already written in `infra/` and were never
+deployed. **That is the correct state.** Each one solves a problem this
+deployment does not have yet — the uploads volume is 2.4 MB, there is one API
+container, and the host already runs 174 containers at 78% disk. Adding
+machinery there adds failure modes, not capacity. Revisit when a measured
+limit is actually hit, not on a calendar.
 
 ---
 
-## Phase 5 — Platform Maturity (6–12 months)
+## Conventions
 
-| Item | Description |
-|------|-------------|
-| **Kubernetes** | Only if >100 concurrent restaurants or cross-region. 3-node cluster, Horizontal Pod Autoscaler, service mesh (Linkerd) for observability. |
-| **Stripe Connect** | Marketplace model: platform fee + payout to restaurants. Onboarding flow, automatic transfers, dispute handling. |
-| **POS integration** | API/webhook integrations with popular POS systems (Toast, Square, Clover). |
-| **Self-serve onboarding** | Restaurant owners sign up, configure menu, print QR codes — all without contacting admin. |
-| **Developer platform** | Public API docs (OpenAPI/Swagger), webhook event types, rate limit headers, API keys for integrations. |
-
----
-
-## How to Contribute
-
-See `AGENTS.md` for development conventions and `DEPLOYMENT.md` for infrastructure details.
+`AGENTS.md` for development conventions · `DEPLOYMENT.md` for infrastructure ·
+`docs/MISSING-PHASES.md` for the gap register and what to do next.
