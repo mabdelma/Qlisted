@@ -66,11 +66,25 @@ fund roughly 8 weeks of work that is already in production.
 |---|---:|---:|---:|---:|
 | root (frontend) | 0 | 0 | 0 | **0** |
 | `server/` | 0 | 0 | 0 | **0** |
-| `microservices/` | 0 | **1** | 22 | **23** |
+| `microservices/` | 0 | 0 | 22 | **22** |
+| `mobile/` | **1** | **36** | 19 | **56** |
 
-The microservices total breaks down as **20 `@opentelemetry/*`** (transitive via
-Sentry, telemetry-only, off the request path) + `@prisma/instrumentation` +
-`@sentry/node` + **`nodemailer` — the one High**. See G-02.
+The microservices total is **20 `@opentelemetry/*`** (transitive via Sentry,
+telemetry-only, off the request path) + `@prisma/instrumentation` +
+`@sentry/node`. The `nodemailer` High that was here is **fixed** — see G-02.
+
+`mobile/` is the newly-found one (G-22) and needs care in interpretation:
+`--omit=dev` is a poor proxy for "ships to users" in an Expo app, because Expo
+and React Native declare their **build toolchain as runtime dependencies**.
+34 of the 37 high/critical are build-time — metro, jest, babel, `@expo/cli`,
+`braces`, `micromatch`, `tar` (the one Critical). Exposure is a developer or CI
+machine during a build, not an end user's phone. The two that are **not**
+explicable as build tooling are `expo` and `react-native` themselves.
+
+GitHub's Dependabot reports 127 across the repo (8 critical, 52 high). That
+number counts **dev dependencies across all four lockfiles**; it is not
+comparable to the production-only figures above and should not be quoted as
+production risk.
 
 ### Infrastructure (VPS, shared host)
 
@@ -115,13 +129,13 @@ Ordered by risk, not by phase. Each row carries the metric that proves it.
 
 ### Tier 1 — data loss and live vulnerabilities
 
-| ID | Gap | Evidence | Risk if ignored | Effort |
+| ID | Gap | Evidence | Risk if ignored | Status |
 |---|---|---|---|---|
-| **G-02** | `nodemailer` High CVE in the notifications service | `services/notifications/package.json` pins `^6.9.16`; installed 6.10.1; advisory `GHSA-mm7p-fcc7-pg87` + SMTP command injection via unsanitised `envelope.size`; fixed in ≥10.1.0. Root and `server/` were patched to 10.0.16 — the **separate microservices lockfile was missed** | SMTP command injection on the service that sends password resets and booking confirmations | 1 h |
-| **G-03** | **Uploads are not backed up at all** | 0 uploads cron entries; `infra/backup/uploads-backup.sh` exists but was never installed. 12 files / 2.4 MB live only in the `qcart_uploads` Docker volume | Volume loss = every tenant's menu and room photos gone permanently. Images are the feature you asked for three separate times | 1 h |
-| **G-04** | No restore has ever been proven | 12 green backup runs, **0 restore drills** | An untested backup is a hope, not a backup. A corrupt-but-gzip-valid dump passes the current integrity check | 2 h |
-| **G-05** | Backups sit on the same disk as the database | `/var/backups/qlisted` on `/dev/sda1`, same volume as Postgres; `rclone` absent | Single disk failure loses the data *and* the backups. Disk is already 78% full | 2 h + your B2/R2 account |
-| **G-06** | Backups are unencrypted | `age` not installed; plain gzip | Dumps contain customer PII and bcrypt hashes. Anything that reads the disk reads the database | 1 h |
+| **G-02** | `nodemailer` High CVE in the notifications service | `services/notifications/package.json` pinned `^6.9.16` (installed 6.10.1); `GHSA-mm7p-fcc7-pg87` + SMTP command injection via unsanitised `envelope.size`; fixed in ≥10.1.0. Root and `server/` were patched to 10.0.16 in `34fb3d7` — the **separate microservices lockfile was missed** | SMTP command injection on the service that sends password resets and booking confirmations | **✅ DONE** — bumped to `^10.1.0`, microservices high count 1 → 0, all 7 bundles load, image `notifications:a1916c3` live, `health=200` |
+| **G-03** | **Uploads were not backed up at all** | 0 uploads cron entries. `infra/backup/uploads-backup.sh` **could never have worked**: `tar czf "$F" -C /opt/qcart/uploads/` has no path operand, and uploads are in the `qcart_uploads` Docker volume, not on the host FS. Never installed either | Volume loss = every tenant's menu and room photos gone permanently | **✅ DONE** — rewritten to archive the volume, integrity-checked; first run 2,489,671 bytes / **12 files**, matching the volume exactly. Cron 03:45 |
+| **G-04** | No restore had ever been proven | 12 green backup runs, **0 restore drills** | An untested backup is a hope. A dump truncated mid-`COPY` is still valid gzip and passes the daily check | **✅ DONE** — `restore-drill.sh` restores into a throwaway DB under `ON_ERROR_STOP=1` and compares 9 counters vs prod. First run identical on all 9: `5\|6\|15\|2\|0\|8\|5\|29\|45`. Cron quarterly |
+| **G-05** | Backups sit on the same disk as the database | `/var/backups/qlisted` on `/dev/sda1`, same volume as Postgres; `rclone` absent | Single disk failure loses the data *and* the backups. Disk already 78% full | **BLOCKED** — needs a B2/R2 bucket + key |
+| **G-06** | Backups are unencrypted | `age` not installed; plain gzip | Dumps contain customer PII and bcrypt hashes. Anything that reads the disk reads the database | **BLOCKED** — needs a key-custody decision. Generating a key unilaterally would risk making backups permanently unrecoverable if the private key is lost |
 
 ### Tier 2 — operability
 
@@ -129,7 +143,7 @@ Ordered by risk, not by phase. Each row carries the metric that proves it.
 |---|---|---|---|---|
 | **G-07** | No uptime monitoring | 0 monitoring containers; no external checker | You find out the site is down because a customer tells you | 1 h |
 | **G-08** | No log aggregation / dashboards | `infra/monitoring/docker-compose.yml`, `promtail-config.yml`, `loki.yml` all written, **never deployed** (0 containers) | Debugging prod = `docker logs` by hand across 9 containers. No error-rate or latency signal at all | 1 d |
-| **G-09** | No disk-space alerting | 78% used, 44 G free, 174 containers on a shared host | Disk-full takes down all ~10 apps, not just QListed. This is the single most likely outage cause right now | 30 min |
+| **G-09** | No disk-space or backup-freshness check | 78% used, 44 G free, 174 containers on a shared host | Disk-full takes down all ~10 apps, not just QListed. The single most likely outage cause right now | **✅ DONE** — `backup-health.sh` checks disk + freshness/size/validity of both archives. Verified it *actually trips* on a disk threshold, on staleness and on a missing dir. Cron 04:30. Still needs a sink (G-07) to page anyone |
 | **G-10** | Deploy is not self-service | Depends on L-01 | Every deploy requires me. That is a bus factor of one | — (see L-01) |
 
 ### Tier 3 — scale (not yet needed, do not pre-build)
@@ -150,7 +164,8 @@ Ordered by risk, not by phase. Each row carries the metric that proves it.
 | **G-01** | **`ROADMAP.md` is materially wrong** | §0.1 — 9 measured contradictions | Prerequisite for any planning. Cheapest high-value item here |
 | **G-17** | Language Bridge cannot actually translate | OpenAI returns `429 credit_balance_exhausted` | **Blocked on you** — the headline feature is inert until billing is topped up |
 | **G-18** | Translation covers order + item notes only | `translateNote` called from exactly 2 sites, both order creation | Marketing copy was narrowed to match in all 11 locales. Extending to front desk/housekeeping is net-new work (and needs L-09) |
-| **G-19** | Mobile app unreleased | `deepLink.ts`, `useOfflineSync.ts`, `pushNotifications.ts` all exist; CI bundles it | Never submitted to either store. No `eas submit` has run |
+| **G-19** | Mobile app unreleased | `deepLink.ts`, `useOfflineSync.ts`, `pushNotifications.ts` all exist; CI bundles it | Never submitted to either store. No `eas submit` has run. Gated on G-22 |
+| **G-22** | **Mobile is 5 Expo SDK versions behind** | pinned `expo ~52.0.0`, `react-native 0.76.9`, `react 18.3.1`; current Expo is **57.0.27**. 56 prod advisories (1 critical `tar`, 36 high) — 34 are build toolchain, but `expo` and `react-native` themselves are two of them | **This blocks store submission**, so it blocks G-19. Apple/Google require recent SDKs and EAS drops old ones. A 52 → 57 jump crosses RN 0.76 → 0.8x and React 18 → 19: breaking changes, not an `audit fix`. Size it as **3–5 days** with a real device test pass, not an afternoon |
 | **G-20** | No public API docs | `routes/docs.ts` exists; no OpenAPI spec | Phase 5 "developer platform" |
 | **G-21** | Self-serve onboarding incomplete | `routes/onboarding.ts` + `src/features/onboarding/` exist | The `toSlug` fix removed the worst failure; full flow unverified end-to-end |
 
@@ -169,18 +184,20 @@ Ordered by risk, not by phase. Each row carries the metric that proves it.
 
 ## 5. Target metrics (definition of done)
 
-| Metric | Today | Target |
-|---|---:|---:|
-| Prod CVEs — high/critical, all workspaces | 1 high | **0** |
-| Workspaces with 0 prod CVEs | 2 of 3 | 3 of 3 |
-| Backup jobs covering DB **and** uploads | 1 of 2 | **2 of 2** |
-| Restore drills passed | 0 | **≥1, then quarterly** |
-| Off-site backup copies | 0 | ≥1 |
-| Encrypted backups | 0% | 100% |
-| Mean time to detect an outage | unbounded | < 5 min |
-| Deploys needing me | 100% | 0% |
-| Locales out of key parity | 0 | 0 (hold) |
-| `ROADMAP.md` measured contradictions | 9 | **0** |
+| Metric | At start of this pass | Now | Target |
+|---|---:|---:|---:|
+| Prod high/critical CVEs — server-side workspaces | 1 high | **0** ✅ | 0 |
+| Prod high/critical CVEs — `mobile/` | 37 | 37 | 0 (via G-22) |
+| Backup jobs covering DB **and** uploads | 1 of 2 | **2 of 2** ✅ | 2 of 2 |
+| Restore drills passed | 0 | **1, cronned quarterly** ✅ | ≥1/quarter |
+| Checks that can fail loudly | 0 | **1 (disk + both archives)** ✅ | — |
+| `ROADMAP.md` measured contradictions | 9 | **0** ✅ | 0 |
+| Off-site backup copies | 0 | 0 | ≥1 |
+| Encrypted backups | 0% | 0% | 100% |
+| Mean time to detect an outage | unbounded | unbounded | < 5 min |
+| Deploys needing me | 100% | 100% | 0% |
+| Locales out of key parity | 0 | 0 | 0 (hold) |
+| Expo SDK versions behind | 5 | 5 | 0 |
 
 ---
 
@@ -189,14 +206,29 @@ Ordered by risk, not by phase. Each row carries the metric that proves it.
 Tier 1 first — those are live vulnerabilities and unrecoverable data loss, and
 all of them are hours, not weeks.
 
-1. **G-02** nodemailer High → patch, rebuild notifications, verify mail sends
-2. **G-03** uploads backup → install the script, cron it, prove an artifact exists
-3. **G-04** restore drill → restore the latest dump into a scratch DB, prove row counts
-4. **G-06** encryption → `age` on both backup jobs
-5. **G-09** disk alerting → cheapest outage insurance on the box
-6. **G-01** rewrite `ROADMAP.md` against measured reality
-7. **G-07 / G-08** uptime + log aggregation
-8. **G-05** off-site — the moment you provide a bucket
+### Applied 2026-10-10 (commit `a1916c3`)
+
+1. ✅ **G-02** nodemailer High → patched, notifications rebuilt and live, `health=200`
+2. ✅ **G-03** uploads backup → rewritten (the old script was broken), installed, cronned, artifact proven
+3. ✅ **G-04** restore drill → passed on all 9 counters, cronned quarterly
+4. ✅ **G-09** disk + backup health check → installed, cronned, failure modes verified
+5. ✅ **G-01** `ROADMAP.md` rewritten against measured reality
+
+Cron on the VPS is now `03:30` db → `03:45` uploads → `04:30` health, plus the
+drill quarterly.
+
+### Next, in this order
+
+6. **G-05** off-site replication — the moment a bucket exists. This is the
+   largest remaining single point of failure: backups are on the same disk as
+   the data they protect.
+7. **G-06** encryption — needs the key-custody decision first.
+8. **G-07** uptime monitoring — gives G-09's exit code somewhere to go.
+9. **G-22** Expo SDK 52 → 57, which unblocks **G-19** (shipping the app).
+10. **G-08** log aggregation — **deliberately last.** Loki/Promtail/Grafana is
+    3 more containers plus log storage on a host at 78% disk with 44 G free.
+    Doing it now trades a monitoring gap for a disk-full outage across all ~10
+    apps. It needs a disk budget decided first, not just a `compose up`.
 
 Tier 3 is deliberately **not** scheduled. PgBouncer, Sentinel, Kubernetes and a
 CDN for 2.4 MB of images are all solutions to problems this deployment does not
